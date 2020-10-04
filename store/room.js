@@ -1,9 +1,11 @@
 export const state = () => ({
   room: [],
+  userOrder: 0,
 })
 
 export const getters = {
   room: state => state.room,
+  userOrder: state => state.userOrder,
 }
 
 export const mutations = {
@@ -37,12 +39,21 @@ export const mutations = {
   clear(state) {
     state.room = []
   },
+
+  getUser(state, { user }) {
+    state.room.push({ ...user })
+  },
+
+  getUserOrder(state, { userOrder }) {
+    state.userOrder = userOrder
+  },
 }
 
 export const actions = {
   setUser({ commit }, { user, roomId }) {
     const room = {
-      // color: 'red',
+      totalScore: 0,
+      score: [],
       order: 0,
       stars: user.stars,
       id: user.uid,
@@ -60,11 +71,40 @@ export const actions = {
 
     commit('add', { room })
   },
+  // setScore({}, { userId, roomId }) {
+  //   this.$firestore
+  //     .collection('rooms')
+  //     .doc(roomId)
+  //     .collection('room')
+  //     .doc(userId)
+  //     .update({
+  //       score: [],
+  //       totalScore: 0,
+  //     })
+  // },
+  getUser({ commit }, { roomId }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .collection('room')
+      .orderBy('order')
+      .get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data()
+          const user = {
+            ...data,
+          }
+          commit('getUser', { user })
+        })
+      })
+  },
   subscribe({ commit }, { roomId }) {
     return this.$firestore
       .collection('rooms')
       .doc(roomId)
       .collection('room')
+      .orderBy('order', 'asc')
       .onSnapshot(roomSnapshot => {
         roomSnapshot.docChanges().forEach(snapshot => {
           const docData = snapshot.doc.data()
@@ -89,6 +129,7 @@ export const actions = {
         })
       })
   },
+
   start({ redirect }, { roomId }) {
     return this.$firestore
       .collection('rooms')
@@ -116,13 +157,14 @@ export const actions = {
         gameStart: false,
       })
   },
-  clear({ commit }, { userId, roomId }) {
-    this.$firestore
-      .collection('rooms')
-      .doc(roomId)
-      .collection('room')
-      .doc(userId)
-      .delete()
+  clear({ commit }) {
+    // clear({ commit }, { userId, roomId }) {
+    // this.$firestore
+    //   .collection('rooms')
+    //   .doc(roomId)
+    //   .collection('room')
+    //   .doc(userId)
+    //   .delete()
     commit('clear')
   },
 
@@ -149,6 +191,46 @@ export const actions = {
       .doc(roomId)
       .update({
         gameStart: true,
+      })
+  },
+
+  // スコアを記録
+  inputScore({}, { totalScore, score, userId, roomId }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .collection('room')
+      .doc(userId)
+      .update({
+        score,
+        totalScore,
+      })
+  },
+
+  // 現在、誰の順番かを取得
+  getUserOrder({ commit }, { roomId }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .onSnapshot(
+        {
+          includeMetadataChanges: true,
+        },
+        doc => {
+          const docData = doc.data()
+          const userOrder = docData.userOrder
+          commit('getUserOrder', { userOrder })
+        },
+      )
+  },
+
+  // 順番を切り替える
+  changeUserOrder({}, { roomId, order }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .update({
+        userOrder: order,
       })
   },
 }

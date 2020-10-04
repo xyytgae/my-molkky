@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-app>
-      <v-card v-for="room in rooms" :key="room.id">
+      <!-- <v-card v-for="room in rooms" :key="room.id">
         <v-container>
           <v-row>
             <img :src="room.topImageUrl" class="room-icon" />
@@ -14,21 +14,9 @@
             <v-card-actions>
               <v-btn color="primary" dark>入室</v-btn>
             </v-card-actions>
-
-            <!-- <v-card-text>
-              {{
-                `${
-                  room.createdAt.toDate().getMonth() + 1
-                }/${room.createdAt.toDate().getDate()}`
-              }}
-              {{ room.password }}
-            </v-card-text>
-            <v-card-text>
-              {{ room.password }}
-            </v-card-text> -->
           </v-row>
         </v-container>
-      </v-card>
+      </v-card> -->
 
       <v-container>
         <v-row v-for="room in rooms" :key="room.id" dense>
@@ -45,7 +33,7 @@
 
                 <v-card-actions>
                   <v-btn color="info" @click="moveToRoomPage(room.id)"
-                    >登録</v-btn
+                    >入室</v-btn
                   >
                 </v-card-actions>
               </div>
@@ -53,15 +41,6 @@
           </v-col>
         </v-row>
       </v-container>
-
-      <!-- <div>
-      <div v-for="room in rooms" :key="room.id">
-        <div>
-          <img :src="room.topImageUrl" />
-          <p>{{ room.name }}</p>
-        </div>
-      </div>
-    </div> -->
 
       <v-btn color="blue" fixed bottom left dark fab>
         <v-icon>mdi-home</v-icon>
@@ -282,6 +261,8 @@ export default {
         createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
+        userOrder: 0,
+        firstHalf: false,
       }
 
       try {

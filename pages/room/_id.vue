@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>部屋だよ</h1>
+    <h1>部屋</h1>
     <v-app>
       <v-container>
         <v-card class="card">
@@ -32,10 +32,10 @@
                     <v-icon color="#FFA000">mdi-star</v-icon>
                     <span> ×{{ user.stars }}） </span>
                   </v-card-title>
-
+                  <!-- 
                   <div v-for="item in orderedUsers" :key="item">
                     {{ item }}
-                  </div>
+                  </div> -->
                 </div>
               </v-card>
             </v-col>
@@ -68,28 +68,14 @@ export default {
   middleware: ['checkAuth'],
   async asyncData({ store, params }) {
     const roomId = params.id
-    // console.log(roomId)
     const unsubscribe = await store.dispatch('room/subscribe', { roomId })
-    console.log(unsubscribe)
-
     const unstart = await store.dispatch('room/start', { roomId })
-    console.log(unstart)
 
     return {
       unsubscribe,
       unstart,
     }
   },
-  // async asyncStart({ store, params }) {
-  //   const roomId = params.id
-  //   const unstart = await store.dispatch('room/start', { roomId })
-  //   console.log(unstart)
-
-  //   return {
-  //     unstart,
-  //   }
-  // },
-
   async created() {
     const user = await this.$user()
     // this.user = await this.$user()
@@ -102,8 +88,8 @@ export default {
     const user = await this.$user()
     const userId = user.uid
 
-    await this.$store.dispatch('room/clear', { userId, roomId: this.roomId })
-    this.unsubscribe()
+    // await this.$store.dispatch('room/clear', { userId, roomId: this.roomId })
+    // this.unsubscribe()
     this.unstart()
   },
   data() {
@@ -122,11 +108,6 @@ export default {
   computed: {
     ...mapGetters('room', ['room']),
   },
-
-  // async isStart() {
-  //   await this.$game()
-  // },
-
   methods: {
     chooseOrder(index) {
       this.$refs.order[index].click()
@@ -149,6 +130,8 @@ export default {
       })
     },
     async start() {
+      this.unsubscribe()
+      await this.$store.dispatch('room/clear')
       await this.$store.dispatch('room/startGame', { roomId: this.roomId })
       // this.$router.push('/game')
       // await this.$game()
