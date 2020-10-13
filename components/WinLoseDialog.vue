@@ -21,11 +21,11 @@
 
       <v-container class="container">
         <v-card-title class="headline" v-if="startSecondHalf">
-          <span>{{ winner[0].name }}</span>
-          <!-- <span v-for="w in winner" :key="w.id">
+          <!-- <span>{{ winner[0].name }}</span> -->
+          <span v-for="w in winner" :key="w.id">
             Winner :
             {{ w.name }}
-          </span> -->
+          </span>
         </v-card-title>
         <!-- <v-card-title class="headline" v-for="w in winner" :key="w.id">
           1st Half Winner :
@@ -96,15 +96,20 @@ export default {
     this.roomId = roomId
 
     if (this.startSecondHalf) {
-      await this.$store.dispatch('result/getWinner', { roomId })
+      await this.$store.dispatch('result/getWinner', { 
+        roomId,
+        userId: this.userId
+      })
     }
 
-    await this.$store.dispatch('result/getResult', { roomId })
-    // await this.$store.dispatch('result/getFiftyScorer', { roomId })
-    await this.$store.dispatch('result/recordData', {
-      userId: this.userId,
-      roomId,
+    await this.$store.dispatch('result/getResult', { 
+      roomId, 
+      userId: this.userId 
     })
+    
+    // await this.$store.dispatch('result/recordData', {
+    //   userId: this.userId,
+    // })
   },
   destroyed() {
     this.$store.dispatch('result/clear')
@@ -118,20 +123,27 @@ export default {
   },
   methods: {
     async startSecond() {
+      // this.$store.dispatch('game/clearUsers')
+
       await this.$store.dispatch('game/startSecondHalf', {
         roomId: this.roomId,
       })
     },
     async finish() {
+      this.$store.dispatch('game/clear')
+      
       await this.$store.dispatch('result/clearFirestore', {
         userId: this.userId,
-        roomId,
+        roomId: this.roomId
       })
 
       if (this.userId === this.roomId) {
+        await this.$store.dispatch('result/resetRoom', {
+          roomId: this.roomId,
+        })
         this.$router.push(`/room/${this.roomId}`)
       } else {
-        this.$router.push('/room')
+        this.$router.push('/rooms')
       }
     },
   },

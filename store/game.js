@@ -62,6 +62,10 @@ export const mutations = {
     }
   },
 
+  clearUsers(state) {
+    state.users = []
+  },
+
   showWLDialog(state) {
     state.showWLDialog = true
   },
@@ -74,6 +78,8 @@ export const mutations = {
     state.room = []
     state.users = []
     state.totalScore = 0
+    state.startSecondHalf = false
+    state.showWLDialog = false
   },
   startSecondHalf(state) {
     state.startSecondHalf = true
@@ -113,7 +119,7 @@ export const actions = {
   },
 
   // users配列（順番）をリアルタイムで監視する
-  subscribeRoom({ commit }, { roomId }) {
+  subscribeRoom({ dispatch, commit }, { roomId }) {
     return this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -126,22 +132,34 @@ export const actions = {
           const users = docData.users
           commit('addUser', { users })
 
-          if (docData.finishSecondHalf && docData.startSecondHalf) {
+          if(docData.finishSecondHalf) {
             commit('showWLDialog')
             return
-          }
-
-          if (docData.finishFirstHalf) {
-            commit('showWLDialog')
-          }
-          if (docData.startSecondHalf) {
-            // commit('clear')
-            // this.$router.push(`/game/${roomId}`)
+          } else if (docData.startSecondHalf) {
             commit('closeWLDialog')
             commit('startSecondHalf')
+            return;
+          } else if(docData.finishFirstHalf) {
+            commit('showWLDialog')
+            dispatch('clearUsers')
+            // commit('clearUsers')
+            return
           }
         },
       )
+  },
+
+  // 前半終了後に順番を表すusersをリセットする
+  clearUsers({ commit }, { roomId }) {
+    this.$firestore
+    .collection('rooms')
+    .doc(roomId)
+    .update({
+      users: []
+    })
+    .then(() => {
+      commit('clearUsers')
+    })
   },
 
   // game.vueが最初に表示される時に取得する
@@ -225,10 +243,12 @@ export const actions = {
           })
       })
       .then(() => {
-        dispatch('setTotalScore', { userId, roomId })
+        // dispatch('setTotalScore', { userId, roomId })
+        dispatch('eliminateUser', { userId, roomId })
       })
       .then(() => {
-        dispatch('eliminateUser', { userId, roomId })
+        dispatch('setTotalScore', { userId, roomId })
+        // dispatch('eliminateUser', { userId, roomId })
       })
   },
 
@@ -255,15 +275,6 @@ export const actions = {
           })
 
         // 50点に到達すれば、その時点でゲームを終了させる
-        // if (state.totalScore === 50 && state.startSecondHalf) {
-        //   this.$firestore
-        //     .collection('rooms')
-        //     .doc(roomId)
-        //     .update({
-        //       finishSecondHalf: true,
-        //       users: [],
-        //     })
-        // } else if (state.totalScore === 50) {
           if (state.totalScore === 50) {
             this.$firestore
               .collection('rooms')
@@ -272,10 +283,8 @@ export const actions = {
                 finishFirstHalf: true,
                 finishSecondHalf: true,
                 users: [],
-                // startFirstHalf: false,
               })
           }
-        // }
       })
   },
 
@@ -306,35 +315,16 @@ export const actions = {
             .doc(userId)
             .update({
               elimination: true,
-              // order: '失格',
             })
 
           return
+        } else {
+          // 失格じゃなければusersに追加し、ゲームを続行させる
+          dispatch('pushUser', { userId, roomId })
         }
-        // 失格じゃなければusersに追加し、ゲームを続行させる
-        dispatch('pushUser', { userId, roomId })
       })
       // 1人を除き、失格になればゲームを終了させる
       .then(() => {
-        // if (state.startSecondHalf) {
-        //   this.$firestore
-        //     .collection('rooms')
-        //     .doc(roomId)
-        //     .collection('room')
-        //     .where('elimination', '==', false)
-        //     .get()
-        //     .then(snapshot => {
-        //       if (snapshot.size === 1) {
-        //         this.$firestore
-        //           .collection('rooms')
-        //           .doc(roomId)
-        //           .update({
-        //             finishSecondHalf: true,
-        //             users: [],
-        //           })
-        //       }
-        //     })
-        // } else {
         this.$firestore
           .collection('rooms')
           .doc(roomId)
@@ -350,14 +340,13 @@ export const actions = {
                   finishFirstHalf: true,
                   finishSecondHalf: true,
                   users: [],
-                  // startFirstHalf: false,
                 })
             }
           })
-        // }
       })
   },
   startSecondHalf({ state, commit }, { roomId }) {
+    commit('clearUsers')
     this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -379,28 +368,32 @@ export const actions = {
               score: [],
               totalScore: 0,
               elimination: false,
-              finishSecondHalf: false,
             })
-          // .then(() => {
-          //   this.$firestore
-          //     .collection('rooms')
-          //     .doc(roomId)
-          //     .update({
-          //       users: state.users,
-          //       finishFirstHalf: false,
-          //     })
-          // })
-        })
-      })
-      .then(() => {
-        this.$firestore
-          .collection('rooms')
-          .doc(roomId)
-          .update({
-            startSecondHalf: true,
-            users: state.users,
-            finishFirstHalf: false,
+            // .then(() => {
+              //   this.$firestore
+              //     .collection('rooms')
+              //     .doc(roomId)
+              //     .update({
+                //       users: state.users,
+                //       finishFirstHalf: false,
+                //     })
+                // })
+              }) 
+            })
+            .then(() => {
+              this.$firestore
+              .collection('rooms')
+              .doc(roomId)
+              .update({
+                startSecondHalf: true,
+                finishSecondHalf: false,
+                users: state.users,
+            // finishFirstHalf: false,
           })
       })
   },
+
+  clear({ commit }) {
+    commit('clear')
+  }
 }

@@ -23,12 +23,13 @@ export const mutations = {
 }
 
 export const actions = {
-  getWinner({ commit }, { roomId }) {
+  getWinner({ dispatch, commit }, { roomId, userId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
       .collection('room')
       .orderBy('totalScore', 'desc')
+      .limit(1)
       .get()
       .then(snapshot => {
         snapshot.forEach(doc => {
@@ -37,10 +38,25 @@ export const actions = {
             ...docData,
           }
           commit('getWinner', { winner })
+
+          // 勝者のstarを1増やす
+          if(userId === winner.id) {
+            dispatch('incrementStars', { winner })
+          }
         })
       })
   },
-  getResult({ commit }, { roomId }) {
+
+  incrementStars({}, { winner }) {
+    this.$firestore
+      .collection('users')
+      .doc(winner.id)
+      .update({
+        stars: this.$firebase.firestore.FieldValue.increment(1)
+      })
+  },
+
+  getResult({ dispatch, commit }, { roomId, userId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -55,46 +71,10 @@ export const actions = {
           commit('getResult', { result })
         })
       })
-  },
-  // getFiftyScorer({ dispatch, commit }, { roomId }) {
-  //   this.$firestore
-  //     .collection('rooms')
-  //     .doc(roomId)
-  //     .collection('room')
-  //     .where('totalScore', '==', 50)
-  //     .get()
-  //     .then(snapshot => {
-  //       if (snapshot.size !== 1) {
-  //         dispatch('getEliminationFalse', { roomId })
-  //         return
-  //       }
-  //       snapshot.forEach(doc => {
-  //         const docData = doc.data()
-  //         const winner = {
-  //           ...docData,
-  //         }
-  //         commit('getWinner', { winner })
-  //       })
-  //     })
-  // },
-
-  // getEliminationFalse({ commit }, { roomId }) {
-  //   this.$firestore
-  //     .collection('rooms')
-  //     .doc(roomId)
-  //     .collection('room')
-  //     .where('elimination', '==', false)
-  //     .get()
-  //     .then(snapshot => {
-  //       snapshot.forEach(doc => {
-  //         const docData = doc.data()
-  //         const winner = {
-  //           ...docData,
-  //         }
-  //         commit('getWinner', { winner })
-  //       })
-  //     })
-  // },
+      .then(() => {
+        dispatch('recordData', { userId })
+      })
+  }, 
 
   recordData({ state }, { userId }) {
     const newRef = this.$firestore
@@ -113,7 +93,20 @@ export const actions = {
     })
   },
 
-  clearFirestore({}, { userId, roomId }) {
+  resetRoom({ }, { roomId }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .update({
+        startFirstHalf: false,
+        startSecondHalf: false,
+        finishFirstHalf: false,
+        finishSecondHalf: false,
+        users: []
+      })
+  },
+
+  clearFirestore({ }, { userId, roomId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
