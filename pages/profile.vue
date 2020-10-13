@@ -3,24 +3,8 @@
     <v-app-bar app color="primary" dark>
       <v-toolbar-title>プロフィール編集</v-toolbar-title>
     </v-app-bar>
-    <!-- <img class="image" :src="login_user.photoURL" rounded /> -->
-
-    <!-- <v-avatar class="image" size="180">
-      <img :src="login_user.photoURL" />
-    </v-avatar>-->
-
-    <!-- <div>
-      <v-icon color="">mdi-star</v-icon>
-      <span>×{{ form.stars.value }}</span>
-    </div> -->
 
     <form class="form" @submit.prevent="onSubmit">
-      <div class="star">
-        <span>
-          <v-icon color="#FFA000">mdi-star</v-icon>
-          ×{{ form.stars.value }}</span
-        >
-      </div>
       <div class="image">
         <template v-if="form.image.value">
           <img class="icon" :src="form.image.value" @click="selectImage" />
@@ -52,6 +36,16 @@
           counter="8"
           hide-details="auto"
         ></v-text-field>
+      </div>
+
+      <div class="star">
+        <!-- <span> -->
+        <!-- <v-icon color="#FFA000">mdi-star</v-icon> -->
+        <span style="color: #FFA000">
+          ★
+        </span>
+        ×{{ form.stars.value }}
+        <!-- </span> -->
       </div>
 
       <div class="button">

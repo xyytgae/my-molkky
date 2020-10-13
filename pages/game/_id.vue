@@ -1,61 +1,102 @@
 <template>
   <div>
-    <h1>開始{{ userOrder }}</h1>
-    <!-- <p></p> -->
-
     <v-app>
-      <div>
-        <v-btn color="primary" @click="finish">END</v-btn>
-        <v-btn @click="switchWinLose">WinLose</v-btn>
-      </div>
+      <RoomHeader>
+        <h1 v-if="startSecondHalf">2nd Half</h1>
+        <h1 v-else>1st Half</h1>
+      </RoomHeader>
 
       <WinLoseDialog
         v-if="showWLDialog"
         @close-dialog="closeDialog"
       ></WinLoseDialog>
 
-      <v-simple-table>
-        <thead>
-          <tr>
-            <th>NAME</th>
-            <th v-if="judge">1回</th>
-            <th v-else v-for="(n, index) in scoreLength" :key="index">
-              {{ n }}回
-            </th>
-            <th>合計</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in room" :key="user.id">
-            <th class="name" :class="[user.order === userOrder ? 'order' : '']">
-              <span class="icon">
-                <v-icon v-show="user.order === userOrder" color="red"
-                  >mdi-arrow-right-bold-circle</v-icon
-                >
-                <img class="image" :src="user.iconImageUrl" />
-              </span>
-              {{ user.name }}
-            </th>
+      <v-main>
+        <v-simple-table class="table">
+          <thead>
+            <tr>
+              <th>NAME</th>
+              <th v-if="judge">1回</th>
+              <!-- <th v-else v-for="(n, index) in scoreLength" :key="index">
+                {{ n }}回
+              </th> -->
+              <th v-else v-for="n in maxLength" :key="n">{{ n }}回</th>
+              <th class="border" :class="[{ isActive: !startSecondHalf }]">
+                1st Half
+              </th>
+              <th class="border" :class="[{ isActive: startSecondHalf }]">
+                2nd Half
+              </th>
+              <th class="border">合計</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="user in room" :key="user.id">
+              <th class="name" :class="[user.id === users[0] ? 'order' : '']">
+                <span class="icon">
+                  <v-icon v-show="user.id === users[0]" color="red"
+                    >mdi-arrow-right-bold-circle</v-icon
+                  >
+                  <v-icon v-if="user.elimination" color="red"
+                    >mdi-close-thick</v-icon
+                  >
+                  <img class="image" :src="user.iconImageUrl" />
+                </span>
+                {{ user.name }}
+              </th>
 
-            <td v-show="user.score.length < scoreLength">&nbsp;</td>
+              <td
+                v-show="!user.score.length < scoreLength"
+                v-for="(userScore, index) in user.score"
+                :key="index"
+              >
+                <span v-show="userScore === 0">
+                  <v-icon color="red">mdi-close-thick</v-icon>
+                </span>
+                <span v-show="userScore > 0">
+                  {{ userScore }}
+                </span>
+              </td>
 
-            <td
-              v-show="!user.score.length < scoreLength"
-              v-for="(score, index) in user.score"
-              :key="index"
-            >
-              <span v-show="score === 0">
-                <v-icon color="red">mdi-close-thick</v-icon>
-              </span>
-              <span v-show="score > 0">
-                {{ score }}
-              </span>
-            </td>
-            <!-- <td>0</td> -->
-            <td>{{ user.totalScore }} / 50</td>
-          </tr>
-        </tbody>
-      </v-simple-table>
+              <td
+                v-show="user.score.length < scoreLength"
+                v-for="n in spaceNumber(user.score.length)"
+                :key="`${user.id}-${n}`"
+              >
+                &nbsp;
+              </td>
+              <!-- <td v-show="user.score.length < scoreLength">
+                &nbsp;
+              </td> -->
+
+              <td class="border" v-if="startSecondHalf">
+                {{ user.firstHalfScore }} / 50
+              </td>
+              <td
+                class="border"
+                :class="[{ isActive: startSecondHalf }]"
+                v-if="startSecondHalf"
+              >
+                {{ user.totalScore }} / 50
+              </td>
+
+              <td
+                class="border"
+                :class="[{ isActive: !startSecondHalf }]"
+                v-if="!startSecondHalf"
+              >
+                {{ user.totalScore }} / 50
+              </td>
+              <td class="border" v-if="!startSecondHalf">
+                {{ user.firstHalfScore }} / 50
+              </td>
+              <td class="border">
+                {{ user.firstHalfScore + user.totalScore }}
+              </td>
+            </tr>
+          </tbody>
+        </v-simple-table>
+      </v-main>
 
       <v-dialog v-model="dialog" max-width="600px">
         <v-card color="#387d39" dark>
@@ -69,7 +110,6 @@
           </v-card-actions>
 
           <v-container class="container">
-            <!-- <v-row> -->
             <v-col cols="12" class="input">
               <div class="skittles">
                 <div
@@ -144,19 +184,18 @@
               </div>
             </v-col>
           </v-container>
-          <!-- </v-card-text> -->
-          <v-card-title class="headline"> 点数：{{ choice }} </v-card-title>
+          <v-card-title class="headline"> 点数：{{ score }} </v-card-title>
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn icon @click="show = !show">
+            <v-btn icon @click="howToUse = !howToUse">
               <v-icon>{{
-                show ? 'mdi-chevron-up' : 'mdi-chevron-down'
+                howToUse ? 'mdi-chevron-up' : 'mdi-chevron-down'
               }}</v-icon>
             </v-btn>
           </v-card-actions>
 
           <v-expand-transition>
-            <div v-show="show">
+            <div v-show="howToUse">
               <v-divider></v-divider>
               <v-card-text class="how-to-use">
                 <h3>＜使い方＞</h3>
@@ -168,12 +207,32 @@
           </v-expand-transition>
         </v-card>
       </v-dialog>
-      <h1>{{ selectScore }}</h1>
-      <div v-show="userOrder === order">
-        <v-btn color="primary" @click="switchDialog" rounded
-          >点数を入力する</v-btn
+
+      <!-- <v-btn
+        color="blue"
+        dark
+        :disabled="userId !== users[0]"
+        @click="switchDialog"
+        fab
+        absolute
+        right
+        bottom
+        class="button"
+      >
+        <v-icon>mdi-pencil</v-icon>
+      </v-btn> -->
+
+      <GameFooter>
+        <v-btn
+          color="blue"
+          dark
+          :disabled="userId !== users[0]"
+          @click="switchDialog"
+          fab
         >
-      </div>
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+      </GameFooter>
     </v-app>
   </div>
 </template>
@@ -181,38 +240,32 @@
 <script>
 import { mapGetters } from 'vuex'
 import WinLoseDialog from '../../components/WinLoseDialog'
+import RoomHeader from '../../components/RoomHeader'
+import GameFooter from '../../components/GameFooter'
 
 export default {
   components: {
     WinLoseDialog,
+    RoomHeader,
+    GameFooter,
   },
   async asyncData({ store, params }) {
     const roomId = params.id
-    // await store.dispatch('room/getUser', { roomId })
 
-    const unsubscribe = await store.dispatch('room/subscribe', { roomId })
-    const ungetUserOrder = await store.dispatch('room/getUserOrder', { roomId })
-    // const unstart = await store.dispatch('room/start', { roomId })
+    const unsubscribe = await store.dispatch('game/subscribe', { roomId })
+    const unsubscribeRoom = await store.dispatch('game/subscribeRoom', {
+      roomId,
+    })
     return {
       unsubscribe,
-      ungetUserOrder,
-      // unstart,
+      unsubscribeRoom,
     }
   },
   async created() {
     const user = await this.$user()
     const userId = user.uid
-    // this.order = user.order
+    this.userId = userId
     this.roomId = this.$route.params.id
-
-    this.room.forEach((r) => {
-      if (r.id === userId) {
-        this.order = r.order
-      }
-    })
-
-    // await this.$store.dispatch('room/getUser', { roomId: this.roomId })
-    // await this.$store.dispatch('room/setScore', { userId, roomId: this.roomId })
   },
   async destroyed() {
     const user = await this.$user()
@@ -220,27 +273,19 @@ export default {
 
     // await this.$store.dispatch('room/clear', { userId, roomId: this.roomId })
     this.unsubscribe()
-    // this.unstart()
   },
   data() {
     return {
-      showWLDialog: false,
-      order: 0,
-      judge: true,
-      show: false,
-      unsubscribe: null,
-      ungetUserOrder: null,
-      // unstart: null,
+      userId: null,
       roomId: null,
-      totalScore: 0,
+      unsubscribe: null,
+      unsubscribeRoom: null,
+
+      judge: true,
+      howToUse: false,
       dialog: false,
 
       selectScore: [],
-      // firstScores: [7, 9, 8],
-      // secondScores: [5, 11, 12, 6],
-      // thirdScores: [3, 10, 4],
-      // fourthScores: [1, 2],
-      scoresArray: [],
       allScores: [
         [7, 9, 8],
         [5, 11, 12, 6],
@@ -250,34 +295,48 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('room', ['room', 'userOrder']),
-    choice() {
+    ...mapGetters('game', ['room', 'users', 'showWLDialog', 'startSecondHalf']),
+    score() {
       if (this.selectScore.length === 1) {
         return this.selectScore[0]
       } else {
         return this.selectScore.length
       }
     },
+    maxLength() {
+      if (!this.room) return 1
+      const array = []
+      for (let index = 0; index < this.room.length; index++) {
+        array.push(this.room[index].score.length)
+      }
+      return Math.max.apply(null, array)
+    },
     scoreLength() {
       if (this.judge) return 1
-      // if (this.room[0].score.length < 1) return 1
-      return this.room[0].score.length
+      return this.maxLength
+    },
+    spaceNumber() {
+      return function(number) {
+        if (this.maxLength - number < 1) {
+          return 1
+        } else {
+          return this.maxLength - number
+        }
+      }
     },
   },
   methods: {
     switchDialog() {
       this.dialog = !this.dialog
     },
-    switchWinLose() {
-      // this.showWLDialog = !this.showWLDialog
-      this.showWLDialog = true
-    },
     closeDialog() {
-      this.showWLDialog = false
+      // this.showWLDialog = false
+      this.$store.commit('game/closeWLDialog')
     },
-    // openDialog() {
-    //   this.dialog = true
+    // showDialog() {
+    //   this.$store.commit('game/showWLDialog')
     // },
+
     selectFirstScores(index) {
       this.$refs.firstScores[index].click()
     },
@@ -294,50 +353,30 @@ export default {
       this.judge = false
       // this.dialog = false
       this.switchDialog()
-      const user = await this.$user()
-      const userId = user.uid
-      this.scoresArray.push(this.choice)
+      // const user = await this.$user()
+      // const userId = user.uid
+
+      // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
+      await this.$store.dispatch('game/setScore', {
+        score: this.score,
+        userId: this.userId,
+        roomId: this.roomId,
+        userOrder: this.userOrder,
+      })
+
+      // inputで入力された点数をリセット
       this.selectScore = []
-      this.totalScore = 0
-
-      if (this.scoresArray.length >= 1) {
-        this.scoresArray.forEach((s) => {
-          this.totalScore += s
-        })
-      }
-      if (this.totalScore > 50) {
-        this.totalScore = 25
-      }
-
-      this.changeUserOrder()
-
-      await this.$store.dispatch('room/inputScore', {
-        totalScore: this.totalScore,
-        score: this.scoresArray,
-        userId,
-        roomId: this.roomId,
-      })
-    },
-
-    async changeUserOrder() {
-      const order = (this.userOrder + 1) % this.room.length
-      await this.$store.dispatch('room/changeUserOrder', {
-        roomId: this.roomId,
-        order,
-      })
-    },
-
-    async finish() {
-      // this.dialog = true
-      this.switchDialog()
-      // const roomId = this.$route.params.id
-      // await this.$store.dispatch('room/finish', { roomId })
     },
   },
 }
 </script>
 
 <style lang="scss" scoped>
+.table {
+  margin-top: 30px;
+  margin-bottom: 150px;
+}
+
 .skittle {
   height: 50px;
   width: 50px;
@@ -370,7 +409,6 @@ export default {
 }
 
 input:checked + div {
-  /* background: rgba(252, 226, 201, 0.3); */
   opacity: 0.3;
 }
 
@@ -379,13 +417,12 @@ input:checked + div {
 }
 
 .how-to-use {
-  /* padding-right: 0; */
   font-size: 15px;
 }
 
-.container {
-  /* background: lightskyblue; */
-  /* background: #93ca76; */
+.button {
+  // color: blue;
+  margin-left: auto;
 }
 
 .image {
@@ -394,11 +431,6 @@ input:checked + div {
   border-radius: 30px;
 }
 
-// .v-data-table table thead th,
-// .v-data-table table tbody th {
-//   font-size: 20px !important;
-//   background: red;
-// }
 .icon {
   display: flex;
   justify-content: flex-end;
@@ -412,5 +444,13 @@ input:checked + div {
 
 .order {
   background: orange;
+}
+
+.isActive {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+.border {
+  border: 1px solid grey;
 }
 </style>
