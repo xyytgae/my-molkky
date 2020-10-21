@@ -1,9 +1,9 @@
 <template>
-  <div>
+  <div class="bg-red">
     <v-app>
       <RoomHeader>
-        <h1 v-if="startSecondHalf">2nd Half</h1>
-        <h1 v-else>1st Half</h1>
+        <h1 v-if="startSecondHalf" style="border:1px solid white">後半</h1>
+        <h1 v-else style="border:1px solid white">前半</h1>
       </RoomHeader>
 
       <WinLoseDialog
@@ -11,21 +11,19 @@
         @close-dialog="closeDialog"
       ></WinLoseDialog>
 
+      <!-- <WinnerDialog></WinnerDialog> -->
       <v-main>
         <v-simple-table class="table">
           <thead>
             <tr>
               <th>NAME</th>
               <th v-if="judge">1回</th>
-              <!-- <th v-else v-for="(n, index) in scoreLength" :key="index">
-                {{ n }}回
-              </th> -->
               <th v-else v-for="n in maxLength" :key="n">{{ n }}回</th>
               <th class="border" :class="[{ isActive: !startSecondHalf }]">
-                1st Half
+                前半
               </th>
               <th class="border" :class="[{ isActive: startSecondHalf }]">
-                2nd Half
+                後半
               </th>
               <th class="border">合計</th>
             </tr>
@@ -65,19 +63,16 @@
               >
                 &nbsp;
               </td>
-              <!-- <td v-show="user.score.length < scoreLength">
-                &nbsp;
-              </td> -->
 
               <td class="border" v-if="startSecondHalf">
-                {{ user.firstHalfScore }} / 50
+                {{ user.firstHalfScore }}/50
               </td>
               <td
                 class="border"
                 :class="[{ isActive: startSecondHalf }]"
                 v-if="startSecondHalf"
               >
-                {{ user.totalScore }} / 50
+                {{ user.totalScore }}/50
               </td>
 
               <td
@@ -85,10 +80,10 @@
                 :class="[{ isActive: !startSecondHalf }]"
                 v-if="!startSecondHalf"
               >
-                {{ user.totalScore }} / 50
+                {{ user.totalScore }}/50
               </td>
               <td class="border" v-if="!startSecondHalf">
-                {{ user.firstHalfScore }} / 50
+                {{ user.firstHalfScore }}/50
               </td>
               <td class="border">
                 {{ user.firstHalfScore + user.totalScore }}
@@ -96,6 +91,10 @@
             </tr>
           </tbody>
         </v-simple-table>
+
+        <div>
+          <v-btn>asdfg</v-btn>
+        </div>
       </v-main>
 
       <v-dialog v-model="dialog" max-width="600px">
@@ -208,21 +207,10 @@
         </v-card>
       </v-dialog>
 
-      <!-- <v-btn
-        color="blue"
-        dark
-        :disabled="userId !== users[0]"
-        @click="switchDialog"
-        fab
-        absolute
-        right
-        bottom
-        class="button"
-      >
-        <v-icon>mdi-pencil</v-icon>
-      </v-btn> -->
-
       <GameFooter>
+        <OthersTurnDialog v-show="userId !== users[0]"></OthersTurnDialog>
+        <YourTurnDialog v-show="userId === users[0]"></YourTurnDialog>
+        <v-spacer></v-spacer>
         <v-btn
           color="blue"
           dark
@@ -242,12 +230,18 @@ import { mapGetters } from 'vuex'
 import WinLoseDialog from '../../components/WinLoseDialog'
 import RoomHeader from '../../components/RoomHeader'
 import GameFooter from '../../components/GameFooter'
+import YourTurnDialog from '../../components/YourTurnDialog'
+import OthersTurnDialog from '../../components/OthersTurnDialog'
+import WinnerDialog from '../../components/WinnerDialog'
 
 export default {
   components: {
     WinLoseDialog,
     RoomHeader,
     GameFooter,
+    YourTurnDialog,
+    OthersTurnDialog,
+    WinnerDialog,
   },
   async asyncData({ store, params }) {
     const roomId = params.id
@@ -263,8 +257,7 @@ export default {
   },
   async created() {
     const user = await this.$user()
-    const userId = user.uid
-    this.userId = userId
+    this.userId = user.uid
     this.roomId = this.$route.params.id
   },
   async destroyed() {
@@ -330,13 +323,8 @@ export default {
       this.dialog = !this.dialog
     },
     closeDialog() {
-      // this.showWLDialog = false
       this.$store.commit('game/closeWLDialog')
     },
-    // showDialog() {
-    //   this.$store.commit('game/showWLDialog')
-    // },
-
     selectFirstScores(index) {
       this.$refs.firstScores[index].click()
     },
@@ -353,8 +341,6 @@ export default {
       this.judge = false
       // this.dialog = false
       this.switchDialog()
-      // const user = await this.$user()
-      // const userId = user.uid
 
       // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
       await this.$store.dispatch('game/setScore', {

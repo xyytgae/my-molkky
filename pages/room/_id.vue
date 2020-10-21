@@ -1,12 +1,64 @@
 <template>
   <div>
-    <h1>部屋</h1>
     <v-app>
       <RoomHeader></RoomHeader>
-
-      <v-main>
+      <v-main class="mb-15">
         <v-container>
-          <v-card class="card">
+          <v-row class="pb-3" justify="center" align-content="center">
+            <v-col cols="10" v-if="isHost">
+              <v-stepper v-model="stepper" value="1" class="pb-4" vertical>
+                <v-stepper-step :complete="stepper > 1" color="info" step="1">
+                  「順番を選択」
+                </v-stepper-step>
+                <v-stepper-content step="1">
+                  <v-card dark color="#001e43">
+                    <v-card-text>
+                      「順番を選択」を押してください
+                    </v-card-text>
+                  </v-card>
+                </v-stepper-content>
+
+                <v-stepper-step :complete="stepper > 2" color="info" step="2">
+                  「順番を決定」
+                </v-stepper-step>
+                <v-stepper-content step="2">
+                  <v-card dark color="#001e43">
+                    <v-card-text style="font-size: 14px">
+                      投げる順番にユーザーを選択してから<br />
+                      「順番を決定」を押してください
+                    </v-card-text>
+                  </v-card>
+                </v-stepper-content>
+
+                <v-stepper-step color="info" step="3">
+                  「START」
+                </v-stepper-step>
+                <v-stepper-content step="3">
+                  <v-card dark color="#001e43">
+                    <v-card-text style="font-size: 14px">
+                      「START」を押すとゲームが始まります<br />
+                      選び直す場合、「順番を選択」を押してください
+                    </v-card-text>
+                  </v-card>
+                </v-stepper-content>
+              </v-stepper>
+            </v-col>
+
+            <v-col cols="10" v-else>
+              <v-card color="#001e43" dark>
+                <v-card-text>
+                  ホストがスタートするまでお待ちください
+                  <v-progress-linear
+                    indeterminate
+                    color="white"
+                    class="mb-0"
+                  ></v-progress-linear>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <v-card class="cards mb-10">
             <v-row>
               <v-col cols="12" v-for="(user, index) in room" :key="user.uid">
                 <v-card @click="chooseOrder(index)">
@@ -41,19 +93,6 @@
             <h1>{{ room.length }}/4</h1>
           </v-card>
         </v-container>
-
-        <!-- <div>
-          <v-btn color="primary" @click="moveToRoomsPage">戻る</v-btn>
-          <div v-if="isHost">
-            <v-btn color="red" v-if="order" @click="changeOrder"
-              >順番を選択</v-btn
-            >
-            <v-btn color="black" v-else @click="decideOrder" dark
-              >順番を決定</v-btn
-            >
-            <v-btn color="blue" @click="start">スタート</v-btn>
-          </div>
-        </div> -->
       </v-main>
       <RoomFooter v-if="isHost">
         <v-btn color="green" v-show="order" @click="changeOrder"
@@ -123,6 +162,7 @@ export default {
       isHost: false,
 
       startButton: true,
+      stepper: 1,
     }
   },
 
@@ -148,6 +188,9 @@ export default {
       this.orderedUsers = []
 
       this.startButton = true
+
+      // v-stepperを進める
+      this.stepper = 2
     },
     async decideOrder() {
       // 全員を選んでいない場合return
@@ -162,6 +205,9 @@ export default {
       })
 
       this.startButton = false
+
+      // v-stepperを進める
+      this.stepper = 3
     },
     async start() {
       this.unsubscribe()
@@ -181,16 +227,15 @@ export default {
   margin: 10px;
 }
 
-.card {
+.cards {
   background: skyblue;
-}
-
-input + div {
-  /* color: red; */
-  /* background: red; */
 }
 
 input:checked + div {
   background: lightgreen;
 }
+
+/* .card {
+  margin: 25px auto 0;
+} */
 </style>

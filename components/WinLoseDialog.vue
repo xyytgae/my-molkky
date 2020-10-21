@@ -21,24 +21,20 @@
 
       <v-container class="container">
         <v-card-title class="headline" v-if="startSecondHalf">
-          <!-- <span>{{ winner[0].name }}</span> -->
           <span v-for="w in winner" :key="w.id">
             Winner :
             {{ w.name }}
+            <WinnerDialog v-if="w.id == userId"></WinnerDialog>
           </span>
         </v-card-title>
-        <!-- <v-card-title class="headline" v-for="w in winner" :key="w.id">
-          1st Half Winner :
-          {{ w.name }}
-        </v-card-title> -->
 
         <v-col cols="12">
           <v-simple-table>
             <thead>
               <tr>
                 <th>NAME</th>
-                <th>1stHalf</th>
-                <th>2ndHalf</th>
+                <th>前半</th>
+                <th>後半</th>
                 <th>合計</th>
               </tr>
             </thead>
@@ -87,8 +83,12 @@
 
 <script>
 import { mapGetters } from 'vuex'
+import WinnerDialog from '../components/WinnerDialog'
 
 export default {
+  components: {
+    WinnerDialog,
+  },
   async created() {
     const user = await this.$user()
     this.userId = user.uid
@@ -96,17 +96,17 @@ export default {
     this.roomId = roomId
 
     if (this.startSecondHalf) {
-      await this.$store.dispatch('result/getWinner', { 
+      await this.$store.dispatch('result/getWinner', {
         roomId,
-        userId: this.userId
+        userId: this.userId,
       })
     }
 
-    await this.$store.dispatch('result/getResult', { 
-      roomId, 
-      userId: this.userId 
+    await this.$store.dispatch('result/getResult', {
+      roomId,
+      userId: this.userId,
     })
-    
+
     // await this.$store.dispatch('result/recordData', {
     //   userId: this.userId,
     // })
@@ -131,10 +131,10 @@ export default {
     },
     async finish() {
       this.$store.dispatch('game/clear')
-      
+
       await this.$store.dispatch('result/clearFirestore', {
         userId: this.userId,
-        roomId: this.roomId
+        roomId: this.roomId,
       })
 
       if (this.userId === this.roomId) {
