@@ -1,10 +1,10 @@
 <template>
-  <v-dialog v-model="WLDialog" max-width="600px">
+  <v-dialog v-model="WLDialog" persistent max-width="600px">
     <v-card color="blue" dark>
       <v-card-actions>
-        <v-btn fab text color="white" @click="$emit('close-dialog')">
+        <!-- <v-btn fab text color="white" @click="$emit('close-dialog')">
           <v-icon>mdi-window-close</v-icon>
-        </v-btn>
+        </v-btn> -->
 
         <v-spacer></v-spacer>
         <v-btn
@@ -21,18 +21,20 @@
 
       <v-container class="container">
         <v-card-title class="headline" v-if="startSecondHalf">
-          <span v-for="w in winner" :key="w.id">
-            Winner :
-            {{ w.name }}
-            <WinnerDialog v-if="w.id == userId"></WinnerDialog>
-          </span>
+          <v-row>
+            <v-col cols="12" v-for="w in winner" :key="w.id">
+              Winner :
+              {{ w.name }}
+              <WinnerDialog v-if="w.id == userId"></WinnerDialog>
+            </v-col>
+          </v-row>
         </v-card-title>
 
         <v-col cols="12">
           <v-simple-table>
             <thead>
               <tr>
-                <th>NAME</th>
+                <th>名前</th>
                 <th>前半</th>
                 <th>後半</th>
                 <th>合計</th>
@@ -94,22 +96,20 @@ export default {
     this.userId = user.uid
     const roomId = this.$route.params.id
     this.roomId = roomId
-
+    await this.$store.dispatch('result/getResult', {
+      roomId,
+      userId: this.userId,
+    })
     if (this.startSecondHalf) {
       await this.$store.dispatch('result/getWinner', {
         roomId,
         userId: this.userId,
       })
+
+      // await this.$store.dispatch('result/recordData', {
+      //   userId: this.userId,
+      // })
     }
-
-    await this.$store.dispatch('result/getResult', {
-      roomId,
-      userId: this.userId,
-    })
-
-    // await this.$store.dispatch('result/recordData', {
-    //   userId: this.userId,
-    // })
   },
   destroyed() {
     this.$store.dispatch('result/clear')

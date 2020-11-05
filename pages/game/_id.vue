@@ -16,7 +16,7 @@
         <v-simple-table class="table">
           <thead>
             <tr>
-              <th>NAME</th>
+              <th>名前</th>
               <th v-if="judge">1回</th>
               <th v-else v-for="n in maxLength" :key="n">{{ n }}回</th>
               <th class="border" :class="[{ isActive: !startSecondHalf }]">
@@ -91,10 +91,6 @@
             </tr>
           </tbody>
         </v-simple-table>
-
-        <div>
-          <v-btn>asdfg</v-btn>
-        </div>
       </v-main>
 
       <v-dialog v-model="dialog" max-width="600px">
@@ -261,11 +257,8 @@ export default {
     this.roomId = this.$route.params.id
   },
   async destroyed() {
-    const user = await this.$user()
-    const userId = user.uid
-
-    // await this.$store.dispatch('room/clear', { userId, roomId: this.roomId })
     this.unsubscribe()
+    this.unsubscribeRoom()
   },
   data() {
     return {

@@ -32,19 +32,19 @@ export default {
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
-  modules: [
-    '@nuxtjs/pwa'
-  ],
+  // modules: [
+  //   '@nuxtjs/pwa'
+  // ],
 
-  manifest: {
-    name: 'Molkky',
-    short_name: 'Molkky',
-    description: 'モルックのスコアを記録します。',
-    lang: 'ja',
-    start_url: '/',
-    display: 'fullscreen',
-    background_color: '#387d39',
-  },
+  // manifest: {
+  //   name: 'Molkky',
+  //   short_name: 'Molkky',
+  //   description: 'モルックのスコアを記録します。',
+  //   lang: 'ja',
+  //   start_url: '/',
+  //   display: 'fullscreen',
+  //   background_color: '#387d39',
+  // },
 
   // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
   vuetify: {

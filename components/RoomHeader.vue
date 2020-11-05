@@ -9,6 +9,12 @@
     </v-toolbar-title>
     <v-spacer></v-spacer>
     <slot />
+    <!-- 
+    <v-toolbar-items class="align-center">
+      パスワード：
+      <span v-if="roomData.password">{{ roomData.password }}</span>
+      <span v-else>×</span>
+    </v-toolbar-items> -->
   </v-app-bar>
 </template>
 

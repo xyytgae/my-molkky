@@ -28,34 +28,6 @@
           </v-row>
         </v-container>
 
-        <!-- <v-btn color="blue" fixed bottom left dark fab>
-          <v-icon>mdi-home</v-icon>
-        </v-btn>
-
-        <div>
-          <v-speed-dial
-            v-model="fab"
-            bottom
-            right
-            :direction="direction"
-            :transition="transition"
-          >
-            <template v-slot:activator>
-              <v-btn v-model="fab" color="pink" dark fab>
-                <v-icon v-if="fab">mdi-close</v-icon>
-                <v-icon v-else>mdi-account-circle</v-icon>
-              </v-btn>
-            </template>
-
-            <v-btn fab dark color="indigo" @click="dialog = true">
-              <v-icon>mdi-plus</v-icon>
-            </v-btn>
-            <v-btn fab dark color="red">
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
-          </v-speed-dial>
-        </div> -->
-
         <v-row justify="center">
           <v-dialog v-model="dialog" max-width="600px">
             <v-card>
@@ -148,6 +120,43 @@
             </v-card>
           </v-dialog>
         </v-row>
+
+        <v-dialog v-model="passwordDialog" max-width="450px">
+          <v-card>
+            <v-card-title>
+              <span
+                >「{{
+                  tryToMoveRoom.name
+                }}」のパスワードを入力してください</span
+              >
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-text-field
+                  label="パスワード"
+                  :error-messages="errorMessages"
+                  v-model="password"
+                ></v-text-field>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-btn
+                color="blue darken-1"
+                text
+                @click=";(passwordDialog = false), (password = null)"
+                >閉じる</v-btn
+              >
+              <v-spacer></v-spacer>
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="correctPassword(tryToMoveRoom.id)"
+                >入室</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-main>
       <RoomsFooter @open-dialog="dialog = true"></RoomsFooter>
     </v-app>
@@ -174,10 +183,17 @@ export default {
 
   data() {
     return {
-      // roomDate: null,
+      errorMessages: '',
+      tryToMoveRoom: {
+        name: '',
+        password: null,
+        id: null,
+      },
       dialog: false,
+      passwordDialog: false,
       failDialog: false,
       isPassword: false,
+      password: null,
       unsubscribe: null,
       form: {
         name: {
@@ -193,10 +209,6 @@ export default {
           value: null,
         },
       },
-
-      direction: 'top',
-      fab: false,
-      transition: 'scale-transition',
     }
   },
   components: {
@@ -207,7 +219,29 @@ export default {
     ...mapGetters('rooms', ['rooms']),
   },
   methods: {
-    moveToRoomPage(roomId) {
+    correctPassword(roomId) {
+      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      if (this.password === isPasswordEdited.password) {
+        this.$router.push(`/room/${roomId}`)
+      }
+      this.errorMessages = 'パスワードが違います'
+    },
+    async moveToRoomPage(roomId) {
+      const user = await this.$user()
+      const userId = user.uid
+      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      if (userId === isPasswordEdited.hostId) {
+        this.password = isPasswordEdited.password
+      } else if (this.password !== isPasswordEdited.password) {
+        this.errorMessages = ''
+        this.passwordDialog = true
+        this.tryToMoveRoom = {
+          name: isPasswordEdited.name,
+          password: isPasswordEdited.password,
+          id: isPasswordEdited.id,
+        }
+        return
+      }
       this.$router.push(`/room/${roomId}`)
     },
     selectImage() {
@@ -252,12 +286,11 @@ export default {
         createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
-        // userOrder: 0,
-
         startFirstHalf: false,
         finishFirstHalf: false,
         startSecondHalf: false,
         finishSecondHalf: false,
+        delete: false,
         users: [],
       }
 
@@ -266,7 +299,6 @@ export default {
           .collection('rooms')
           .doc(user.uid)
           .set(params)
-        // await this.$firestore.collection('rooms').add(params)
       } catch (e) {
         this.failDialog = true
       }
@@ -322,7 +354,6 @@ export default {
   object-fit: cover;
 }
 
-/* .home, */
 .v-speed-dial {
   position: absolute;
 }

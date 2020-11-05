@@ -132,14 +132,14 @@ export const actions = {
           const users = docData.users
           commit('addUser', { users })
 
-          if(docData.finishSecondHalf) {
+          if (docData.finishSecondHalf) {
             commit('showWLDialog')
             return
           } else if (docData.startSecondHalf) {
             commit('closeWLDialog')
             commit('startSecondHalf')
-            return;
-          } else if(docData.finishFirstHalf) {
+            return
+          } else if (docData.finishFirstHalf) {
             commit('showWLDialog')
             dispatch('clearUsers')
             // commit('clearUsers')
@@ -152,14 +152,14 @@ export const actions = {
   // 前半終了後に順番を表すusersをリセットする
   clearUsers({ commit }, { roomId }) {
     this.$firestore
-    .collection('rooms')
-    .doc(roomId)
-    .update({
-      users: []
-    })
-    .then(() => {
-      commit('clearUsers')
-    })
+      .collection('rooms')
+      .doc(roomId)
+      .update({
+        users: [],
+      })
+      .then(() => {
+        commit('clearUsers')
+      })
   },
 
   // game.vueが最初に表示される時に取得する
@@ -243,12 +243,10 @@ export const actions = {
           })
       })
       .then(() => {
-        // dispatch('setTotalScore', { userId, roomId })
         dispatch('eliminateUser', { userId, roomId })
       })
       .then(() => {
         dispatch('setTotalScore', { userId, roomId })
-        // dispatch('eliminateUser', { userId, roomId })
       })
   },
 
@@ -265,6 +263,8 @@ export const actions = {
         const docDataScore = docData.score
         commit('setTotalScore', { docDataScore })
 
+        const firstHalfScore = docData.firstHalfScore
+
         this.$firestore
           .collection('rooms')
           .doc(roomId)
@@ -272,19 +272,20 @@ export const actions = {
           .doc(userId)
           .update({
             totalScore: state.totalScore,
+            sum: firstHalfScore + state.totalScore,
           })
 
         // 50点に到達すれば、その時点でゲームを終了させる
-          if (state.totalScore === 50) {
-            this.$firestore
-              .collection('rooms')
-              .doc(roomId)
-              .update({
-                finishFirstHalf: true,
-                finishSecondHalf: true,
-                users: [],
-              })
-          }
+        if (state.totalScore === 50) {
+          this.$firestore
+            .collection('rooms')
+            .doc(roomId)
+            .update({
+              finishFirstHalf: true,
+              finishSecondHalf: true,
+              users: [],
+            })
+        }
       })
   },
 
@@ -369,25 +370,25 @@ export const actions = {
               totalScore: 0,
               elimination: false,
             })
-            // .then(() => {
-              //   this.$firestore
-              //     .collection('rooms')
-              //     .doc(roomId)
-              //     .update({
-                //       users: state.users,
-                //       finishFirstHalf: false,
-                //     })
-                // })
-              }) 
-            })
-            .then(() => {
-              this.$firestore
-              .collection('rooms')
-              .doc(roomId)
-              .update({
-                startSecondHalf: true,
-                finishSecondHalf: false,
-                users: state.users,
+          // .then(() => {
+          //   this.$firestore
+          //     .collection('rooms')
+          //     .doc(roomId)
+          //     .update({
+          //       users: state.users,
+          //       finishFirstHalf: false,
+          //     })
+          // })
+        })
+      })
+      .then(() => {
+        this.$firestore
+          .collection('rooms')
+          .doc(roomId)
+          .update({
+            startSecondHalf: true,
+            finishSecondHalf: false,
+            users: state.users,
             // finishFirstHalf: false,
           })
       })
@@ -395,5 +396,5 @@ export const actions = {
 
   clear({ commit }) {
     commit('clear')
-  }
+  },
 }

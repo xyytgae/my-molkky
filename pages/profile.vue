@@ -39,13 +39,10 @@
       </div>
 
       <div class="star">
-        <!-- <span> -->
-        <!-- <v-icon color="#FFA000">mdi-star</v-icon> -->
         <span style="color: #FFA000">
           ★
         </span>
         ×{{ form.stars.value }}
-        <!-- </span> -->
       </div>
 
       <div class="button">

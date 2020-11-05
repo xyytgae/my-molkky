@@ -93,8 +93,14 @@
             <h1>{{ room.length }}/4</h1>
           </v-card>
         </v-container>
+
+        <DeleteRoomDialog
+          v-if="dialog && isHost"
+          @close-dialog="dialog = false"
+          @delete-room="exit()"
+        ></DeleteRoomDialog>
       </v-main>
-      <RoomFooter v-if="isHost">
+      <RoomFooter v-if="isHost" @exit-room="exit()">
         <v-btn color="green" v-show="order" @click="changeOrder"
           >順番を選択</v-btn
         >
@@ -109,22 +115,28 @@
         <v-btn :disabled="startButton" outlined @click="start">START</v-btn>
       </RoomFooter>
 
-      <RoomFooter v-else />
+      <RoomFooter v-else @exit-room="exit()" />
+
+      <!-- <DeleteRoomDialog v-if="isHost"></DeleteRoomDialog> -->
     </v-app>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters, mapActions } from 'vuex'
 import RoomHeader from '../../components/RoomHeader'
 import RoomFooter from '../../components/RoomFooter'
+import DeleteRoomDialog from '../../components/DeleteRoomDialog'
 
 export default {
   middleware: ['checkAuth'],
-  async asyncData({ store, params }) {
+  async asyncData({ store, params, $user }) {
     const roomId = params.id
+    const user = await $user()
+    const userId = user.uid
+
     const unsubscribe = await store.dispatch('room/subscribe', { roomId })
-    const unstart = await store.dispatch('room/start', { roomId })
+    const unstart = await store.dispatch('room/start', { userId, roomId })
 
     return {
       unsubscribe,
@@ -133,25 +145,26 @@ export default {
   },
   async created() {
     const user = await this.$user()
+    this.userId = user.uid
     this.roomId = this.$route.params.id
     this.isHost = this.roomId === user.uid
 
     await this.$store.dispatch('room/setUser', { user, roomId: this.roomId })
   },
-  async destroyed() {
+  async beforeDestroy() {
     const user = await this.$user()
     const userId = user.uid
 
-    // await this.$store.dispatch('room/clear', { userId, roomId: this.roomId })
-    // this.unsubscribe()
+    this.unsubscribe()
     this.unstart()
   },
-  components: {
-    RoomHeader,
-    RoomFooter,
+  destroyed() {
+    this.$store.dispatch('room/clear')
   },
+
   data() {
     return {
+      userId: null,
       unsubscribe: null,
       unstart: null,
       user: null,
@@ -160,24 +173,34 @@ export default {
       order: true,
       disabledOrder: true,
       isHost: false,
-
+      dialog: false,
       startButton: true,
       stepper: 1,
     }
+  },
+
+  components: {
+    RoomHeader,
+    RoomFooter,
+    DeleteRoomDialog,
   },
 
   computed: {
     ...mapGetters('room', ['room']),
   },
   methods: {
-    async moveToRoomsPage() {
-      const user = await this.$user()
-      const userId = user.uid
-      await this.$store.dispatch('room/clearFirestore', {
-        userId,
-        roomId: this.roomId,
-      })
-      this.$router.push('/rooms')
+    ...mapActions('room', ['exitRoom', 'deleteRoom']),
+    async exit() {
+      if (this.isHost && this.dialog) {
+        await this.exitRoom({ userId: this.userId, roomId: this.roomId })
+        await this.deleteRoom({ roomId: this.roomId })
+        this.$router.push('/rooms')
+      } else if (this.isHost) {
+        this.dialog = true
+      } else {
+        this.$router.push('/rooms')
+        await this.exitRoom({ userId: this.userId, roomId: this.roomId })
+      }
     },
     chooseOrder(index) {
       this.$refs.order[index].click()
@@ -211,7 +234,7 @@ export default {
     },
     async start() {
       this.unsubscribe()
-      await this.$store.dispatch('room/clear')
+      // await this.$store.dispatch('room/clear')
       await this.$store.dispatch('room/startGame', { roomId: this.roomId })
     },
   },
@@ -234,8 +257,4 @@ export default {
 input:checked + div {
   background: lightgreen;
 }
-
-/* .card {
-  margin: 25px auto 0;
-} */
 </style>

@@ -1,6 +1,7 @@
 export const state = () => ({
   result: [],
   winner: [],
+  startSecondHalf: false,
 })
 
 export const getters = {
@@ -16,6 +17,10 @@ export const mutations = {
     state.winner.push(winner)
   },
 
+  getStartSecondHalf(state, { startSecondHalf }) {
+    state.startSecondHalf = startSecondHalf
+  },
+
   clear(state) {
     state.result = []
     state.winner = []
@@ -24,26 +29,39 @@ export const mutations = {
 
 export const actions = {
   getWinner({ dispatch, commit }, { roomId, userId }) {
-    this.$firestore
+    const db = this.$firestore
       .collection('rooms')
       .doc(roomId)
       .collection('room')
-      .orderBy('totalScore', 'desc')
+
+    db.orderBy('sum', 'desc')
       .limit(1)
       .get()
       .then(snapshot => {
         snapshot.forEach(doc => {
           const docData = doc.data()
-          const winner = {
-            ...docData,
-          }
-          commit('getWinner', { winner })
 
-          // 勝者のstarを1増やす
-          if(userId === winner.id) {
-            dispatch('incrementStars', { winner })
-          }
+          db.where('sum', '==', docData.sum)
+            .get()
+            .then(snapshot => {
+              snapshot.forEach(doc => {
+                const docData = doc.data()
+                const winner = {
+                  ...docData,
+                }
+
+                commit('getWinner', { winner })
+
+                // 勝者のstarを1増やす
+                if (userId === winner.id) {
+                  dispatch('incrementStars', { winner })
+                }
+              })
+            })
         })
+      })
+      .then(() => {
+        dispatch('recordData', { roomId, userId })
       })
   },
 
@@ -52,11 +70,12 @@ export const actions = {
       .collection('users')
       .doc(winner.id)
       .update({
-        stars: this.$firebase.firestore.FieldValue.increment(1)
+        stars: this.$firebase.firestore.FieldValue.increment(1),
+        stones: this.$firebase.firestore.FieldValue.increment(1),
       })
   },
 
-  getResult({ dispatch, commit }, { roomId, userId }) {
+  getResult({ dispatch, commit, state }, { roomId, userId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -71,29 +90,59 @@ export const actions = {
           commit('getResult', { result })
         })
       })
-      .then(() => {
-        dispatch('recordData', { userId })
-      })
-  }, 
+    // .then(() => {
+    //   dispatch('getStartSecondHalf', { roomId })
+    // })
 
-  recordData({ state }, { userId }) {
+    // .then(() => {
+    //   if (state.winner.length > 0) {
+    //     dispatch('recordData', { userId })
+    //   }
+    // })
+  },
+
+  recordData({ state }, { roomId, userId }) {
     const newRef = this.$firestore
       .collection('users')
       .doc(userId)
       .collection('games')
       .doc()
-      .collection('game')
 
-    state.result.forEach(r => {
-      const params = {
-        finishedAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
-        ...r,
-      }
-      newRef.doc(r.id).set(params)
+    newRef.set({
+      createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
     })
+
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .collection('room')
+      .get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          const docData = doc.data()
+          const params = {
+            ...docData,
+          }
+
+          newRef
+            .collection('game')
+            .doc(params.id)
+            .set(params)
+        })
+      })
+
+    // state.result.forEach(r => {
+    //   const params = {
+    //     ...r,
+    //   }
+    //   newRef
+    //     .collection('game')
+    //     .doc(r.id)
+    //     .set(params)
+    // })
   },
 
-  resetRoom({ }, { roomId }) {
+  resetRoom({}, { roomId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -102,11 +151,23 @@ export const actions = {
         startSecondHalf: false,
         finishFirstHalf: false,
         finishSecondHalf: false,
-        users: []
+        users: [],
       })
   },
 
-  clearFirestore({ }, { userId, roomId }) {
+  getStartSecondHalf({ commit }, { roomId }) {
+    this.$firestore
+      .collection('rooms')
+      .doc(roomId)
+      .get()
+      .then(doc => {
+        const docData = doc.data()
+        const startSecondHalf = docData.startSecondHalf
+        commit('getStartSecondHalf', { startSecondHalf })
+      })
+  },
+
+  clearFirestore({}, { userId, roomId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)

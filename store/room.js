@@ -64,10 +64,10 @@ export const actions = {
   },
   setUser({ commit }, { user, roomId }) {
     const room = {
-      firstHalfScore: 0,
-      elimination: false,
-      totalScore: 0,
       score: [],
+      firstHalfScore: 0,
+      totalScore: 0,
+      elimination: false,
       order: 0,
       stars: user.stars,
       id: user.uid,
@@ -117,7 +117,7 @@ export const actions = {
       })
   },
 
-  start({}, { roomId }) {
+  start({ dispatch }, { userId, roomId }) {
     return this.$firestore
       .collection('rooms')
       .doc(roomId)
@@ -127,6 +127,10 @@ export const actions = {
         },
         doc => {
           const docData = doc.data()
+          if (docData.delete) {
+            dispatch('exitRoom', { userId, roomId })
+            this.$router.push('/')
+          }
           if (docData.startFirstHalf) {
             this.$router.push(`/game/${roomId}`)
           }
@@ -136,12 +140,21 @@ export const actions = {
   clear({ commit }) {
     commit('clear')
   },
-  clearFirestore({}, { userId, roomId }) {
+  exitRoom({}, { userId, roomId }) {
     this.$firestore
       .collection('rooms')
       .doc(roomId)
       .collection('room')
       .doc(userId)
       .delete()
+  },
+  deleteRoom({}, { roomId }) {
+    const db = this.$firestore.collection('rooms').doc(roomId)
+
+    db.update({
+      delete: true,
+    }).then(() => {
+      db.delete()
+    })
   },
 }
