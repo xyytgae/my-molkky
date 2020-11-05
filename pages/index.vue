@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <Header />
+    <UserHeader />
     <div class="class">
       <h1>Molkky</h1>
       <!-- <v-btn color="primary" @click="changeName"><span>名前変更</span></v-btn> -->
@@ -10,11 +10,12 @@
 </template>
 
 <script>
-import Header from '~/components/Header'
+import UserHeader from '~/components/UserHeader'
+
 export default {
   middleware: ['checkAuth'],
   components: {
-    Header,
+    UserHeader,
   },
   methods: {
     async start() {

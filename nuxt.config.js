@@ -6,8 +6,8 @@ export default {
 
   // Global page headers (https://go.nuxtjs.dev/config-head)
   head: {
-    titleTemplate: '%s - my-molkky-nuxt',
-    title: 'my-molkky-nuxt',
+    titleTemplate: 'Molkky',
+    title: 'my-molkky',
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -32,7 +32,19 @@ export default {
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
-  modules: [],
+  // modules: [
+  //   '@nuxtjs/pwa'
+  // ],
+
+  // manifest: {
+  //   name: 'Molkky',
+  //   short_name: 'Molkky',
+  //   description: 'モルックのスコアを記録します。',
+  //   lang: 'ja',
+  //   start_url: '/',
+  //   display: 'fullscreen',
+  //   background_color: '#387d39',
+  // },
 
   // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
   vuetify: {

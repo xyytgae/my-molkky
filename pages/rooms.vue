@@ -1,171 +1,172 @@
 <template>
   <div>
     <v-app>
-      <!-- <v-card v-for="room in rooms" :key="room.id">
-        <v-container>
-          <v-row>
-            <img :src="room.topImageUrl" class="room-icon" />
-            <v-card-title>
-              {{ room.name }}
-              <v-icon v-if="room.password">mdi-lock</v-icon>
-            </v-card-title>
-            <v-spacer></v-spacer>
+      <UserHeader />
 
-            <v-card-actions>
-              <v-btn color="primary" dark>入室</v-btn>
-            </v-card-actions>
+      <v-main class="main">
+        <v-container>
+          <v-row v-for="room in rooms" :key="room.id" dense>
+            <v-col cols="12">
+              <v-card>
+                <div class="d-flex flex-no-wrap">
+                  <img :src="room.topImageUrl" class="room-icon" />
+                  <v-card-title class="headline">
+                    {{ room.name }}
+                    <v-icon v-if="room.password">mdi-lock</v-icon>
+                  </v-card-title>
+
+                  <v-spacer></v-spacer>
+
+                  <v-card-actions>
+                    <v-btn color="info" @click="moveToRoomPage(room.id)"
+                      >入室</v-btn
+                    >
+                  </v-card-actions>
+                </div>
+              </v-card>
+            </v-col>
           </v-row>
         </v-container>
-      </v-card> -->
 
-      <v-container>
-        <v-row v-for="room in rooms" :key="room.id" dense>
-          <v-col cols="12">
+        <v-row justify="center">
+          <v-dialog v-model="dialog" max-width="600px">
             <v-card>
-              <div class="d-flex flex-no-wrap">
-                <img :src="room.topImageUrl" class="room-icon" />
-                <v-card-title class="headline">
-                  {{ room.name }}
-                  <v-icon v-if="room.password">mdi-lock</v-icon>
-                </v-card-title>
+              <v-card-title>
+                <span class="headline">部屋を立てる</span>
+              </v-card-title>
+              <v-card-text>
+                <v-container>
+                  <v-row>
+                    <div class="image">
+                      <v-icon
+                        v-if="form.image.value"
+                        size="30"
+                        class="close"
+                        @click="form.image.value = null"
+                        >mdi-close-circle</v-icon
+                      >
+                      <template v-if="form.image.value">
+                        <img
+                          class="icon"
+                          :src="form.image.value"
+                          @click="selectImage"
+                        />
+                      </template>
+                      <template v-else>
+                        <v-icon size="80" @click="selectImage"
+                          >mdi-image</v-icon
+                        >
+                      </template>
+                      <input
+                        ref="image"
+                        type="file"
+                        style="display: none"
+                        accept="image/*"
+                        @change="onSelectFile"
+                      />
+                    </div>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="form.name.value"
+                        label="部屋の名前"
+                      ></v-text-field>
+                    </v-col>
 
+                    <v-col cols="12">
+                      <v-switch
+                        v-model="isPassword"
+                        :label="
+                          `パスワードを${
+                            isPassword ? '設定する' : '設定しない'
+                          }`
+                        "
+                      ></v-switch>
+                    </v-col>
+                    <v-col cols="12">
+                      <v-text-field
+                        v-model="form.password.value"
+                        :disabled="!isPassword"
+                        label="Password"
+                        :required="isPassword"
+                      ></v-text-field>
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-text>
+              <v-card-actions>
+                <v-btn color="blue darken-1" text @click="dialog = false"
+                  >閉じる</v-btn
+                >
                 <v-spacer></v-spacer>
-
-                <v-card-actions>
-                  <v-btn color="info" @click="moveToRoomPage(room.id)"
-                    >入室</v-btn
-                  >
-                </v-card-actions>
-              </div>
+                <v-btn color="blue darken-1" text @click="createRoom"
+                  >部屋を公開する</v-btn
+                >
+              </v-card-actions>
             </v-card>
-          </v-col>
+          </v-dialog>
+          <v-dialog v-model="failDialog" max-width="600px">
+            <v-card>
+              <v-card-title>
+                <v-alert type="error">
+                  部屋を立てることが出来ませんでした。
+                </v-alert>
+              </v-card-title>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="blue darken-1" text @click="failDialog = false"
+                  >閉じる</v-btn
+                >
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
         </v-row>
-      </v-container>
 
-      <v-btn color="blue" fixed bottom left dark fab>
-        <v-icon>mdi-home</v-icon>
-      </v-btn>
-
-      <div>
-        <v-speed-dial
-          v-model="fab"
-          bottom
-          right
-          :direction="direction"
-          :transition="transition"
-        >
-          <template v-slot:activator>
-            <v-btn v-model="fab" color="pink" dark fab>
-              <v-icon v-if="fab">mdi-close</v-icon>
-              <v-icon v-else>mdi-account-circle</v-icon>
-            </v-btn>
-          </template>
-
-          <v-btn fab dark color="indigo" @click="dialog = true">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-          <v-btn fab dark color="red">
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
-        </v-speed-dial>
-      </div>
-
-      <v-row justify="center">
-        <v-dialog v-model="dialog" max-width="600px">
+        <v-dialog v-model="passwordDialog" max-width="450px">
           <v-card>
             <v-card-title>
-              <span class="headline">部屋を立てる</span>
+              <span
+                >「{{
+                  tryToMoveRoom.name
+                }}」のパスワードを入力してください</span
+              >
             </v-card-title>
             <v-card-text>
               <v-container>
-                <v-row>
-                  <div class="image">
-                    <v-icon
-                      v-if="form.image.value"
-                      size="30"
-                      class="close"
-                      @click="form.image.value = null"
-                      >mdi-close-circle</v-icon
-                    >
-                    <template v-if="form.image.value" class="icon-wrap">
-                      <img
-                        class="icon"
-                        :src="form.image.value"
-                        @click="selectImage"
-                      />
-                    </template>
-                    <template v-else>
-                      <v-icon size="80" @click="selectImage">mdi-image</v-icon>
-                    </template>
-                    <input
-                      ref="image"
-                      type="file"
-                      style="display: none"
-                      accept="image/*"
-                      @change="onSelectFile"
-                    />
-                  </div>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="form.name.value"
-                      label="部屋の名前"
-                    ></v-text-field>
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-switch
-                      v-model="isPassword"
-                      :label="`パスワードを${
-                        isPassword ? '設定する' : '設定しない'
-                      }`"
-                    ></v-switch>
-                  </v-col>
-                  <v-col cols="12">
-                    <v-text-field
-                      v-model="form.password.value"
-                      :disabled="!isPassword"
-                      label="Password"
-                      :required="isPassword"
-                    ></v-text-field>
-                  </v-col>
-                </v-row>
+                <v-text-field
+                  label="パスワード"
+                  :error-messages="errorMessages"
+                  v-model="password"
+                ></v-text-field>
               </v-container>
             </v-card-text>
+
             <v-card-actions>
-              <v-btn color="blue darken-1" text @click="dialog = false"
+              <v-btn
+                color="blue darken-1"
+                text
+                @click=";(passwordDialog = false), (password = null)"
                 >閉じる</v-btn
               >
               <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="createRoom"
-                >部屋を公開する</v-btn
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="correctPassword(tryToMoveRoom.id)"
+                >入室</v-btn
               >
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <v-dialog v-model="failDialog" max-width="600px">
-          <v-card>
-            <v-card-title>
-              <v-alert type="error">
-                部屋を立てることが出来ませんでした。
-              </v-alert>
-            </v-card-title>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="failDialog = false"
-                >閉じる</v-btn
-              >
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-row>
+      </v-main>
+      <RoomsFooter @open-dialog="dialog = true"></RoomsFooter>
     </v-app>
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
-// import Header from '../components/Header.vue'
-// import Dialog from '../components/Dialog.vue'
+import UserHeader from '~/components/UserHeader'
+import RoomsFooter from '~/components/RoomsFooter'
 
 export default {
   async asyncData({ store }) {
@@ -182,10 +183,17 @@ export default {
 
   data() {
     return {
-      // roomDate: null,
+      errorMessages: '',
+      tryToMoveRoom: {
+        name: '',
+        password: null,
+        id: null,
+      },
       dialog: false,
+      passwordDialog: false,
       failDialog: false,
       isPassword: false,
+      password: null,
       unsubscribe: null,
       form: {
         name: {
@@ -201,22 +209,39 @@ export default {
           value: null,
         },
       },
-
-      direction: 'top',
-      fab: false,
-      transition: 'scale-transition',
-      // transition: 'slide-y-reverse-transition',
     }
   },
   components: {
-    // Header,
-    // Dialog,
+    UserHeader,
+    RoomsFooter,
   },
   computed: {
     ...mapGetters('rooms', ['rooms']),
   },
   methods: {
-    moveToRoomPage(roomId) {
+    correctPassword(roomId) {
+      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      if (this.password === isPasswordEdited.password) {
+        this.$router.push(`/room/${roomId}`)
+      }
+      this.errorMessages = 'パスワードが違います'
+    },
+    async moveToRoomPage(roomId) {
+      const user = await this.$user()
+      const userId = user.uid
+      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      if (userId === isPasswordEdited.hostId) {
+        this.password = isPasswordEdited.password
+      } else if (this.password !== isPasswordEdited.password) {
+        this.errorMessages = ''
+        this.passwordDialog = true
+        this.tryToMoveRoom = {
+          name: isPasswordEdited.name,
+          password: isPasswordEdited.password,
+          id: isPasswordEdited.id,
+        }
+        return
+      }
       this.$router.push(`/room/${roomId}`)
     },
     selectImage() {
@@ -261,13 +286,19 @@ export default {
         createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
-        userOrder: 0,
-        firstHalf: false,
+        startFirstHalf: false,
+        finishFirstHalf: false,
+        startSecondHalf: false,
+        finishSecondHalf: false,
+        delete: false,
+        users: [],
       }
 
       try {
-        await this.$firestore.collection('rooms').doc(user.uid).set(params)
-        // await this.$firestore.collection('rooms').add(params)
+        await this.$firestore
+          .collection('rooms')
+          .doc(user.uid)
+          .set(params)
       } catch (e) {
         this.failDialog = true
       }
@@ -277,6 +308,10 @@ export default {
 </script>
 
 <style scoped>
+.main {
+  margin-bottom: 200px;
+}
+
 .room-icon {
   width: 5rem;
   height: 5rem;
@@ -287,21 +322,14 @@ export default {
 .image {
   position: relative;
   width: 10rem;
-  /* width: 192px; */
   height: 10rem;
-  /* height: 192px; */
   margin-left: auto;
   margin-right: auto;
-  /* background: rgb(237, 242, 247); */
   background: rgba(237, 242, 247, 1);
   border-radius: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.icon-wrap {
-  /* position: relative; */
 }
 
 .close {
@@ -326,7 +354,6 @@ export default {
   object-fit: cover;
 }
 
-/* .home, */
 .v-speed-dial {
   position: absolute;
 }

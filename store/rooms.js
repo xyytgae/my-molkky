@@ -29,7 +29,7 @@ export const mutations = {
   },
 
   clear(state) {
-    state.room = []
+    state.rooms = []
   },
 }
 
