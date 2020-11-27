@@ -23,7 +23,7 @@ You can keep score of molkky with your friends.
 ## Images
 
 ```bash
-![capture_1](https://user-images.githubusercontent.com/51901346/100471926-9e53bd00-311e-11eb-8aaf-9cb7f2d2c9c9.PNG)
+<img src="https://github.com/xyytgae/my-molkky/blob/images/capture_1.png">
 
 ![alt](/assets/captures/capture_2.PNG)
 ```
