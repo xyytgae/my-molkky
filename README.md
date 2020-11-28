@@ -22,7 +22,7 @@ You can keep score of molkky with your friends.
 
 ## Images
 
-<img src="https://github.com/xyytgae/my-molkky/blob/images/capture_1.png" alt="capture_1" width="60" height="60">
+<img src="https://github.com/xyytgae/my-molkky/blob/images/capture_1.png" alt="capture_1" >
 
 ![alt](/assets/captures/capture_2.PNG)
 
