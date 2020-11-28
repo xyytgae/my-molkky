@@ -24,7 +24,9 @@ You can keep score of molkky with your friends.
 
 <img src="https://github.com/xyytgae/my-molkky/blob/images/capture_1.png" alt="capture_1" >
 
-![alt](/assets/captures/capture_2.PNG)
+<img src="https://github.com/xyytgae/my-molkky/blob/images/capture_2.png" alt="capture_2" >
+
+<img src="https://github.com/xyytgae/my-molkky/blob/images/capture_3.png" alt="capture_3" >
 
 ## Featured
 
@@ -35,9 +37,7 @@ If you log in this application, you can check your past scores.
 
 ## DeployURL
 
-```bash
-
-```
+https://my-molkky.web.app
 
 ## Build Setup
 
