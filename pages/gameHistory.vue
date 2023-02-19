@@ -8,7 +8,7 @@
           <v-row>
             <v-col
               cols="12"
-              v-for="(createdAt, index) in gameHistoryCreatedAt"
+              v-for="(createdAt, index) in getterGameHistoryCreatedAt"
               :key="index"
               class="card bg-blue"
             >
@@ -42,12 +42,14 @@
 
                     <tbody>
                       <tr
-                        v-for="user in gameHistoryUsers[index]"
+                        v-for="user in getterGameHistoryUsers[index]"
                         :key="`${index}-${user.id}`"
                       >
                         <th>
                           <v-icon
-                            v-if="gameHistoryUsers[index][0].sum === user.sum"
+                            v-if="
+                              getterGameHistoryUsers[index][0].sum === user.sum
+                            "
                             color="orange"
                             >mdi-medal</v-icon
                           >
@@ -78,13 +80,13 @@
 </template>
 
 <script>
-import { mapGetters, mapMutations, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useMainStore } from '~/store/main'
 import UserHeader from '~/components/UserHeader'
 
 export default {
   methods: {
-    ...mapMutations('main', ['clearGameHistory']),
-    ...mapActions('main', ['getGameHistory']),
+    ...mapActions(useMainStore, ['getGameHistory', 'clearGameHistory']),
   },
   async created() {
     const user = await this.$user()
@@ -99,7 +101,10 @@ export default {
     UserHeader,
   },
   computed: {
-    ...mapGetters('main', ['gameHistoryCreatedAt', 'gameHistoryUsers']),
+    ...mapState(useMainStore, [
+      'getterGameHistoryCreatedAt',
+      'getterGameHistoryUsers',
+    ]),
   },
 }
 </script>

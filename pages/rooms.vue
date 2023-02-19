@@ -5,7 +5,7 @@
 
       <v-main class="main">
         <v-container>
-          <v-row v-for="room in rooms" :key="room.id" dense>
+          <v-row v-for="room in getterRooms" :key="room.id" dense>
             <v-col cols="12">
               <v-card>
                 <div class="d-flex flex-no-wrap">
@@ -75,11 +75,9 @@
                     <v-col cols="12">
                       <v-switch
                         v-model="isPassword"
-                        :label="
-                          `パスワードを${
-                            isPassword ? '設定する' : '設定しない'
-                          }`
-                        "
+                        :label="`パスワードを${
+                          isPassword ? '設定する' : '設定しない'
+                        }`"
                       ></v-switch>
                     </v-col>
                     <v-col cols="12">
@@ -164,20 +162,21 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useRoomsStore } from '~/store/rooms'
 import UserHeader from '~/components/UserHeader'
 import RoomsFooter from '~/components/RoomsFooter'
 
 export default {
-  async asyncData({ store }) {
-    const unsubscribe = await store.dispatch('rooms/subscribe')
+  async asyncData() {
+    const unsubscribe = await useRoomsStore().subscribe()
 
     return {
       unsubscribe,
     }
   },
   destroyed() {
-    this.$store.dispatch('rooms/clear')
+    useRoomsStore().clear()
     this.unsubscribe()
   },
 
@@ -216,11 +215,11 @@ export default {
     RoomsFooter,
   },
   computed: {
-    ...mapGetters('rooms', ['rooms']),
+    ...mapState(useRoomsStore, ['getterRooms']),
   },
   methods: {
     correctPassword(roomId) {
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
       if (this.password === isPasswordEdited.password) {
         this.$router.push(`/room/${roomId}`)
       }
@@ -229,7 +228,7 @@ export default {
     async moveToRoomPage(roomId) {
       const user = await this.$user()
       const userId = user.uid
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
       if (userId === isPasswordEdited.hostId) {
         this.password = isPasswordEdited.password
       } else if (this.password !== isPasswordEdited.password) {
@@ -295,10 +294,7 @@ export default {
       }
 
       try {
-        await this.$firestore
-          .collection('rooms')
-          .doc(user.uid)
-          .set(params)
+        await this.$firestore.collection('rooms').doc(user.uid).set(params)
       } catch (e) {
         this.failDialog = true
       }

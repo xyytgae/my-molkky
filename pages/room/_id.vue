@@ -12,9 +12,7 @@
                 </v-stepper-step>
                 <v-stepper-content step="1">
                   <v-card dark color="#001e43">
-                    <v-card-text>
-                      「順番を選択」を押してください
-                    </v-card-text>
+                    <v-card-text> 「順番を選択」を押してください </v-card-text>
                   </v-card>
                 </v-stepper-content>
 
@@ -60,7 +58,11 @@
 
           <v-card class="cards mb-10">
             <v-row>
-              <v-col cols="12" v-for="(user, index) in room" :key="user.uid">
+              <v-col
+                cols="12"
+                v-for="(user, index) in getterRoom"
+                :key="user.uid"
+              >
                 <v-card @click="chooseOrder(index)">
                   <input
                     ref="order"
@@ -82,7 +84,7 @@
                       <span>{{ user.name }}</span>
 
                       <div>
-                        <span style="color: #FFA000">★</span>×{{ user.stars }}
+                        <span style="color: #ffa000">★</span>×{{ user.stars }}
                       </div>
                     </v-card-title>
                   </div>
@@ -90,7 +92,7 @@
               </v-col>
             </v-row>
 
-            <h1>{{ room.length }}/4</h1>
+            <h1>{{ getterRoom.length }}/4</h1>
           </v-card>
         </v-container>
 
@@ -107,7 +109,7 @@
         <v-btn
           color="white"
           v-show="!order"
-          :disabled="orderedUsers.length !== room.length"
+          :disabled="orderedUsers.length !== getterRoom.length"
           @click="decideOrder"
           >順番を決定</v-btn
         >
@@ -123,20 +125,23 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useRoomStore } from '~/store/room'
 import RoomHeader from '../../components/RoomHeader'
 import RoomFooter from '../../components/RoomFooter'
 import DeleteRoomDialog from '../../components/DeleteRoomDialog'
 
 export default {
   middleware: ['checkAuth'],
-  async asyncData({ store, params, $user }) {
+  async asyncData({ params, $user }) {
     const roomId = params.id
     const user = await $user()
     const userId = user.uid
 
-    const unsubscribe = await store.dispatch('room/subscribe', { roomId })
-    const unstart = await store.dispatch('room/start', { userId, roomId })
+    const store = useRoomStore()
+
+    const unsubscribe = await store.subscribe({ roomId })
+    const unstart = await store.start({ userId, roomId })
 
     return {
       unsubscribe,
@@ -149,7 +154,7 @@ export default {
     this.roomId = this.$route.params.id
     this.isHost = this.roomId === user.uid
 
-    await this.$store.dispatch('room/setUser', { user, roomId: this.roomId })
+    await useRoomStore().setUser({ user, roomId: this.roomId })
   },
   async beforeDestroy() {
     const user = await this.$user()
@@ -159,7 +164,7 @@ export default {
     this.unstart()
   },
   destroyed() {
-    this.$store.dispatch('room/clear')
+    useRoomStore().clear()
   },
 
   data() {
@@ -186,10 +191,10 @@ export default {
   },
 
   computed: {
-    ...mapGetters('room', ['room']),
+    ...mapState(useRoomStore, ['getterRoom']),
   },
   methods: {
-    ...mapActions('room', ['exitRoom', 'deleteRoom']),
+    ...mapActions(useRoomStore, ['exitRoom', 'deleteRoom']),
     async exit() {
       if (this.isHost && this.dialog) {
         await this.exitRoom({ userId: this.userId, roomId: this.roomId })
@@ -217,12 +222,12 @@ export default {
     },
     async decideOrder() {
       // 全員を選んでいない場合return
-      if (this.orderedUsers.length !== this.room.length) return
+      if (this.orderedUsers.length !== this.getterRoom.length) return
 
       this.order = !this.order
       this.disabledOrder = !this.disabledOrder
 
-      await this.$store.dispatch('room/decideOrder', {
+      await useRoomStore().decideOrder({
         users: this.orderedUsers,
         roomId: this.roomId,
       })
@@ -235,7 +240,7 @@ export default {
     async start() {
       this.unsubscribe()
       // await this.$store.dispatch('room/clear')
-      await this.$store.dispatch('room/startGame', { roomId: this.roomId })
+      await useRoomStore().startGame({ roomId: this.roomId })
     },
   },
 }

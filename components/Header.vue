@@ -4,18 +4,18 @@
 
     <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon>
     <nuxt-link to="/profile">
-      <v-avatar v-if="registered_user">
-        <img :src="registered_user.iconImageUrl" />
+      <v-avatar v-if="getterRegistered_user">
+        <img :src="getterRegistered_user.iconImageUrl" />
       </v-avatar>
     </nuxt-link>
 
-    <v-toolbar-title v-if="registered_user" class="name">{{
-      registered_user.name
+    <v-toolbar-title v-if="getterRegistered_user" class="name">{{
+      getterRegistered_user.name
     }}</v-toolbar-title>
     <v-spacer></v-spacer>
     <v-toolbar-items>
       <v-btn text>
-        <span v-if="login_user" @click="logout">ログアウト</span>
+        <span v-if="getterLogin_user" @click="logout">ログアウト</span>
         <span v-else @click="login">ログイン</span>
       </v-btn>
     </v-toolbar-items> -->
@@ -23,11 +23,12 @@
 </template>
 
 <script>
-// import { mapActions, mapGetters } from 'vuex'
+// import { mapState, mapActions } from 'pinia'
+// import { useMainStore } from '~/store/main'
 
 // export default {
 //   methods: {
-//     ...mapActions('main', [
+//     ...mapActions(useMainStore, [
 //       'logout',
 //       'setLoginUser',
 //       'deleteLoginUser',
@@ -49,7 +50,7 @@
 //     })
 //   },
 //   computed: {
-//     ...mapGetters('main', ['login_user', 'registered_user']),
+//     ...mapState(useMainStore, ['getterLogin_user', 'getterRegistered_user']),
 //   },
 // }
 </script>

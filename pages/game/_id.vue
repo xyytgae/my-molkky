@@ -2,12 +2,14 @@
   <div class="bg-red">
     <v-app>
       <RoomHeader>
-        <h1 v-if="startSecondHalf" style="border:1px solid white">後半</h1>
-        <h1 v-else style="border:1px solid white">前半</h1>
+        <h1 v-if="getterStartSecondHalf" style="border: 1px solid white">
+          後半
+        </h1>
+        <h1 v-else style="border: 1px solid white">前半</h1>
       </RoomHeader>
 
       <WinLoseDialog
-        v-if="showWLDialog"
+        v-if="getterShowWLDialog"
         @close-dialog="closeDialog"
       ></WinLoseDialog>
 
@@ -19,20 +21,26 @@
               <th>名前</th>
               <th v-if="judge">1回</th>
               <th v-else v-for="n in maxLength" :key="n">{{ n }}回</th>
-              <th class="border" :class="[{ isActive: !startSecondHalf }]">
+              <th
+                class="border"
+                :class="[{ isActive: !getterStartSecondHalf }]"
+              >
                 前半
               </th>
-              <th class="border" :class="[{ isActive: startSecondHalf }]">
+              <th class="border" :class="[{ isActive: getterStartSecondHalf }]">
                 後半
               </th>
               <th class="border">合計</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="user in room" :key="user.id">
-              <th class="name" :class="[user.id === users[0] ? 'order' : '']">
+            <tr v-for="user in getterRoom" :key="user.id">
+              <th
+                class="name"
+                :class="[user.id === getterUsers[0] ? 'order' : '']"
+              >
                 <span class="icon">
-                  <v-icon v-show="user.id === users[0]" color="red"
+                  <v-icon v-show="user.id === getterUsers[0]" color="red"
                     >mdi-arrow-right-bold-circle</v-icon
                   >
                   <v-icon v-if="user.elimination" color="red"
@@ -64,25 +72,25 @@
                 &nbsp;
               </td>
 
-              <td class="border" v-if="startSecondHalf">
+              <td class="border" v-if="getterStartSecondHalf">
                 {{ user.firstHalfScore }}/50
               </td>
               <td
                 class="border"
-                :class="[{ isActive: startSecondHalf }]"
-                v-if="startSecondHalf"
+                :class="[{ isActive: getterStartSecondHalf }]"
+                v-if="getterStartSecondHalf"
               >
                 {{ user.totalScore }}/50
               </td>
 
               <td
                 class="border"
-                :class="[{ isActive: !startSecondHalf }]"
-                v-if="!startSecondHalf"
+                :class="[{ isActive: !getterStartSecondHalf }]"
+                v-if="!getterStartSecondHalf"
               >
                 {{ user.totalScore }}/50
               </td>
-              <td class="border" v-if="!startSecondHalf">
+              <td class="border" v-if="!getterStartSecondHalf">
                 {{ user.firstHalfScore }}/50
               </td>
               <td class="border">
@@ -204,13 +212,13 @@
       </v-dialog>
 
       <GameFooter>
-        <OthersTurnDialog v-show="userId !== users[0]"></OthersTurnDialog>
-        <YourTurnDialog v-show="userId === users[0]"></YourTurnDialog>
+        <OthersTurnDialog v-show="userId !== getterUsers[0]"></OthersTurnDialog>
+        <YourTurnDialog v-show="userId === getterUsers[0]"></YourTurnDialog>
         <v-spacer></v-spacer>
         <v-btn
           color="blue"
           dark
-          :disabled="userId !== users[0]"
+          :disabled="userId !== getterUsers[0]"
           @click="switchDialog"
           fab
         >
@@ -222,7 +230,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useGameStore } from '~/store/game'
 import WinLoseDialog from '../../components/WinLoseDialog'
 import RoomHeader from '../../components/RoomHeader'
 import GameFooter from '../../components/GameFooter'
@@ -239,13 +248,13 @@ export default {
     OthersTurnDialog,
     WinnerDialog,
   },
-  async asyncData({ store, params }) {
+  async asyncData({ params }) {
     const roomId = params.id
 
-    const unsubscribe = await store.dispatch('game/subscribe', { roomId })
-    const unsubscribeRoom = await store.dispatch('game/subscribeRoom', {
-      roomId,
-    })
+    const store = useGameStore()
+
+    const unsubscribe = await store.subscribe({ roomId })
+    const unsubscribeRoom = await store.subscribeRoom({ roomId })
     return {
       unsubscribe,
       unsubscribeRoom,
@@ -281,7 +290,12 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('game', ['room', 'users', 'showWLDialog', 'startSecondHalf']),
+    ...mapState(useGameStore, [
+      'getterRoom',
+      'getterUsers',
+      'getterShowWLDialog',
+      'getterStartSecondHalf',
+    ]),
     score() {
       if (this.selectScore.length === 1) {
         return this.selectScore[0]
@@ -290,10 +304,10 @@ export default {
       }
     },
     maxLength() {
-      if (!this.room) return 1
+      if (!this.getterRoom) return 1
       const array = []
-      for (let index = 0; index < this.room.length; index++) {
-        array.push(this.room[index].score.length)
+      for (let index = 0; index < this.getterRoom.length; index++) {
+        array.push(this.getterRoom[index].score.length)
       }
       return Math.max.apply(null, array)
     },
@@ -302,7 +316,7 @@ export default {
       return this.maxLength
     },
     spaceNumber() {
-      return function(number) {
+      return function (number) {
         if (this.maxLength - number < 1) {
           return 1
         } else {
@@ -316,7 +330,7 @@ export default {
       this.dialog = !this.dialog
     },
     closeDialog() {
-      this.$store.commit('game/closeWLDialog')
+      useGameStore().closeWLDialog()
     },
     selectFirstScores(index) {
       this.$refs.firstScores[index].click()
@@ -336,11 +350,12 @@ export default {
       this.switchDialog()
 
       // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
-      await this.$store.dispatch('game/setScore', {
+      await useGameStore().setScore({
         score: this.score,
         userId: this.userId,
         roomId: this.roomId,
-        userOrder: this.userOrder,
+        // TODO: 不要…？
+        // userOrder: this.userOrder,
       })
 
       // inputで入力された点数をリセット

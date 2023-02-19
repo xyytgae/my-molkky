@@ -2,13 +2,13 @@
   <div>
     <v-navigation-drawer app v-model="drawer" clipped>
       <v-container>
-        <v-list-item v-if="registered_user" class="mb-4">
-          <v-avatar v-if="registered_user" class="mr-2">
-            <img :src="registered_user.iconImageUrl" />
+        <v-list-item v-if="getterRegistered_user" class="mb-4">
+          <v-avatar v-if="getterRegistered_user" class="mr-2">
+            <img :src="getterRegistered_user.iconImageUrl" />
           </v-avatar>
           <v-list-item-content>
             <v-list-item-title class="title grey--text text--darken-2">{{
-              registered_user.name
+              getterRegistered_user.name
             }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
@@ -34,24 +34,22 @@
     <v-app-bar app color="primary" dark>
       <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
       <nuxt-link to="/profile">
-        <v-avatar v-if="registered_user">
-          <img :src="registered_user.iconImageUrl" />
+        <v-avatar v-if="getterRegistered_user">
+          <img :src="getterRegistered_user.iconImageUrl" />
         </v-avatar>
       </nuxt-link>
 
-      <v-toolbar-title v-if="registered_user" class="name"
-        >{{ registered_user.name }}
+      <v-toolbar-title v-if="getterRegistered_user" class="name"
+        >{{ getterRegistered_user.name }}
         <div>
-          <span class="star">
-            ★
-          </span>
-          ×{{ registered_user.stars }}
+          <span class="star"> ★ </span>
+          ×{{ getterRegistered_user.stars }}
         </div>
       </v-toolbar-title>
       <v-spacer></v-spacer>
       <v-toolbar-items>
         <v-btn text>
-          <span v-if="login_user" @click="logout">ログアウト</span>
+          <span v-if="getterLogin_user" @click="logout">ログアウト</span>
           <span v-else @click="login">ログイン</span>
         </v-btn>
       </v-toolbar-items>
@@ -60,11 +58,12 @@
 </template>
 
 <script>
-import { mapActions, mapGetters } from 'vuex'
+import { mapState, mapActions } from 'pinia'
+import { useMainStore } from '~/store/main'
 
 export default {
   methods: {
-    ...mapActions('main', [
+    ...mapActions(useMainStore, [
       'logout',
       'setLoginUser',
       'deleteLoginUser',
@@ -76,7 +75,7 @@ export default {
     },
   },
   async created() {
-    await this.$fireAuth.onAuthStateChanged(user => {
+    await this.$fireAuth.onAuthStateChanged((user) => {
       if (user) {
         const { uid, displayName, email } = user
         this.setLoginUser({ uid, displayName, email })
@@ -110,7 +109,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('main', ['login_user', 'registered_user']),
+    ...mapState(useMainStore, ['getterLogin_user', 'getterRegistered_user']),
   },
 }
 </script>

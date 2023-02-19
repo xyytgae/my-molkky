@@ -48,7 +48,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useMainStore } from '~/store/main'
 
 export default {
   middleware: ['checkRegister'],
@@ -67,7 +68,8 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('main', ['login_user']),
+    // TODO: 不要…？
+    ...mapState(useMainStore, ['getterLogin_user']),
   },
   methods: {
     async onSubmit() {
@@ -76,14 +78,11 @@ export default {
       if (!user) this.$router.push('/login')
 
       try {
-        await this.$firestore
-          .collection('users')
-          .doc(user.uid)
-          .set({
-            name: this.form.name.value,
-            iconImageUrl: this.form.image.value,
-            stars: 0,
-          })
+        await this.$firestore.collection('users').doc(user.uid).set({
+          name: this.form.name.value,
+          iconImageUrl: this.form.image.value,
+          stars: 0,
+        })
         this.$router.push('/')
       } catch (e) {
         console.log('失敗しました')
