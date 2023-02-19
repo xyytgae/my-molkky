@@ -163,6 +163,7 @@
 
 <script>
 import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useRoomsStore } from '~/store/rooms'
 import UserHeader from '~/components/UserHeader'
 import RoomsFooter from '~/components/RoomsFooter'
@@ -226,7 +227,7 @@ export default {
       this.errorMessages = 'パスワードが違います'
     },
     async moveToRoomPage(roomId) {
-      const user = await this.$user()
+      const user = await useNuxtApp().$user
       const userId = user.uid
       const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
       if (userId === isPasswordEdited.hostId) {
@@ -260,9 +261,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/rooms/${localImageFile.name}`,
@@ -276,13 +277,13 @@ export default {
       this.dialog = false
 
       // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
-      const user = this.$fireAuth.currentUser
+      const user = useNuxtApp().$fireAuth.currentUser
       if (!user) this.$router.push('/login')
 
       const params = {
         name: this.form.name.value,
         topImageUrl: this.form.image.value,
-        createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: useNuxtApp().$firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
         startFirstHalf: false,
@@ -294,7 +295,10 @@ export default {
       }
 
       try {
-        await this.$firestore.collection('rooms').doc(user.uid).set(params)
+        await useNuxtApp()
+          .$firestore.collection('rooms')
+          .doc(user.uid)
+          .set(params)
       } catch (e) {
         this.failDialog = true
       }

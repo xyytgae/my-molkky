@@ -59,6 +59,7 @@
 
 <script>
 import { mapState, mapActions } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useMainStore } from '~/store/main'
 
 export default {
@@ -75,7 +76,7 @@ export default {
     },
   },
   async created() {
-    await this.$fireAuth.onAuthStateChanged((user) => {
+    await useNuxtApp().$fireAuth.onAuthStateChanged((user) => {
       if (user) {
         const { uid, displayName, email } = user
         this.setLoginUser({ uid, displayName, email })

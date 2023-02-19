@@ -39,9 +39,9 @@
               <v-col cols="12">
                 <v-switch
                   v-model="isPassword"
-                  :label="
-                    `パスワードを${isPassword ? '設定する' : '設定しない'}`
-                  "
+                  :label="`パスワードを${
+                    isPassword ? '設定する' : '設定しない'
+                  }`"
                 ></v-switch>
               </v-col>
               <v-col cols="12">
@@ -70,6 +70,8 @@
 </template>
 
 <script>
+import { useNuxtApp } from '#app'
+
 export default {
   data() {
     return {
@@ -109,9 +111,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/rooms/${localImageFile.name}`,

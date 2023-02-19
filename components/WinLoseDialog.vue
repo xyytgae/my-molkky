@@ -90,6 +90,7 @@
 
 <script>
 import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useGameStore } from '~/store/game'
 import { useResultStore } from '~/store/result'
 import WinnerDialog from '../components/WinnerDialog'
@@ -100,7 +101,7 @@ export default {
   },
   async created() {
     const resultStore = useResultStore()
-    const user = await this.$user()
+    const user = await useNuxtApp().$user
     this.userId = user.uid
     const roomId = this.$route.params.id
     this.roomId = roomId

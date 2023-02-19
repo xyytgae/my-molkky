@@ -52,6 +52,7 @@
 
 <script>
 import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useMainStore } from '~/store/main'
 
 export default {
@@ -84,13 +85,13 @@ export default {
   },
   methods: {
     async onSubmit() {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
       // console.log(user)
 
       if (!user) this.$router.push('/login')
 
       try {
-        await this.$firestore.collection('users').doc(user.uid).update({
+        await useNuxtApp().$firestore.collection('users').doc(user.uid).update({
           name: this.form.name.value,
           iconImageUrl: this.form.image.value,
           // stars: this.form.stars.value,
@@ -118,9 +119,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/${localImageFile.name}`,

@@ -81,6 +81,7 @@
 
 <script>
 import { mapState, mapActions } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useMainStore } from '~/store/main'
 import UserHeader from '~/components/UserHeader'
 
@@ -89,7 +90,7 @@ export default {
     ...mapActions(useMainStore, ['getGameHistory', 'clearGameHistory']),
   },
   async created() {
-    const user = await this.$user()
+    const user = await useNuxtApp().$user
     const userId = user.uid
 
     await this.getGameHistory({ userId })

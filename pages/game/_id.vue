@@ -231,6 +231,7 @@
 
 <script>
 import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useGameStore } from '~/store/game'
 import WinLoseDialog from '../../components/WinLoseDialog'
 import RoomHeader from '../../components/RoomHeader'
@@ -261,7 +262,7 @@ export default {
     }
   },
   async created() {
-    const user = await this.$user()
+    const user = await useNuxtApp().$user
     this.userId = user.uid
     this.roomId = this.$route.params.id
   },

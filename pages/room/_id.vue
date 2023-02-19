@@ -126,6 +126,7 @@
 
 <script>
 import { mapState, mapActions } from 'pinia'
+import { useNuxtApp } from '#app'
 import { useRoomStore } from '~/store/room'
 import RoomHeader from '../../components/RoomHeader'
 import RoomFooter from '../../components/RoomFooter'
@@ -149,7 +150,7 @@ export default {
     }
   },
   async created() {
-    const user = await this.$user()
+    const user = await useNuxtApp().$user
     this.userId = user.uid
     this.roomId = this.$route.params.id
     this.isHost = this.roomId === user.uid
@@ -157,7 +158,7 @@ export default {
     await useRoomStore().setUser({ user, roomId: this.roomId })
   },
   async beforeDestroy() {
-    const user = await this.$user()
+    const user = await useNuxtApp().$user
     const userId = user.uid
 
     this.unsubscribe()

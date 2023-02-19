@@ -10,6 +10,7 @@
 </template>
 
 <script>
+import { useNuxtApp } from '#app'
 import UserHeader from '~/components/UserHeader'
 
 export default {
@@ -19,7 +20,7 @@ export default {
   },
   methods: {
     async start() {
-      const auth = await this.$auth()
+      const auth = await useNuxtApp().$auth
       if (!auth) {
         this.$router.push('/login')
       } else {
