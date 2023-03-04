@@ -249,24 +249,16 @@ export default {
     OthersTurnDialog,
     WinnerDialog,
   },
-  async asyncData({ params }) {
-    const roomId = params.id
-
-    const store = useGameStore()
-
-    const unsubscribe = await store.subscribe({ roomId })
-    const unsubscribeRoom = await store.subscribeRoom({ roomId })
-    return {
-      unsubscribe,
-      unsubscribeRoom,
-    }
-  },
   async created() {
     const user = await useNuxtApp().$user
     this.userId = user.uid
     this.roomId = this.$route.params.id
+
+    const store = useGameStore()
+    this.unsubscribe = await store.subscribe({ roomId: this.roomId })
+    this.unsubscribeRoom = await store.subscribeRoom({ roomId: this.roomId })
   },
-  async destroyed() {
+  beforeRouteLeave() {
     this.unsubscribe()
     this.unsubscribeRoom()
   },

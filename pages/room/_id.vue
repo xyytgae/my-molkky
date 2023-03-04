@@ -134,21 +134,6 @@ import DeleteRoomDialog from '../../components/DeleteRoomDialog'
 
 export default {
   middleware: ['checkAuth'],
-  async asyncData({ params, $user }) {
-    const roomId = params.id
-    const user = await $user()
-    const userId = user.uid
-
-    const store = useRoomStore()
-
-    const unsubscribe = await store.subscribe({ roomId })
-    const unstart = await store.start({ userId, roomId })
-
-    return {
-      unsubscribe,
-      unstart,
-    }
-  },
   async created() {
     const user = await useNuxtApp().$user
     this.userId = user.uid
@@ -156,15 +141,21 @@ export default {
     this.isHost = this.roomId === user.uid
 
     await useRoomStore().setUser({ user, roomId: this.roomId })
+
+    const store = useRoomStore()
+
+    this.unsubscribe = await store.subscribe({ roomId: this.roomId })
+    this.unstart = await store.start({
+      userId: this.userId,
+      roomId: this.roomId,
+    })
   },
-  async beforeDestroy() {
+  async beforeRouteLeave() {
     const user = await useNuxtApp().$user
     const userId = user.uid
 
     this.unsubscribe()
     this.unstart()
-  },
-  destroyed() {
     useRoomStore().clear()
   },
 

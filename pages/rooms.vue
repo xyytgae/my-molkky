@@ -169,14 +169,10 @@ import UserHeader from '~/components/UserHeader'
 import RoomsFooter from '~/components/RoomsFooter'
 
 export default {
-  async asyncData() {
-    const unsubscribe = await useRoomsStore().subscribe()
-
-    return {
-      unsubscribe,
-    }
+  async created() {
+    this.unsubscribe = await useRoomsStore().subscribe()
   },
-  destroyed() {
+  beforeRouteLeave() {
     useRoomsStore().clear()
     this.unsubscribe()
   },
