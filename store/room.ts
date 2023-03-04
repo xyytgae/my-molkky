@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { useNuxtApp } from '#app'
+import { useNuxtApp, useRouter } from '#app'
 
 export const useRoomStore = defineStore('room', {
   state: () => ({
@@ -90,6 +90,7 @@ export const useRoomStore = defineStore('room', {
     },
 
     start({ userId, roomId }) {
+      const router = useRouter()
       return useNuxtApp()
         .$firestore.collection('rooms')
         .doc(roomId)
@@ -101,10 +102,10 @@ export const useRoomStore = defineStore('room', {
             const docData = doc.data()
             if (docData.delete) {
               this.exitRoom({ userId, roomId })
-              this.$router.push('/')
+              router.push('/')
             }
             if (docData.startFirstHalf) {
-              this.$router.push(`/game/${roomId}`)
+              router.push(`/game/${roomId}`)
             }
           },
         )
