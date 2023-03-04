@@ -33,10 +33,18 @@ export const useMainStore = defineStore('main', {
           // this.$router.push('/')
         })
     },
-    login() {
-      const google_auth_provider =
-        new useNuxtApp().$fireAuth.GoogleAuthProvider()
-      useNuxtApp().$fireAuth.signInWithRedirect(google_auth_provider)
+    async login() {
+      const { $firebase, $fireAuth } = useNuxtApp()
+      const google_auth_provider = new $firebase.auth.GoogleAuthProvider()
+      try {
+        await $fireAuth.signInWithPopup(google_auth_provider)
+      } catch (error) {
+        console.log(error)
+      }
+      useRouter().push('/rooms')
+
+      // NOTE: バグなのかログイン後にリダレクトできないため不使用
+      // $fireAuth.signInWithRedirect(google_auth_provider)
     },
     logout() {
       useNuxtApp().$fireAuth.signOut()
