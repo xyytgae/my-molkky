@@ -279,7 +279,8 @@ export default {
       const params = {
         name: this.form.name.value,
         topImageUrl: this.form.image.value,
-        createdAt: useNuxtApp().$firestore.FieldValue.serverTimestamp(),
+        createdAt:
+          useNuxtApp().$firebase.firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
         startFirstHalf: false,

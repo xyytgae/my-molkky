@@ -55,8 +55,8 @@ export const useResultStore = defineStore('result', {
         .$firestore.collection('users')
         .doc(winner.id)
         .update({
-          stars: useNuxtApp().$firestore.FieldValue.increment(1),
-          stones: useNuxtApp().$firestore.FieldValue.increment(1),
+          stars: useNuxtApp().$firebase.firestore.FieldValue.increment(1),
+          stones: useNuxtApp().$firebase.firestore.FieldValue.increment(1),
         })
     },
 
@@ -94,7 +94,8 @@ export const useResultStore = defineStore('result', {
         .doc()
 
       newRef.set({
-        createdAt: useNuxtApp().$firestore.FieldValue.serverTimestamp(),
+        createdAt:
+          useNuxtApp().$firebase.firestore.FieldValue.serverTimestamp(),
       })
 
       useNuxtApp()

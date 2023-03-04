@@ -44,7 +44,8 @@ export const useRoomStore = defineStore('room', {
         id: user.uid,
         name: user.name,
         iconImageUrl: user.iconImageUrl,
-        createdAt: useNuxtApp().$firestore.FieldValue.serverTimestamp(),
+        createdAt:
+          useNuxtApp().$firebase.firestore.FieldValue.serverTimestamp(),
       }
 
       useNuxtApp()
