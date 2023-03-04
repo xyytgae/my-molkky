@@ -17,7 +17,7 @@ if (!firebase.apps.length) {
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
-  // nuxtApp.provide('firebase', firebase)
+  nuxtApp.provide('firebase', firebase)
   nuxtApp.provide('firestore', firebase.firestore())
   nuxtApp.provide('fireAuth', firebase.auth())
   nuxtApp.provide('fireStorage', firebase.storage())
@@ -25,6 +25,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 
 declare module '#app' {
   interface NuxtApp {
+    $firebase: typeof firebase
     $firestore: FirebaseFirestore
     $fireAuth: FirebaseAuth
     $fireStorage: FirebaseStorage
