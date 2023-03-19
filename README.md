@@ -1,26 +1,21 @@
-# my-molkky
+# My molkky
 
-## About molkky
+## 概要
 
-> The players (or teams) each play in turn, trying to knock down numbered pins by throwing the Mölkky from the launching zone. All throwing styles are allowed. A pin is only considered knocked down if it has fallen entirely to the ground. If a pin is in equilibrium on another pin, the Mölkky or a natural piece of land (tree stump, tree trunk …) it is not considered as knocked down. If the pin rests against an artificial element (cement border, a bench, …) it is considered as knocked down.
+モルック（molkky）というスポーツの得点管理アプリです。  
+参加しているチーム毎にスマートフォン等の端末を用意し、自分の得点を記録します。  
+また相手の得点はリアルタイムで反映されます。
 
-> A player can score points in only one of two ways:
->
-> - Knocking over exactly one pin scores the amount of points that is marked on the respective pin
-> - Knocking over two or more pins scores the number of pins that were knocked over (e.g. knocking over 3 pins scores 3 points)
+[モルックとは](https://molkky.jp/molkky/)
 
-> The winning player is the first to reach exactly 50 points, thereby ending the game. If a player's score exceeds 50, it is set back to 25. A player that misses all of the target pins three times in a row is eliminated from the game. In case all players are eliminated before anyone reaches 50 points, the last remaining player wins.
 
-Quoted: https://www.molkky.world/molkky-rules
+### My molkkyオリジナルルール
 
-## Overview
+基本的には通常のモルックのルールに加えて、下記のルールを加えています。
 
-```bash
-Molkky is a sport which was born in Finland.
-You can keep score of molkky with your friends.
-```
-
-## Images
+先に50点を先取したチームは1ポイント獲得し、そのラウンドは終了となります。
+獲得したポイントはそのままで、すべてのチームの得点やスキットルの配置をリセットします。
+先に2ポイント獲得したチームが勝利となり、ゲーム終了です。
 
 <img src="https://github.com/xyytgae/my-molkky/blob/images/capture_1.png" alt="capture_1" >
 
@@ -28,30 +23,42 @@ You can keep score of molkky with your friends.
 
 <img src="https://github.com/xyytgae/my-molkky/blob/images/capture_3.PNG" alt="capture_3" >
 
-## Featured
+## 機能一覧
+- プレイルーム作成、入退室
+- モルック得点管理
+- ゲーム履歴閲覧
+
+## 実装予定機能
+- 複数写真投稿
+- 編集
+- 削除
+- ハッシュタグカラー変更
+
+## 環境構築
 
 ```bash
-All scores are displayed in real time.
-If you log in this application, you can check your past scores.
+# クローン
+$ git clone https://github.com/xyytgae/my-molkky.git
+
+# パッケージインストール
+$ yarn
+
+# localhost:3000でサーバー立ち上げ
+$ yarn dev
 ```
+
+## 開発中によく使うコマンド
+```bash
+# git czを使用しgit commitを行う
+$ yarn commit
+```
+
+## 技術
+- Nuxt.js（2系）→ Nuxt.js（3系）[移行中](https://github.com/xyytgae/my-molkky/tree/develop)
+- Vuetify.js
+- Firebase（Authentication、Firestore、Storage、Hosting）
 
 ## DeployURL
 
 https://my-molkky.web.app
 
-## Build Setup
-
-```bash
-# install dependencies
-$ npm install
-
-# serve with hot reload at localhost:3000
-$ npm run dev
-
-# build for production and launch server
-$ npm run build
-$ npm run start
-
-# generate static project
-$ npm run generate
-```
