@@ -1,3 +1,30 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { useNuxtApp } from '#app'
+import { onUnmounted } from '#imports'
+import { useMainStore } from '~/store/main'
+
+const store = useMainStore()
+const { getterGameHistoryCreatedAt, getterGameHistoryUsers } =
+  storeToRefs(store)
+
+const { getGameHistory, clearGameHistory } = store
+
+/**
+ * init
+ */
+useNuxtApp().$user.then(async (user) => {
+  if (user) {
+    const userId = user.uid
+    await getGameHistory({ userId })
+  }
+})
+
+onUnmounted(() => {
+  clearGameHistory()
+})
+</script>
+
 <template>
   <div>
     <v-app>
@@ -78,34 +105,3 @@
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapState, mapActions } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useMainStore } from '~/store/main'
-import UserHeader from '~/components/UserHeader'
-
-export default {
-  methods: {
-    ...mapActions(useMainStore, ['getGameHistory', 'clearGameHistory']),
-  },
-  async created() {
-    const user = await useNuxtApp().$user
-    const userId = user.uid
-
-    await this.getGameHistory({ userId })
-  },
-  destroyed() {
-    this.clearGameHistory()
-  },
-  components: {
-    UserHeader,
-  },
-  computed: {
-    ...mapState(useMainStore, [
-      'getterGameHistoryCreatedAt',
-      'getterGameHistoryUsers',
-    ]),
-  },
-}
-</script>
