@@ -1,3 +1,23 @@
+<script setup lang="ts">
+import { useNuxtApp, useRouter } from '#app'
+import { definePageMeta } from '#imports'
+
+definePageMeta({
+  middleware: ['check-auth'],
+})
+
+const router = useRouter()
+
+const start = async () => {
+  const auth = await useNuxtApp().$auth
+  if (!auth) {
+    router.push('/login')
+  } else {
+    router.push('/rooms')
+  }
+}
+</script>
+
 <template>
   <v-app>
     <UserHeader />
@@ -8,28 +28,6 @@
     </div>
   </v-app>
 </template>
-
-<script>
-import { useNuxtApp } from '#app'
-import UserHeader from '~/components/UserHeader'
-
-export default {
-  middleware: ['checkAuth'],
-  components: {
-    UserHeader,
-  },
-  methods: {
-    async start() {
-      const auth = await useNuxtApp().$auth
-      if (!auth) {
-        this.$router.push('/login')
-      } else {
-        this.$router.push('/rooms')
-      }
-    },
-  },
-}
-</script>
 
 <style scoped>
 .class {
