@@ -1,3 +1,88 @@
+<script setup lang="ts">
+import { useNuxtApp, useRouter } from '#app'
+import { ref, reactive } from '#imports'
+import { useMainStore } from '~/store/main'
+
+const router = useRouter()
+const store = useMainStore()
+const { $auth, $firestore, $fireStorage } = useNuxtApp()
+const { getterLogin_user, getterRegistered_user } = store
+
+const image = ref<HTMLInputElement>()
+const form = reactive({
+  name: {
+    label: 'プレイヤー名',
+    value: null,
+  },
+  image: {
+    label: 'アイコン画像',
+    value: null,
+  },
+  stars: {
+    label: 'スター',
+    value: 0,
+  },
+})
+
+const onSubmit = async () => {
+  const user = await $auth
+  // console.log(user)
+
+  if (!user) router.push('/login')
+
+  try {
+    await $firestore.collection('users').doc(user.uid).update({
+      name: form.name.value,
+      iconImageUrl: form.image.value,
+      // stars: form.stars.value,
+    })
+    router.push('/')
+  } catch (e) {
+    console.log('失敗しました')
+    console.log(e)
+  }
+}
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+// TODO: 型修正
+const onSelectFile = (e: any) => {
+  const files = e.target.files
+  if (files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: any) => {
+  const user = await $auth
+
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(`images/${user.uid}/${localImageFile.name}`)
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+
+/**
+ * init
+ */
+form.name.value = getterRegistered_user.name
+form.image.value = getterRegistered_user.iconImageUrl
+form.stars.value = getterRegistered_user.stars
+</script>
+
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
@@ -49,90 +134,6 @@
     </form>
   </v-app>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useMainStore } from '~/store/main'
-
-export default {
-  // middleware: ['checkRegister'],
-  created() {
-    this.form.name.value = this.getterRegistered_user.name
-    this.form.image.value = this.getterRegistered_user.iconImageUrl
-    this.form.stars.value = this.getterRegistered_user.stars
-  },
-  computed: {
-    ...mapState(useMainStore, ['getterLogin_user', 'getterRegistered_user']),
-  },
-  data() {
-    return {
-      form: {
-        name: {
-          label: 'プレイヤー名',
-          value: null,
-        },
-        image: {
-          label: 'アイコン画像',
-          value: null,
-        },
-        stars: {
-          label: 'スター',
-          value: 0,
-        },
-      },
-    }
-  },
-  methods: {
-    async onSubmit() {
-      const user = await useNuxtApp().$auth
-      // console.log(user)
-
-      if (!user) this.$router.push('/login')
-
-      try {
-        await useNuxtApp().$firestore.collection('users').doc(user.uid).update({
-          name: this.form.name.value,
-          iconImageUrl: this.form.image.value,
-          // stars: this.form.stars.value,
-        })
-        this.$router.push('/')
-      } catch (e) {
-        console.log('失敗しました')
-        console.log(e)
-      }
-    },
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await useNuxtApp().$auth
-
-      const storageRef = useNuxtApp().$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .form {
