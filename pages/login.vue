@@ -1,3 +1,23 @@
+<script setup lang="ts">
+import { definePageMeta, ref } from '#imports'
+import { useMainStore } from '~/store/main'
+
+definePageMeta({
+  middleware: ['check-login'],
+})
+
+const store = useMainStore()
+const { login, guestLogin } = store
+
+const isOpenedOverlay = ref(false)
+
+// TODO: 型修正
+const guest = (email: any, password: any) => {
+  isOpenedOverlay.value = true
+  guestLogin({ email, password })
+}
+</script>
+
 <template>
   <v-app>
     <v-card class="mx-auto mt-5" width="350">
@@ -34,31 +54,10 @@
       <!-- </v-container> -->
     </v-card>
 
-    <v-overlay :value="overlay">
+    <v-overlay :value="isOpenedOverlay">
       <v-progress-circular indeterminate size="128"
         >ログイン中...</v-progress-circular
       >
     </v-overlay>
   </v-app>
 </template>
-
-<script>
-import { mapActions } from 'pinia'
-import { useMainStore } from '~/store/main'
-
-export default {
-  middleware: ['checkLogin'],
-  data() {
-    return {
-      overlay: false,
-    }
-  },
-  methods: {
-    ...mapActions(useMainStore, ['login', 'guestLogin']),
-    guest(email, password) {
-      this.overlay = true
-      this.guestLogin({ email, password })
-    },
-  },
-}
-</script>
