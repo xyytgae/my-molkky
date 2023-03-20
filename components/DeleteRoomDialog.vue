@@ -1,12 +1,8 @@
 <template>
   <v-dialog v-model="dialog" max-width="300px">
     <v-card>
-      <v-card-title>
-        ゲームを終了
-      </v-card-title>
-      <v-card-text>
-        ルームを退出しますか？
-      </v-card-text>
+      <v-card-title> ゲームを終了 </v-card-title>
+      <v-card-text> ルームを退出しますか？ </v-card-text>
       <v-card-actions>
         <v-btn @click="$emit('close-dialog')" color="info" text
           >キャンセル</v-btn
@@ -19,11 +15,12 @@
 </template>
 
 <script>
-// import { mapActions } from 'vuex'
+// import { mapActions } from 'pinia'
+// import { useRoomStore } from '~/store/room'
 
 export default {
   methods: {
-    // ...mapActions('room', ['deleteRoom']),
+    // ...mapActions(useRoomStore, ['deleteRoom']),
   },
   data() {
     return {

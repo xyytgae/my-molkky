@@ -48,7 +48,9 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
+import { useMainStore } from '~/store/main'
 
 export default {
   middleware: ['checkRegister'],
@@ -67,23 +69,21 @@ export default {
     }
   },
   computed: {
-    ...mapGetters('main', ['login_user']),
+    // TODO: 不要…？
+    ...mapState(useMainStore, ['getterLogin_user']),
   },
   methods: {
     async onSubmit() {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
       if (!user) this.$router.push('/login')
 
       try {
-        await this.$firestore
-          .collection('users')
-          .doc(user.uid)
-          .set({
-            name: this.form.name.value,
-            iconImageUrl: this.form.image.value,
-            stars: 0,
-          })
+        await useNuxtApp().$firestore.collection('users').doc(user.uid).set({
+          name: this.form.name.value,
+          iconImageUrl: this.form.image.value,
+          stars: 0,
+        })
         this.$router.push('/')
       } catch (e) {
         console.log('失敗しました')
@@ -106,9 +106,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/${localImageFile.name}`,

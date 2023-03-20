@@ -5,7 +5,7 @@
 
       <v-main class="main">
         <v-container>
-          <v-row v-for="room in rooms" :key="room.id" dense>
+          <v-row v-for="room in getterRooms" :key="room.id" dense>
             <v-col cols="12">
               <v-card>
                 <div class="d-flex flex-no-wrap">
@@ -75,11 +75,9 @@
                     <v-col cols="12">
                       <v-switch
                         v-model="isPassword"
-                        :label="
-                          `パスワードを${
-                            isPassword ? '設定する' : '設定しない'
-                          }`
-                        "
+                        :label="`パスワードを${
+                          isPassword ? '設定する' : '設定しない'
+                        }`"
                       ></v-switch>
                     </v-col>
                     <v-col cols="12">
@@ -164,20 +162,18 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
+import { useRoomsStore } from '~/store/rooms'
 import UserHeader from '~/components/UserHeader'
 import RoomsFooter from '~/components/RoomsFooter'
 
 export default {
-  async asyncData({ store }) {
-    const unsubscribe = await store.dispatch('rooms/subscribe')
-
-    return {
-      unsubscribe,
-    }
+  async created() {
+    this.unsubscribe = await useRoomsStore().subscribe()
   },
-  destroyed() {
-    this.$store.dispatch('rooms/clear')
+  beforeRouteLeave() {
+    useRoomsStore().clear()
     this.unsubscribe()
   },
 
@@ -216,20 +212,20 @@ export default {
     RoomsFooter,
   },
   computed: {
-    ...mapGetters('rooms', ['rooms']),
+    ...mapState(useRoomsStore, ['getterRooms']),
   },
   methods: {
     correctPassword(roomId) {
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
       if (this.password === isPasswordEdited.password) {
         this.$router.push(`/room/${roomId}`)
       }
       this.errorMessages = 'パスワードが違います'
     },
     async moveToRoomPage(roomId) {
-      const user = await this.$user()
+      const user = await useNuxtApp().$user
       const userId = user.uid
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
+      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
       if (userId === isPasswordEdited.hostId) {
         this.password = isPasswordEdited.password
       } else if (this.password !== isPasswordEdited.password) {
@@ -261,9 +257,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/rooms/${localImageFile.name}`,
@@ -277,13 +273,14 @@ export default {
       this.dialog = false
 
       // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
-      const user = this.$fireAuth.currentUser
+      const user = useNuxtApp().$fireAuth.currentUser
       if (!user) this.$router.push('/login')
 
       const params = {
         name: this.form.name.value,
         topImageUrl: this.form.image.value,
-        createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt:
+          useNuxtApp().$firebase.firestore.FieldValue.serverTimestamp(),
         password: this.form.password.value,
         hostId: user.uid,
         startFirstHalf: false,
@@ -295,8 +292,8 @@ export default {
       }
 
       try {
-        await this.$firestore
-          .collection('rooms')
+        await useNuxtApp()
+          .$firestore.collection('rooms')
           .doc(user.uid)
           .set(params)
       } catch (e) {

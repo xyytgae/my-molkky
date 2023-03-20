@@ -8,21 +8,26 @@
 
         <v-spacer></v-spacer>
         <v-btn
-          v-if="!startSecondHalf && userId === roomId"
+          v-if="!getterStartSecondHalf && userId === roomId"
           color="orange"
           @click="startSecond"
           rounded
           >後半へ進む</v-btn
         >
-        <v-btn v-if="startSecondHalf" color="orange" @click="finish" rounded>
+        <v-btn
+          v-if="getterStartSecondHalf"
+          color="orange"
+          @click="finish"
+          rounded
+        >
           終了
         </v-btn>
       </v-card-actions>
 
       <v-container class="container">
-        <v-card-title class="headline" v-if="startSecondHalf">
+        <v-card-title class="headline" v-if="getterStartSecondHalf">
           <v-row>
-            <v-col cols="12" v-for="w in winner" :key="w.id">
+            <v-col cols="12" v-for="w in getterWinner" :key="w.id">
               Winner :
               {{ w.name }}
               <WinnerDialog v-if="w.id == userId"></WinnerDialog>
@@ -42,8 +47,8 @@
             </thead>
 
             <!-- 2ndHalf終了時に表示 -->
-            <tbody v-if="startSecondHalf">
-              <tr v-for="r in result" :key="r.id">
+            <tbody v-if="getterStartSecondHalf">
+              <tr v-for="r in getterResult" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
@@ -63,7 +68,7 @@
 
             <!-- 1stHalf終了時に表示 -->
             <tbody v-else>
-              <tr v-for="r in result" :key="r.id">
+              <tr v-for="r in getterResult" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
@@ -84,7 +89,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
+import { useGameStore } from '~/store/game'
+import { useResultStore } from '~/store/result'
 import WinnerDialog from '../components/WinnerDialog'
 
 export default {
@@ -92,27 +100,28 @@ export default {
     WinnerDialog,
   },
   async created() {
-    const user = await this.$user()
+    const resultStore = useResultStore()
+    const user = await useNuxtApp().$user
     this.userId = user.uid
     const roomId = this.$route.params.id
     this.roomId = roomId
-    await this.$store.dispatch('result/getResult', {
+    await resultStore.getResult({
       roomId,
       userId: this.userId,
     })
-    if (this.startSecondHalf) {
-      await this.$store.dispatch('result/getWinner', {
+    if (this.getterStartSecondHalf) {
+      await resultStore.getWinner({
         roomId,
         userId: this.userId,
       })
 
-      // await this.$store.dispatch('result/recordData', {
+      // await resultStore.recordData({
       //   userId: this.userId,
       // })
     }
   },
   destroyed() {
-    this.$store.dispatch('result/clear')
+    useResultStore().clear()
   },
   data() {
     return {
@@ -125,20 +134,20 @@ export default {
     async startSecond() {
       // this.$store.dispatch('game/clearUsers')
 
-      await this.$store.dispatch('game/startSecondHalf', {
-        roomId: this.roomId,
-      })
+      await useGameStore().startSecondHalf({ roomId: this.roomId })
     },
     async finish() {
-      this.$store.dispatch('game/clear')
+      useGameStore().clear()
 
-      await this.$store.dispatch('result/clearFirestore', {
+      const resultStore = useResultStore()
+
+      await resultStore.clearFirestore({
         userId: this.userId,
         roomId: this.roomId,
       })
 
       if (this.userId === this.roomId) {
-        await this.$store.dispatch('result/resetRoom', {
+        await resultStore.resetRoom({
           roomId: this.roomId,
         })
         this.$router.push(`/room/${this.roomId}`)
@@ -148,8 +157,8 @@ export default {
     },
   },
   computed: {
-    ...mapGetters('result', ['result', 'winner']),
-    ...mapGetters('game', ['startSecondHalf']),
+    ...mapState(useResultStore, ['getterResult', 'getterWinner']),
+    ...mapState(useGameStore, ['getterStartSecondHalf']),
   },
 }
 </script>

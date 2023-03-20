@@ -15,7 +15,7 @@
         </template>
         <template v-else>
           <!-- <v-avatar class="image" size="180">
-            <img :src="login_user.photoURL" />
+            <img :src="getterLogin_user.photoURL" />
           </v-avatar>-->
           <v-icon color="gray" size="150" @click="selectImage"
             >mdi-account-circle</v-icon
@@ -39,9 +39,7 @@
       </div>
 
       <div class="star">
-        <span style="color: #FFA000">
-          ★
-        </span>
+        <span style="color: #ffa000"> ★ </span>
         ×{{ form.stars.value }}
       </div>
 
@@ -53,17 +51,19 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapState } from 'pinia'
+import { useNuxtApp } from '#app'
+import { useMainStore } from '~/store/main'
 
 export default {
   // middleware: ['checkRegister'],
   created() {
-    this.form.name.value = this.registered_user.name
-    this.form.image.value = this.registered_user.iconImageUrl
-    this.form.stars.value = this.registered_user.stars
+    this.form.name.value = this.getterRegistered_user.name
+    this.form.image.value = this.getterRegistered_user.iconImageUrl
+    this.form.stars.value = this.getterRegistered_user.stars
   },
   computed: {
-    ...mapGetters('main', ['login_user', 'registered_user']),
+    ...mapState(useMainStore, ['getterLogin_user', 'getterRegistered_user']),
   },
   data() {
     return {
@@ -85,20 +85,17 @@ export default {
   },
   methods: {
     async onSubmit() {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
       // console.log(user)
 
       if (!user) this.$router.push('/login')
 
       try {
-        await this.$firestore
-          .collection('users')
-          .doc(user.uid)
-          .update({
-            name: this.form.name.value,
-            iconImageUrl: this.form.image.value,
-            // stars: this.form.stars.value,
-          })
+        await useNuxtApp().$firestore.collection('users').doc(user.uid).update({
+          name: this.form.name.value,
+          iconImageUrl: this.form.image.value,
+          // stars: this.form.stars.value,
+        })
         this.$router.push('/')
       } catch (e) {
         console.log('失敗しました')
@@ -122,9 +119,9 @@ export default {
       })
     },
     async upload({ localImageFile }) {
-      const user = await this.$auth()
+      const user = await useNuxtApp().$auth
 
-      const storageRef = this.$fireStorage.ref()
+      const storageRef = useNuxtApp().$fireStorage.ref()
 
       const imageRef = storageRef.child(
         `images/${user.uid}/${localImageFile.name}`,

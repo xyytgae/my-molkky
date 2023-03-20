@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-card class="mx-auto mt-5 " width="350">
+    <v-card class="mx-auto mt-5" width="350">
       <!-- <v-container> -->
       <v-card-title>
         <h1 class="display-1 mx-auto">ログイン</h1>
@@ -43,7 +43,8 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'pinia'
+import { useMainStore } from '~/store/main'
 
 export default {
   middleware: ['checkLogin'],
@@ -53,7 +54,7 @@ export default {
     }
   },
   methods: {
-    ...mapActions('main', ['login', 'guestLogin']),
+    ...mapActions(useMainStore, ['login', 'guestLogin']),
     guest(email, password) {
       this.overlay = true
       this.guestLogin({ email, password })
