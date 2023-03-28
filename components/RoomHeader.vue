@@ -1,3 +1,19 @@
+<script setup lang="ts">
+import { useRoute } from '#app'
+import { storeToRefs } from 'pinia'
+import { useHeaderStore } from '~/store/header'
+
+const route = useRoute()
+const { getRoom } = useHeaderStore()
+const { getterRoomData } = storeToRefs(useHeaderStore())
+
+/**
+ * init
+ */
+const roomId = route.params.id
+await getRoom({ roomId })
+</script>
+
 <template>
   <v-app-bar app color="primary" dark>
     <v-avatar v-if="getterRoomData">
@@ -17,21 +33,6 @@
     </v-toolbar-items> -->
   </v-app-bar>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useHeaderStore } from '~/store/header'
-
-export default {
-  async created() {
-    const roomId = this.$route.params.id
-    await useHeaderStore().getRoom({ roomId })
-  },
-  computed: {
-    ...mapState(useHeaderStore, ['getterRoomData']),
-  },
-}
-</script>
 
 <style scoped>
 .name {
