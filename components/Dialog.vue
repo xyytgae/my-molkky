@@ -1,3 +1,61 @@
+<script setup lang="ts">
+import { useNuxtApp } from '#app'
+import { ref, reactive } from '#imports'
+
+const { $auth, $fireStorage } = useNuxtApp()
+
+const dialog = ref(false)
+const isPassword = ref(false)
+const form = reactive({
+  name: {
+    label: '名前',
+    value: null,
+  },
+  image: {
+    label: '画像',
+    value: null,
+  },
+  password: {
+    label: 'パスワード',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement>()
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+const onSelectFile = (e: any) => {
+  const files = e.target.files
+  if (files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: any) => {
+  const user = await $auth
+
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(
+    `images/${user.uid}/rooms/${localImageFile.name}`
+  )
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+</script>
+
 <template>
   <v-row justify="center">
     <v-dialog v-model="dialog" max-width="600px">
@@ -68,63 +126,6 @@
     </v-dialog>
   </v-row>
 </template>
-
-<script>
-import { useNuxtApp } from '#app'
-
-export default {
-  data() {
-    return {
-      dialog: false,
-      isPassword: false,
-      form: {
-        name: {
-          label: '名前',
-          value: null,
-        },
-        image: {
-          label: '画像',
-          value: null,
-        },
-        password: {
-          label: 'パスワード',
-          value: null,
-        },
-      },
-    }
-  },
-  methods: {
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await useNuxtApp().$auth
-
-      const storageRef = useNuxtApp().$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/rooms/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .image {
