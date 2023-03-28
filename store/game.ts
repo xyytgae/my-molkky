@@ -7,13 +7,13 @@ export const useGameStore = defineStore('game', {
     users: [],
     totalScore: 0,
     showWLDialog: false,
-    startSecondHalf: false,
+    isStartSecondHalf: false,
   }),
   getters: {
     getterRoom: (state) => state.room,
     getterUsers: (state) => state.users,
     getterShowWLDialog: (state) => state.showWLDialog,
-    getterStartSecondHalf: (state) => state.startSecondHalf,
+    getterStartSecondHalf: (state) => state.isStartSecondHalf,
   },
   actions: {
     // ルームに入室しているユーザー（主にスコア）をリアルタイムで監視する
@@ -74,14 +74,14 @@ export const useGameStore = defineStore('game', {
               return
             } else if (docData.startSecondHalf) {
               this.showWLDialog = false
-              this.startSecondHalf = true
+              this.isStartSecondHalf = true
               return
             } else if (docData.finishFirstHalf) {
               this.showWLDialog = true
               this.clearUsers()
               return
             }
-          },
+          }
         )
     },
 
@@ -334,7 +334,7 @@ export const useGameStore = defineStore('game', {
       this.room = []
       this.users = []
       this.totalScore = 0
-      this.startSecondHalf = false
+      this.isStartSecondHalf = false
       this.showWLDialog = false
     },
   },
