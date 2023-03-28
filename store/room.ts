@@ -107,7 +107,7 @@ export const useRoomStore = defineStore('room', {
             if (docData.startFirstHalf) {
               router.push(`/game/${roomId}`)
             }
-          },
+          }
         )
     },
     clear() {
@@ -121,7 +121,7 @@ export const useRoomStore = defineStore('room', {
         .doc(userId)
         .delete()
     },
-    deleteRoom({}, { roomId }) {
+    deleteRoom({ roomId }) {
       const db = useNuxtApp().$firestore.collection('rooms').doc(roomId)
 
       db.update({

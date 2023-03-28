@@ -1,3 +1,118 @@
+<script setup lang="ts">
+import { useNuxtApp, useRoute, useRouter } from '#app'
+import { useRoomStore } from '~/store/room'
+import { definePageMeta, ref, onUnmounted } from '#imports'
+
+definePageMeta({
+  middleware: ['check-auth'],
+})
+const route = useRoute()
+const router = useRouter()
+const { $user } = useNuxtApp()
+const { getterRoom, setUser, subscribe, start, clear, exitRoom, deleteRoom } =
+  useRoomStore()
+
+const userId = ref(null)
+const unsubscribe = ref(null)
+const unstart = ref(null)
+// const user = ref(null)
+const roomId = ref(null)
+const orderedUsers = ref([])
+const order = ref(true)
+const disabledOrder = ref(true)
+const isHost = ref(false)
+const dialog = ref(false)
+const startButton = ref(true)
+const stepper = ref(1)
+const orderRefs = ref()
+
+const exit = async () => {
+  if (isHost.value && dialog.value) {
+    await exitRoom({ userId: userId.value, roomId: roomId.value })
+    await deleteRoom({ roomId: roomId.value })
+    router.push('/rooms')
+  } else if (isHost.value) {
+    dialog.value = true
+  } else {
+    router.push('/rooms')
+    await exitRoom({ userId: userId.value, roomId: roomId.value })
+  }
+}
+
+const chooseOrder = (index: any) => {
+  orderRefs.value[index].click()
+}
+
+const changeOrder = () => {
+  order.value = !order.value
+  disabledOrder.value = !disabledOrder.value
+  orderedUsers.value = []
+
+  startButton.value = true
+
+  // v-stepperを進める
+  stepper.value = 2
+}
+
+const decideOrder = async () => {
+  // 全員を選んでいない場合return
+  if (orderedUsers.value.length !== getterRoom.length) return
+
+  order.value = !order.value
+  disabledOrder.value = !disabledOrder.value
+
+  await useRoomStore().decideOrder({
+    users: orderedUsers.value,
+    roomId: roomId.value,
+  })
+
+  startButton.value = false
+
+  // v-stepperを進める
+  stepper.value = 3
+}
+
+const startGame = async () => {
+  if (unsubscribe.value) {
+    unsubscribe.value()
+  }
+  // await this.$store.dispatch('room/clear')
+  await useRoomStore().startGame({ roomId: roomId.value })
+}
+
+/**
+ * init
+ */
+
+const user = await $user
+userId.value = user.uid
+roomId.value = route.params.id
+isHost.value = roomId.value === user.uid
+
+await setUser({ user, roomId: roomId.value })
+
+// const store = useRoomStore()
+
+unsubscribe.value = await subscribe({ roomId: roomId.value })
+unstart.value = await start({
+  userId: userId.value,
+  roomId: roomId.value,
+})
+
+onUnmounted(async () => {
+  const user = await $user
+  const userId = user.uid
+
+  if (unsubscribe.value) {
+    unsubscribe.value()
+  }
+  if (unstart.value) {
+    unstart.value()
+  }
+  clear()
+})
+</script>
+
 <template>
   <div>
     <v-app>
@@ -65,7 +180,7 @@
               >
                 <v-card @click="chooseOrder(index)">
                   <input
-                    ref="order"
+                    ref="orderRefs"
                     type="checkbox"
                     style="display: none"
                     v-model="orderedUsers"
@@ -114,7 +229,7 @@
           >順番を決定</v-btn
         >
         <v-spacer></v-spacer>
-        <v-btn :disabled="startButton" outlined @click="start">START</v-btn>
+        <v-btn :disabled="startButton" outlined @click="startGame">START</v-btn>
       </RoomFooter>
 
       <RoomFooter v-else @exit-room="exit()" />
@@ -123,120 +238,6 @@
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapState, mapActions } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useRoomStore } from '~/store/room'
-import RoomHeader from '../../components/RoomHeader'
-import RoomFooter from '../../components/RoomFooter'
-import DeleteRoomDialog from '../../components/DeleteRoomDialog'
-
-export default {
-  middleware: ['checkAuth'],
-  async created() {
-    const user = await useNuxtApp().$user
-    this.userId = user.uid
-    this.roomId = this.$route.params.id
-    this.isHost = this.roomId === user.uid
-
-    await useRoomStore().setUser({ user, roomId: this.roomId })
-
-    const store = useRoomStore()
-
-    this.unsubscribe = await store.subscribe({ roomId: this.roomId })
-    this.unstart = await store.start({
-      userId: this.userId,
-      roomId: this.roomId,
-    })
-  },
-  async beforeRouteLeave() {
-    const user = await useNuxtApp().$user
-    const userId = user.uid
-
-    this.unsubscribe()
-    this.unstart()
-    useRoomStore().clear()
-  },
-
-  data() {
-    return {
-      userId: null,
-      unsubscribe: null,
-      unstart: null,
-      user: null,
-      roomId: null,
-      orderedUsers: [],
-      order: true,
-      disabledOrder: true,
-      isHost: false,
-      dialog: false,
-      startButton: true,
-      stepper: 1,
-    }
-  },
-
-  components: {
-    RoomHeader,
-    RoomFooter,
-    DeleteRoomDialog,
-  },
-
-  computed: {
-    ...mapState(useRoomStore, ['getterRoom']),
-  },
-  methods: {
-    ...mapActions(useRoomStore, ['exitRoom', 'deleteRoom']),
-    async exit() {
-      if (this.isHost && this.dialog) {
-        await this.exitRoom({ userId: this.userId, roomId: this.roomId })
-        await this.deleteRoom({ roomId: this.roomId })
-        this.$router.push('/rooms')
-      } else if (this.isHost) {
-        this.dialog = true
-      } else {
-        this.$router.push('/rooms')
-        await this.exitRoom({ userId: this.userId, roomId: this.roomId })
-      }
-    },
-    chooseOrder(index) {
-      this.$refs.order[index].click()
-    },
-    changeOrder() {
-      this.order = !this.order
-      this.disabledOrder = !this.disabledOrder
-      this.orderedUsers = []
-
-      this.startButton = true
-
-      // v-stepperを進める
-      this.stepper = 2
-    },
-    async decideOrder() {
-      // 全員を選んでいない場合return
-      if (this.orderedUsers.length !== this.getterRoom.length) return
-
-      this.order = !this.order
-      this.disabledOrder = !this.disabledOrder
-
-      await useRoomStore().decideOrder({
-        users: this.orderedUsers,
-        roomId: this.roomId,
-      })
-
-      this.startButton = false
-
-      // v-stepperを進める
-      this.stepper = 3
-    },
-    async start() {
-      this.unsubscribe()
-      // await this.$store.dispatch('room/clear')
-      await useRoomStore().startGame({ roomId: this.roomId })
-    },
-  },
-}
-</script>
 
 <style scoped>
 .icon {
