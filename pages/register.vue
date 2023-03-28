@@ -1,3 +1,83 @@
+<script setup lang="ts">
+import { mapState } from 'pinia'
+import { useNuxtApp, useRouter } from '#app'
+import { useMainStore } from '~/store/main'
+import { definePageMeta, ref, reactive } from '#imports'
+
+definePageMeta({
+  middleware: ['check-register'],
+})
+
+const router = useRouter()
+const store = useMainStore()
+const { $auth, $firestore, $fireStorage } = useNuxtApp()
+
+// TODO: 不要…？
+const { getterLogin_user } = store
+
+const form = reactive({
+  name: {
+    label: 'プレイヤー名',
+    value: null,
+  },
+  image: {
+    label: 'アイコン画像',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement>()
+
+const onSubmit = async () => {
+  const user = await $auth
+
+  if (!user) router.push('/login')
+
+  try {
+    await $firestore.collection('users').doc(user.uid).set({
+      name: form.name.value,
+      iconImageUrl: form.image.value,
+      stars: 0,
+    })
+    router.push('/')
+  } catch (e) {
+    console.log('失敗しました')
+  }
+}
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+// TODO: 型修正
+const onSelectFile = (e: any) => {
+  const files = e.target.files
+  if (files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+// TODO: 型修正
+const upload = async ({ localImageFile }: any) => {
+  const user = await $auth
+
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(`images/${user.uid}/${localImageFile.name}`)
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+</script>
+
 <template>
   <v-app>
     <v-app-bar app color="primary" dark>
@@ -46,80 +126,6 @@
     </form>
   </v-app>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useMainStore } from '~/store/main'
-
-export default {
-  middleware: ['checkRegister'],
-  data() {
-    return {
-      form: {
-        name: {
-          label: 'プレイヤー名',
-          value: null,
-        },
-        image: {
-          label: 'アイコン画像',
-          value: null,
-        },
-      },
-    }
-  },
-  computed: {
-    // TODO: 不要…？
-    ...mapState(useMainStore, ['getterLogin_user']),
-  },
-  methods: {
-    async onSubmit() {
-      const user = await useNuxtApp().$auth
-
-      if (!user) this.$router.push('/login')
-
-      try {
-        await useNuxtApp().$firestore.collection('users').doc(user.uid).set({
-          name: this.form.name.value,
-          iconImageUrl: this.form.image.value,
-          stars: 0,
-        })
-        this.$router.push('/')
-      } catch (e) {
-        console.log('失敗しました')
-      }
-    },
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await useNuxtApp().$auth
-
-      const storageRef = useNuxtApp().$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .v-form {
