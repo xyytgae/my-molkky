@@ -1,3 +1,80 @@
+<script setup lang="ts">
+import { useNuxtApp, useRoute, useRouter } from '#app'
+import { useGameStore } from '~/store/game'
+import { useResultStore } from '~/store/result'
+import { ref, onUnmounted } from '#imports'
+
+const route = useRoute()
+const router = useRouter()
+
+const { getterStartSecondHalf } = useGameStore()
+const {
+  getterResult,
+  getterWinner,
+  clearFirestore,
+  resetRoom,
+  getResult,
+  getWinner,
+  clear,
+} = useResultStore()
+const { $user } = useNuxtApp()
+
+const WLDialog = ref(true)
+const userId = ref(null)
+const roomId = ref(null)
+
+const startSecond = async () => {
+  // this.$store.dispatch('game/clearUsers')
+
+  await useGameStore().startSecondHalf({ roomId: roomId.value })
+}
+
+const finish = async () => {
+  useGameStore().clear()
+
+  await clearFirestore({
+    userId: userId.value,
+    roomId: roomId.value,
+  })
+
+  if (userId.value === roomId.value) {
+    await resetRoom({
+      roomId: roomId.value,
+    })
+    router.push(`/room/${roomId.value}`)
+  } else {
+    router.push('/rooms')
+  }
+}
+
+/**
+ * init
+ */
+
+const user = await $user
+userId.value = user.uid
+roomId.value = route.params.id
+await getResult({
+  roomId: roomId.value,
+  userId: userId.value,
+})
+
+if (getterStartSecondHalf) {
+  await getWinner({
+    roomId: roomId.value,
+    userId: userId.value,
+  })
+
+  // await resultStore.recordData({
+  //   userId: userId.value,
+  // })
+}
+
+onUnmounted(() => {
+  clear()
+})
+</script>
+
 <template>
   <v-dialog v-model="WLDialog" persistent max-width="600px">
     <v-card color="blue" dark>
@@ -87,81 +164,6 @@
     </v-card>
   </v-dialog>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useGameStore } from '~/store/game'
-import { useResultStore } from '~/store/result'
-import WinnerDialog from '../components/WinnerDialog'
-
-export default {
-  components: {
-    WinnerDialog,
-  },
-  async created() {
-    const resultStore = useResultStore()
-    const user = await useNuxtApp().$user
-    this.userId = user.uid
-    const roomId = this.$route.params.id
-    this.roomId = roomId
-    await resultStore.getResult({
-      roomId,
-      userId: this.userId,
-    })
-    if (this.getterStartSecondHalf) {
-      await resultStore.getWinner({
-        roomId,
-        userId: this.userId,
-      })
-
-      // await resultStore.recordData({
-      //   userId: this.userId,
-      // })
-    }
-  },
-  destroyed() {
-    useResultStore().clear()
-  },
-  data() {
-    return {
-      WLDialog: true,
-      userId: null,
-      roomId: null,
-    }
-  },
-  methods: {
-    async startSecond() {
-      // this.$store.dispatch('game/clearUsers')
-
-      await useGameStore().startSecondHalf({ roomId: this.roomId })
-    },
-    async finish() {
-      useGameStore().clear()
-
-      const resultStore = useResultStore()
-
-      await resultStore.clearFirestore({
-        userId: this.userId,
-        roomId: this.roomId,
-      })
-
-      if (this.userId === this.roomId) {
-        await resultStore.resetRoom({
-          roomId: this.roomId,
-        })
-        this.$router.push(`/room/${this.roomId}`)
-      } else {
-        this.$router.push('/rooms')
-      }
-    },
-  },
-  computed: {
-    ...mapState(useResultStore, ['getterResult', 'getterWinner']),
-    ...mapState(useGameStore, ['getterStartSecondHalf']),
-  },
-}
-</script>
 
 <style scoped>
 .image {

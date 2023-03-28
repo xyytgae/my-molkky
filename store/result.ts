@@ -125,7 +125,7 @@ export const useResultStore = defineStore('result', {
       // })
     },
 
-    resetRoom({}, { roomId }) {
+    resetRoom({ roomId }) {
       useNuxtApp().$firestore.collection('rooms').doc(roomId).update({
         startFirstHalf: false,
         startSecondHalf: false,
