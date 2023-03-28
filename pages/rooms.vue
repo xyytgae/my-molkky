@@ -1,3 +1,150 @@
+<script setup lang="ts">
+import { useNuxtApp, useRouter } from '#app'
+import { ref, reactive, onUnmounted } from '#imports'
+import { useRoomsStore } from '~/store/rooms'
+
+const router = useRouter()
+const { getterRooms, subscribe, clear } = useRoomsStore()
+const { $user, $auth, $firestore, $fireStorage, $fireAuth, $firebase } =
+  useNuxtApp()
+
+const errorMessages = ref('')
+const tryToMoveRoom = reactive({
+  name: '',
+  password: null,
+  id: null,
+})
+const dialog = ref(false)
+const passwordDialog = ref(false)
+const failDialog = ref(false)
+const isPassword = ref(false)
+const password = ref(null)
+const unsubscribe = ref(null)
+const form = reactive({
+  name: {
+    label: '名前',
+    value: null,
+  },
+  image: {
+    label: '画像',
+    value: null,
+  },
+  password: {
+    label: 'パスワード',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement>()
+
+// TODO: 型修正
+const correctPassword = (roomId: any) => {
+  const isPasswordEdited = getterRooms.find((r) => r.id === roomId)
+  if (isPasswordEdited && password.value === isPasswordEdited.password) {
+    router.push(`/room/${roomId}`)
+  }
+  errorMessages.value = 'パスワードが違います'
+}
+
+// TODO: 型修正
+const moveToRoomPage = async (roomId: any) => {
+  const user = await $user
+  const userId = user.uid
+  const isPasswordEdited = getterRooms.find((r) => r.id === roomId)
+  if (isPasswordEdited && userId === isPasswordEdited.hostId) {
+    password.value = isPasswordEdited.password
+  } else if (isPasswordEdited && password.value !== isPasswordEdited.password) {
+    errorMessages.value = ''
+    passwordDialog.value = true
+    Object.assign(tryToMoveRoom, {
+      name: isPasswordEdited.name,
+      password: isPasswordEdited.password,
+      id: isPasswordEdited.id,
+    })
+    return
+  }
+  router.push(`/room/${roomId}`)
+}
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+// TODO: 型修正
+const onSelectFile = (e: any) => {
+  const files = e.target.files
+  if (files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: any) => {
+  const user = await $auth
+
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(
+    `images/${user.uid}/rooms/${localImageFile.name}`
+  )
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+
+const createRoom = async () => {
+  // ダイアログを閉じる
+  dialog.value = false
+
+  // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
+  const user = $fireAuth.currentUser
+  if (!user) router.push('/login')
+
+  const params = {
+    name: form.name.value,
+    topImageUrl: form.image.value,
+    createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+    password: form.password.value,
+    hostId: user.uid,
+    startFirstHalf: false,
+    finishFirstHalf: false,
+    startSecondHalf: false,
+    finishSecondHalf: false,
+    delete: false,
+    users: [],
+  }
+
+  try {
+    await $firestore.collection('rooms').doc(user.uid).set(params)
+  } catch (e) {
+    failDialog.value = true
+  }
+}
+/**
+ * init
+ */
+
+// subscribe().then((value) => {
+//   unsubscribe.value = value
+// })
+
+unsubscribe.value = subscribe()
+
+onUnmounted(() => {
+  clear()
+  if (unsubscribe.value) {
+    unsubscribe.value()
+  }
+})
+</script>
+
 <template>
   <div>
     <v-app>
@@ -160,149 +307,6 @@
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useRoomsStore } from '~/store/rooms'
-import UserHeader from '~/components/UserHeader'
-import RoomsFooter from '~/components/RoomsFooter'
-
-export default {
-  async created() {
-    this.unsubscribe = await useRoomsStore().subscribe()
-  },
-  beforeRouteLeave() {
-    useRoomsStore().clear()
-    this.unsubscribe()
-  },
-
-  data() {
-    return {
-      errorMessages: '',
-      tryToMoveRoom: {
-        name: '',
-        password: null,
-        id: null,
-      },
-      dialog: false,
-      passwordDialog: false,
-      failDialog: false,
-      isPassword: false,
-      password: null,
-      unsubscribe: null,
-      form: {
-        name: {
-          label: '名前',
-          value: null,
-        },
-        image: {
-          label: '画像',
-          value: null,
-        },
-        password: {
-          label: 'パスワード',
-          value: null,
-        },
-      },
-    }
-  },
-  components: {
-    UserHeader,
-    RoomsFooter,
-  },
-  computed: {
-    ...mapState(useRoomsStore, ['getterRooms']),
-  },
-  methods: {
-    correctPassword(roomId) {
-      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
-      if (this.password === isPasswordEdited.password) {
-        this.$router.push(`/room/${roomId}`)
-      }
-      this.errorMessages = 'パスワードが違います'
-    },
-    async moveToRoomPage(roomId) {
-      const user = await useNuxtApp().$user
-      const userId = user.uid
-      const isPasswordEdited = this.getterRooms.find((r) => r.id === roomId)
-      if (userId === isPasswordEdited.hostId) {
-        this.password = isPasswordEdited.password
-      } else if (this.password !== isPasswordEdited.password) {
-        this.errorMessages = ''
-        this.passwordDialog = true
-        this.tryToMoveRoom = {
-          name: isPasswordEdited.name,
-          password: isPasswordEdited.password,
-          id: isPasswordEdited.id,
-        }
-        return
-      }
-      this.$router.push(`/room/${roomId}`)
-    },
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await useNuxtApp().$auth
-
-      const storageRef = useNuxtApp().$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/rooms/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-    async createRoom() {
-      // ダイアログを閉じる
-      this.dialog = false
-
-      // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
-      const user = useNuxtApp().$fireAuth.currentUser
-      if (!user) this.$router.push('/login')
-
-      const params = {
-        name: this.form.name.value,
-        topImageUrl: this.form.image.value,
-        createdAt:
-          useNuxtApp().$firebase.firestore.FieldValue.serverTimestamp(),
-        password: this.form.password.value,
-        hostId: user.uid,
-        startFirstHalf: false,
-        finishFirstHalf: false,
-        startSecondHalf: false,
-        finishSecondHalf: false,
-        delete: false,
-        users: [],
-      }
-
-      try {
-        await useNuxtApp()
-          .$firestore.collection('rooms')
-          .doc(user.uid)
-          .set(params)
-      } catch (e) {
-        this.failDialog = true
-      }
-    },
-  },
-}
-</script>
 
 <style scoped>
 .main {
