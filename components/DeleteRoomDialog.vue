@@ -1,3 +1,9 @@
+<script setup lang="ts">
+import { ref } from '#imports'
+
+const dialog = ref(true)
+</script>
+
 <template>
   <v-dialog v-model="dialog" max-width="300px">
     <v-card>
@@ -13,19 +19,3 @@
     </v-card>
   </v-dialog>
 </template>
-
-<script>
-// import { mapActions } from 'pinia'
-// import { useRoomStore } from '~/store/room'
-
-export default {
-  methods: {
-    // ...mapActions(useRoomStore, ['deleteRoom']),
-  },
-  data() {
-    return {
-      dialog: true,
-    }
-  },
-}
-</script>
