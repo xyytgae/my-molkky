@@ -1,3 +1,141 @@
+<script setup lang="ts">
+import { useNuxtApp, useRoute } from '#app'
+import { useGameStore } from '~/store/game'
+import { ref, computed, onUnmounted } from '#imports'
+
+const route = useRoute()
+const {
+  getterRoom,
+  getterUsers,
+  getterShowWLDialog,
+  getterStartSecondHalf,
+  subscribe,
+  subscribeRoom,
+  setScore,
+} = useGameStore()
+const { $user } = useNuxtApp()
+
+const userId = ref(null)
+const roomId = ref(null)
+const unsubscribe = ref(null)
+const unsubscribeRoom = ref(null)
+
+const judge = ref(true)
+const howToUse = ref(false)
+const dialog = ref(false)
+
+const selectScore = ref([])
+const allScores = ref([
+  [7, 9, 8],
+  [5, 11, 12, 6],
+  [3, 10, 4],
+  [1, 2],
+])
+
+const firstScores = ref<HTMLInputElement[]>()
+const secondScores = ref<HTMLInputElement[]>()
+const thirdScores = ref<HTMLInputElement[]>()
+const fourthScores = ref<HTMLInputElement[]>()
+
+const score = computed(() => {
+  if (selectScore.value.length === 1) {
+    return selectScore.value[0]
+  } else {
+    return selectScore.value.length
+  }
+})
+
+const maxLength = computed(() => {
+  if (!getterRoom) return 1
+  const array = []
+  for (let index = 0; index < getterRoom.length; index++) {
+    array.push(getterRoom[index].score.length)
+  }
+  return Math.max.apply(null, array)
+})
+
+const scoreLength = computed(() => {
+  if (judge.value) return 1
+  return maxLength.value
+})
+
+const spaceNumber = computed(() => {
+  return function (number: any) {
+    if (maxLength.value - number < 1) {
+      return 1
+    } else {
+      return maxLength.value - number
+    }
+  }
+})
+
+const switchDialog = () => {
+  dialog.value = !dialog.value
+}
+
+const closeDialog = () => {
+  useGameStore().closeWLDialog()
+}
+const selectFirstScores = (index: any) => {
+  if (firstScores.value) {
+    firstScores.value[index].click()
+  }
+}
+const selectSecondScores = (index: any) => {
+  if (secondScores.value) {
+    secondScores.value[index].click()
+  }
+}
+const selectThirdScores = (index: any) => {
+  if (thirdScores.value) {
+    thirdScores.value[index].click()
+  }
+}
+const selectFourthScores = (index: any) => {
+  if (fourthScores.value) {
+    fourthScores.value[index].click()
+  }
+}
+
+const clickOK = async () => {
+  judge.value = false
+  // this.dialog = false
+  switchDialog()
+
+  // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
+  await setScore({
+    score: score.value,
+    userId: userId.value,
+    roomId: roomId.value,
+    // TODO: 不要…？
+    // userOrder: this.userOrder,
+  })
+
+  // inputで入力された点数をリセット
+  selectScore.value = []
+}
+
+/**
+ * init
+ */
+const user = await $user
+userId.value = user.uid
+roomId.value = route.params.id
+
+unsubscribe.value = await subscribe({ roomId: roomId.value })
+unsubscribeRoom.value = await subscribeRoom({ roomId: roomId.value })
+
+onUnmounted(() => {
+  // unsubscribe
+  if (unsubscribe.value) {
+    unsubscribe.value()
+  }
+  if (unsubscribeRoom.value) {
+    unsubscribeRoom.value()
+  }
+})
+</script>
+
 <template>
   <div class="bg-red">
     <v-app>
@@ -228,135 +366,6 @@
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapState } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useGameStore } from '~/store/game'
-import WinLoseDialog from '../../components/WinLoseDialog'
-import RoomHeader from '../../components/RoomHeader'
-import GameFooter from '../../components/GameFooter'
-import YourTurnDialog from '../../components/YourTurnDialog'
-import OthersTurnDialog from '../../components/OthersTurnDialog'
-import WinnerDialog from '../../components/WinnerDialog'
-
-export default {
-  components: {
-    WinLoseDialog,
-    RoomHeader,
-    GameFooter,
-    YourTurnDialog,
-    OthersTurnDialog,
-    WinnerDialog,
-  },
-  async created() {
-    const user = await useNuxtApp().$user
-    this.userId = user.uid
-    this.roomId = this.$route.params.id
-
-    const store = useGameStore()
-    this.unsubscribe = await store.subscribe({ roomId: this.roomId })
-    this.unsubscribeRoom = await store.subscribeRoom({ roomId: this.roomId })
-  },
-  beforeRouteLeave() {
-    this.unsubscribe()
-    this.unsubscribeRoom()
-  },
-  data() {
-    return {
-      userId: null,
-      roomId: null,
-      unsubscribe: null,
-      unsubscribeRoom: null,
-
-      judge: true,
-      howToUse: false,
-      dialog: false,
-
-      selectScore: [],
-      allScores: [
-        [7, 9, 8],
-        [5, 11, 12, 6],
-        [3, 10, 4],
-        [1, 2],
-      ],
-    }
-  },
-  computed: {
-    ...mapState(useGameStore, [
-      'getterRoom',
-      'getterUsers',
-      'getterShowWLDialog',
-      'getterStartSecondHalf',
-    ]),
-    score() {
-      if (this.selectScore.length === 1) {
-        return this.selectScore[0]
-      } else {
-        return this.selectScore.length
-      }
-    },
-    maxLength() {
-      if (!this.getterRoom) return 1
-      const array = []
-      for (let index = 0; index < this.getterRoom.length; index++) {
-        array.push(this.getterRoom[index].score.length)
-      }
-      return Math.max.apply(null, array)
-    },
-    scoreLength() {
-      if (this.judge) return 1
-      return this.maxLength
-    },
-    spaceNumber() {
-      return function (number) {
-        if (this.maxLength - number < 1) {
-          return 1
-        } else {
-          return this.maxLength - number
-        }
-      }
-    },
-  },
-  methods: {
-    switchDialog() {
-      this.dialog = !this.dialog
-    },
-    closeDialog() {
-      useGameStore().closeWLDialog()
-    },
-    selectFirstScores(index) {
-      this.$refs.firstScores[index].click()
-    },
-    selectSecondScores(index) {
-      this.$refs.secondScores[index].click()
-    },
-    selectThirdScores(index) {
-      this.$refs.thirdScores[index].click()
-    },
-    selectFourthScores(index) {
-      this.$refs.fourthScores[index].click()
-    },
-    async clickOK() {
-      this.judge = false
-      // this.dialog = false
-      this.switchDialog()
-
-      // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
-      await useGameStore().setScore({
-        score: this.score,
-        userId: this.userId,
-        roomId: this.roomId,
-        // TODO: 不要…？
-        // userOrder: this.userOrder,
-      })
-
-      // inputで入力された点数をリセット
-      this.selectScore = []
-    },
-  },
-}
-</script>
 
 <style lang="scss" scoped>
 .table {
