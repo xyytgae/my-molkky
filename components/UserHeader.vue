@@ -1,3 +1,59 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { useNuxtApp, useRouter } from '#app'
+import { useMainStore } from '~/store/main'
+import { ref } from '#imports'
+
+const router = useRouter()
+const {
+  logout,
+  setLoginUser,
+  deleteLoginUser,
+  getRegisteredUser,
+  getGameHistory,
+} = useMainStore()
+const { getterLogin_user, getterRegistered_user } = storeToRefs(useMainStore())
+const { $fireAuth } = useNuxtApp()
+
+const login = () => {
+  router.push('/login')
+}
+
+const drawer = ref(null)
+const link_lists = ref([
+  {
+    title: 'プロフィール変更',
+    icon: 'mdi-account',
+    link: '/profile',
+  },
+  {
+    title: 'ゲーム履歴',
+    icon: 'mdi-sword-cross',
+    link: '/gameHistory',
+  },
+  {
+    title: 'ホーム',
+    icon: 'mdi-home',
+    link: '/',
+  },
+])
+
+/**
+ * init
+ */
+
+await $fireAuth.onAuthStateChanged((user) => {
+  if (user) {
+    const { uid, displayName, email } = user
+    setLoginUser({ uid, displayName, email })
+    getRegisteredUser({ uid })
+  } else {
+    deleteLoginUser()
+    router.push('/login')
+  }
+})
+</script>
+
 <template>
   <div>
     <v-navigation-drawer app v-model="drawer" clipped>
@@ -56,64 +112,6 @@
     </v-app-bar>
   </div>
 </template>
-
-<script>
-import { mapState, mapActions } from 'pinia'
-import { useNuxtApp } from '#app'
-import { useMainStore } from '~/store/main'
-
-export default {
-  methods: {
-    ...mapActions(useMainStore, [
-      'logout',
-      'setLoginUser',
-      'deleteLoginUser',
-      'getRegisteredUser',
-      'getGameHistory',
-    ]),
-    login() {
-      this.$router.push('/login')
-    },
-  },
-  async created() {
-    await useNuxtApp().$fireAuth.onAuthStateChanged((user) => {
-      if (user) {
-        const { uid, displayName, email } = user
-        this.setLoginUser({ uid, displayName, email })
-        this.getRegisteredUser({ uid })
-      } else {
-        this.deleteLoginUser()
-        this.$router.push('/login')
-      }
-    })
-  },
-  data() {
-    return {
-      drawer: null,
-      link_lists: [
-        {
-          title: 'プロフィール変更',
-          icon: 'mdi-account',
-          link: '/profile',
-        },
-        {
-          title: 'ゲーム履歴',
-          icon: 'mdi-sword-cross',
-          link: '/gameHistory',
-        },
-        {
-          title: 'ホーム',
-          icon: 'mdi-home',
-          link: '/',
-        },
-      ],
-    }
-  },
-  computed: {
-    ...mapState(useMainStore, ['getterLogin_user', 'getterRegistered_user']),
-  },
-}
-</script>
 
 <style scoped>
 .name {
