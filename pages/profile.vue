@@ -118,8 +118,10 @@ form.stars.value = getterRegistered_user.stars
         <v-text-field
           label="プレイヤー名"
           v-model="form.name.value"
+          class="mt-2"
           counter="8"
-          hide-details="auto"
+          variant="underlined"
+          :persistent-counter="true"
         ></v-text-field>
       </div>
 
