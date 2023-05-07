@@ -8,6 +8,7 @@ export default defineNuxtPlugin((nuxtApp) => {
     const auth = await $auth
     if (!auth) {
       navigateTo('/login')
+      return
     }
     const usersSnapShot = await $firestore
       .collection('users')
