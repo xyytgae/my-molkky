@@ -1,8 +1,8 @@
 ---
-name: バグ修正
+name: 'Issue: 修正'
 about: バグ修正
-title: "[Bug] "
-labels: bug
+title: "[Fix] "
+labels: fix
 assignees: xyytgae
 
 ---
