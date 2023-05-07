@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useNuxtApp, useRouter } from '#app'
+import { mdiLock, mdiCloseCircle, mdiImage } from '@mdi/js'
 import { ref, reactive, onUnmounted } from '#imports'
 import { useRoomsStore } from '~/store/rooms'
 
@@ -157,15 +158,18 @@ onUnmounted(() => {
               <v-card>
                 <div class="d-flex flex-no-wrap">
                   <img :src="room.topImageUrl" class="room-icon" />
-                  <v-card-title class="headline">
+                  <v-card-title class="text-h6 my-auto">
                     {{ room.name }}
-                    <v-icon v-if="room.password">mdi-lock</v-icon>
+                    <v-icon v-if="room.password" :icon="mdiLock"></v-icon>
                   </v-card-title>
 
                   <v-spacer></v-spacer>
 
                   <v-card-actions>
-                    <v-btn color="info" @click="moveToRoomPage(room.id)"
+                    <v-btn
+                      color="primary"
+                      variant="elevated"
+                      @click="moveToRoomPage(room.id)"
                       >入室</v-btn
                     >
                   </v-card-actions>
@@ -178,8 +182,8 @@ onUnmounted(() => {
         <v-row justify="center">
           <v-dialog v-model="dialog" max-width="600px">
             <v-card>
-              <v-card-title>
-                <span class="headline">部屋を立てる</span>
+              <v-card-title class="py-4 px-6">
+                <span class="text-h5">部屋を立てる</span>
               </v-card-title>
               <v-card-text>
                 <v-container>
@@ -189,9 +193,9 @@ onUnmounted(() => {
                         v-if="form.image.value"
                         size="30"
                         class="close"
+                        :icon="mdiCloseCircle"
                         @click="form.image.value = null"
-                        >mdi-close-circle</v-icon
-                      >
+                      ></v-icon>
                       <template v-if="form.image.value">
                         <img
                           class="icon"
@@ -200,9 +204,12 @@ onUnmounted(() => {
                         />
                       </template>
                       <template v-else>
-                        <v-icon size="80" @click="selectImage"
-                          >mdi-image</v-icon
-                        >
+                        <v-icon
+                          size="80"
+                          :icon="mdiImage"
+                          color="grey lighten-1"
+                          @click="selectImage"
+                        ></v-icon>
                       </template>
                       <input
                         ref="image"
@@ -216,6 +223,7 @@ onUnmounted(() => {
                       <v-text-field
                         v-model="form.name.value"
                         label="部屋の名前"
+                        variant="underlined"
                       ></v-text-field>
                     </v-col>
 
@@ -225,6 +233,7 @@ onUnmounted(() => {
                         :label="`パスワードを${
                           isPassword ? '設定する' : '設定しない'
                         }`"
+                        color="primary"
                       ></v-switch>
                     </v-col>
                     <v-col cols="12">
@@ -233,6 +242,7 @@ onUnmounted(() => {
                         :disabled="!isPassword"
                         label="Password"
                         :required="isPassword"
+                        variant="underlined"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -268,8 +278,8 @@ onUnmounted(() => {
 
         <v-dialog v-model="passwordDialog" max-width="450px">
           <v-card>
-            <v-card-title>
-              <span
+            <v-card-title class="py-4 px-6 text-wrap">
+              <span class="text-h6"
                 >「{{
                   tryToMoveRoom.name
                 }}」のパスワードを入力してください</span
@@ -281,6 +291,7 @@ onUnmounted(() => {
                   label="パスワード"
                   :error-messages="errorMessages"
                   v-model="password"
+                  variant="underlined"
                 ></v-text-field>
               </v-container>
             </v-card-text>
