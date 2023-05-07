@@ -22,21 +22,28 @@ const guest = (email: any, password: any) => {
   <v-app>
     <v-card class="mx-auto mt-5" width="350">
       <!-- <v-container> -->
-      <v-card-title>
-        <h1 class="display-1 mx-auto">ログイン</h1>
-      </v-card-title>
+      <v-card-title class="text-center my-3"> ログイン </v-card-title>
 
       <v-divider class="mx-7"></v-divider>
 
       <v-card-actions>
-        <v-row>
+        <v-row class="mx-6">
           <v-col class="text-center">
-            <v-btn color="info" x-large @click="login">Googleでログイン</v-btn>
+            <v-btn
+              color="info"
+              variant="elevated"
+              size="large"
+              block
+              @click="login"
+              >Googleでログイン</v-btn
+            >
           </v-col>
           <v-col class="text-center">
             <v-btn
               color="primary"
-              large
+              variant="elevated"
+              size="large"
+              block
               @click="guest('test1@example.com', '123456')"
               >デモアカウント1でログイン</v-btn
             >
@@ -44,7 +51,9 @@ const guest = (email: any, password: any) => {
           <v-col class="text-center">
             <v-btn
               color="primary"
-              large
+              variant="elevated"
+              size="large"
+              block
               @click="guest('test2@example.com', '123456')"
               >デモアカウント2でログイン</v-btn
             >
@@ -54,8 +63,11 @@ const guest = (email: any, password: any) => {
       <!-- </v-container> -->
     </v-card>
 
-    <v-overlay :value="isOpenedOverlay">
-      <v-progress-circular indeterminate size="128"
+    <v-overlay
+      :model-value="isOpenedOverlay"
+      class="align-center justify-center"
+    >
+      <v-progress-circular color="primary" indeterminate size="128"
         >ログイン中...</v-progress-circular
       >
     </v-overlay>
