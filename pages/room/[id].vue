@@ -23,8 +23,14 @@ const disabledOrder = ref(true)
 const isHost = ref(false)
 const dialog = ref(false)
 const startButton = ref(true)
-const stepper = ref(1)
+const stepper = ref(0)
 const orderRefs = ref()
+
+const slides = [
+  '「順番を選択」を押してください',
+  '投げる順番にユーザーを選択してから「順番を決定」を押してください',
+  '「START」を押すとゲームが始まります選び直す場合、「順番を選択」を押してください',
+]
 
 const exit = async () => {
   if (isHost.value && dialog.value) {
@@ -50,8 +56,8 @@ const changeOrder = () => {
 
   startButton.value = true
 
-  // v-stepperを進める
-  stepper.value = 2
+  // v-carouselを進める
+  stepper.value = 1
 }
 
 const decideOrder = async () => {
@@ -68,8 +74,8 @@ const decideOrder = async () => {
 
   startButton.value = false
 
-  // v-stepperを進める
-  stepper.value = 3
+  // v-carouselを進める
+  stepper.value = 2
 }
 
 const startGame = async () => {
@@ -120,45 +126,30 @@ onUnmounted(async () => {
       <v-main class="mb-15">
         <v-container>
           <v-row class="pb-3" justify="center" align-content="center">
-            <v-col cols="10" v-if="isHost">
-              <v-stepper v-model="stepper" value="1" class="pb-4" vertical>
-                <v-stepper-step :complete="stepper > 1" color="info" step="1">
-                  「順番を選択」
-                </v-stepper-step>
-                <v-stepper-content step="1">
-                  <v-card dark color="#001e43">
-                    <v-card-text> 「順番を選択」を押してください </v-card-text>
-                  </v-card>
-                </v-stepper-content>
-
-                <v-stepper-step :complete="stepper > 2" color="info" step="2">
-                  「順番を決定」
-                </v-stepper-step>
-                <v-stepper-content step="2">
-                  <v-card dark color="#001e43">
-                    <v-card-text style="font-size: 14px">
-                      投げる順番にユーザーを選択してから<br />
-                      「順番を決定」を押してください
-                    </v-card-text>
-                  </v-card>
-                </v-stepper-content>
-
-                <v-stepper-step color="info" step="3">
-                  「START」
-                </v-stepper-step>
-                <v-stepper-content step="3">
-                  <v-card dark color="#001e43">
-                    <v-card-text style="font-size: 14px">
-                      「START」を押すとゲームが始まります<br />
-                      選び直す場合、「順番を選択」を押してください
-                    </v-card-text>
-                  </v-card>
-                </v-stepper-content>
-              </v-stepper>
+            <v-col v-if="isHost" cols="12" sm="8">
+              <v-carousel
+                v-model="stepper"
+                height="auto"
+                :show-arrows="false"
+                hide-delimiters
+                progress="primary"
+              >
+                <v-carousel-item
+                  v-for="(slide, i) in slides"
+                  :key="i"
+                  :value="i"
+                >
+                  <v-sheet height="100%">
+                    <div class="d-flex fill-height justify-center align-center">
+                      <div class="text-h6 pa-6" v-text="slide"></div>
+                    </div>
+                  </v-sheet>
+                </v-carousel-item>
+              </v-carousel>
             </v-col>
 
-            <v-col cols="10" v-else>
-              <v-card color="#001e43" dark>
+            <v-col v-else cols="12" sm="8">
+              <v-card color="primary">
                 <v-card-text>
                   ホストがスタートするまでお待ちください
                   <v-progress-linear
@@ -188,14 +179,14 @@ onUnmounted(async () => {
                     :disabled="disabledOrder"
                   />
                   <div class="d-flex flex-no-wrap">
-                    <v-card-title>
-                      <v-icon x-large
-                        >mdi-numeric-{{ user.order + 1 }}-circle</v-icon
-                      >
+                    <v-card-title
+                      class="my-auto mx-2 pa-3 circle text-grey-darken-1"
+                    >
+                      {{ user.order + 1 }}
                     </v-card-title>
 
                     <img :src="user.iconImageUrl" class="icon" />
-                    <v-card-title class="headline">
+                    <v-card-title class="text-h6">
                       <span>{{ user.name }}</span>
 
                       <div>
@@ -218,18 +209,29 @@ onUnmounted(async () => {
         ></DeleteRoomDialog>
       </v-main>
       <RoomFooter v-if="isHost" @exit-room="exit()">
-        <v-btn color="green" v-show="order" @click="changeOrder"
+        <v-btn
+          v-show="order"
+          variant="outlined"
+          color="white"
+          @click="changeOrder"
           >順番を選択</v-btn
         >
         <v-btn
-          color="white"
           v-show="!order"
+          variant="outlined"
+          color="white"
           :disabled="orderedUsers.length !== getterRoom.length"
           @click="decideOrder"
           >順番を決定</v-btn
         >
         <v-spacer></v-spacer>
-        <v-btn :disabled="startButton" outlined @click="startGame">START</v-btn>
+        <v-btn
+          v-show="!startButton"
+          variant="elevated"
+          color="white"
+          @click="startGame"
+          >START</v-btn
+        >
       </RoomFooter>
 
       <RoomFooter v-else @exit-room="exit()" />
@@ -254,5 +256,18 @@ onUnmounted(async () => {
 
 input:checked + div {
   background: lightgreen;
+}
+.circle {
+  width: 50px;
+  height: 50px;
+  border: 1px solid gray;
+  border-radius: 50%;
+  text-align: center;
+  box-sizing: border-box;
+  line-height: 25px;
+}
+.v-carousel {
+  border: 1px solid gray !important;
+  border-radius: 5px !important;
 }
 </style>

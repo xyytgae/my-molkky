@@ -58,6 +58,8 @@ export const useRoomStore = defineStore('room', {
       this.add({ room })
     },
 
+    // TODO: 想定通りに動作していない可能性
+    // https://github.com/xyytgae/my-molkky/issues/95
     // ルームに入室しているユーザーをリアルタイムで監視する
     subscribe({ roomId }) {
       return useNuxtApp()
