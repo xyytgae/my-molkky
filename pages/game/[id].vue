@@ -1,5 +1,13 @@
 <script setup lang="ts">
 import { useNuxtApp, useRoute } from '#app'
+import {
+  mdiPencil,
+  mdiArrowRightBoldCircle,
+  mdiChevronDown,
+  mdiChevronUp,
+  mdiCloseThick,
+  mdiWindowClose,
+} from '@mdi/js'
 import { useGameStore } from '~/store/game'
 import { ref, computed, onUnmounted } from '#imports'
 
@@ -153,7 +161,7 @@ onUnmounted(() => {
 
       <!-- <WinnerDialog></WinnerDialog> -->
       <v-main>
-        <v-simple-table class="table">
+        <v-table class="table">
           <thead>
             <tr>
               <th>名前</th>
@@ -178,12 +186,18 @@ onUnmounted(() => {
                 :class="[user.id === getterUsers[0] ? 'order' : '']"
               >
                 <span class="icon">
-                  <v-icon v-show="user.id === getterUsers[0]" color="red"
-                    >mdi-arrow-right-bold-circle</v-icon
-                  >
-                  <v-icon v-if="user.elimination" color="red"
-                    >mdi-close-thick</v-icon
-                  >
+                  <v-icon
+                    v-show="user.id === getterUsers[0]"
+                    color="red"
+                    class="my-auto"
+                    :icon="mdiArrowRightBoldCircle"
+                  ></v-icon>
+                  <v-icon
+                    v-if="user.elimination"
+                    color="red"
+                    class="my-auto"
+                    :icon="mdiCloseThick"
+                  ></v-icon>
                   <img class="image" :src="user.iconImageUrl" />
                 </span>
                 {{ user.name }}
@@ -195,7 +209,7 @@ onUnmounted(() => {
                 :key="index"
               >
                 <span v-show="userScore === 0">
-                  <v-icon color="red">mdi-close-thick</v-icon>
+                  <v-icon color="red" :icon="mdiCloseThick"></v-icon>
                 </span>
                 <span v-show="userScore > 0">
                   {{ userScore }}
@@ -236,18 +250,25 @@ onUnmounted(() => {
               </td>
             </tr>
           </tbody>
-        </v-simple-table>
+        </v-table>
       </v-main>
 
       <v-dialog v-model="dialog" max-width="600px">
         <v-card color="#387d39" dark>
           <v-card-actions>
-            <v-btn fab text color="white" @click="switchDialog">
-              <v-icon>mdi-window-close</v-icon>
+            <v-btn icon @click="switchDialog">
+              <v-icon color="white" :icon="mdiWindowClose"></v-icon>
             </v-btn>
 
             <v-spacer></v-spacer>
-            <v-btn color="orange" rounded @click="clickOK">OK</v-btn>
+            <v-btn
+              color="orange"
+              rounded
+              variant="flat"
+              class="text-white"
+              @click="clickOK"
+              >OK</v-btn
+            >
           </v-card-actions>
 
           <v-container class="container">
@@ -325,13 +346,16 @@ onUnmounted(() => {
               </div>
             </v-col>
           </v-container>
-          <v-card-title class="headline"> 点数：{{ score }} </v-card-title>
+          <v-card-title class="text-h6 text-white">
+            点数：{{ score }}
+          </v-card-title>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn icon @click="howToUse = !howToUse">
-              <v-icon>{{
-                howToUse ? 'mdi-chevron-up' : 'mdi-chevron-down'
-              }}</v-icon>
+              <v-icon
+                color="white"
+                :icon="howToUse ? mdiChevronUp : mdiChevronDown"
+              ></v-icon>
             </v-btn>
           </v-card-actions>
 
@@ -354,13 +378,12 @@ onUnmounted(() => {
         <YourTurnDialog v-show="userId === getterUsers[0]"></YourTurnDialog>
         <v-spacer></v-spacer>
         <v-btn
-          color="blue"
-          dark
+          variant="flat"
           :disabled="userId !== getterUsers[0]"
+          icon
           @click="switchDialog"
-          fab
         >
-          <v-icon>mdi-pencil</v-icon>
+          <v-icon :icon="mdiPencil" color="primary"></v-icon>
         </v-btn>
       </GameFooter>
     </v-app>
@@ -414,6 +437,7 @@ input:checked + div {
 
 .how-to-use {
   font-size: 15px;
+  color: white;
 }
 
 .button {
