@@ -1,6 +1,6 @@
 <template>
-  <v-footer fixed padless height="70px">
-    <v-card tile flat color="primary" class="lighten-1" width="100%">
+  <v-footer app class="pa-0" color="primary">
+    <v-card color="primary" width="100%">
       <v-card-actions>
         <v-spacer></v-spacer>
         <slot />
