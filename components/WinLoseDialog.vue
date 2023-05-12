@@ -77,7 +77,7 @@ onUnmounted(() => {
 
 <template>
   <v-dialog v-model="WLDialog" persistent max-width="600px">
-    <v-card color="blue" dark>
+    <v-card color="primary">
       <v-card-actions>
         <!-- <v-btn fab text color="white" @click="$emit('close-dialog')">
           <v-icon>mdi-window-close</v-icon>
@@ -87,22 +87,26 @@ onUnmounted(() => {
         <v-btn
           v-if="!getterStartSecondHalf && userId === roomId"
           color="orange"
-          @click="startSecond"
+          class="text-white"
           rounded
+          variant="elevated"
+          @click="startSecond"
           >後半へ進む</v-btn
         >
         <v-btn
           v-if="getterStartSecondHalf"
           color="orange"
-          @click="finish"
+          class="text-white"
           rounded
+          variant="elevated"
+          @click="finish"
         >
           終了
         </v-btn>
       </v-card-actions>
 
       <v-container class="container">
-        <v-card-title class="headline" v-if="getterStartSecondHalf">
+        <v-card-title v-if="getterStartSecondHalf">
           <v-row>
             <v-col cols="12" v-for="w in getterWinner" :key="w.id">
               Winner :
@@ -113,7 +117,7 @@ onUnmounted(() => {
         </v-card-title>
 
         <v-col cols="12">
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th>名前</th>
@@ -158,7 +162,7 @@ onUnmounted(() => {
                 <td>{{ r.totalScore }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-col>
       </v-container>
     </v-card>
