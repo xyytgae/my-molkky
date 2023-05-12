@@ -1,33 +1,33 @@
 <template>
-  <v-dialog v-model="dialog" fullscreen hide-overlay>
-    <v-card class="text-center" @click="clickScreen" dark>
+  <v-dialog v-model="dialog" fullscreen>
+    <v-card class="text-center" color="black" @click="clickScreen">
       <v-card-text class="main">
-        <transition>
+        <Transition>
           <div v-if="showChampion">
             <div class="text1"></div>
             <div class="word">YOU ARE THE</div>
           </div>
-        </transition>
+        </Transition>
 
-        <transition name="background">
+        <Transition name="background">
           <div class="background" v-if="showChampion">
-            <transition name="borders">
+            <Transition name="borders">
               <div class="borders" v-if="showBorders">
                 <div class="border1"></div>
                 <div class="border2"></div>
                 <div class="border3"></div>
               </div>
-            </transition>
+            </Transition>
             <div class="black-back"></div>
-            <transition name="white">
+            <Transition name="white">
               <div class="white-back" v-if="showChampion"></div>
-            </transition>
+            </Transition>
           </div>
-        </transition>
+        </Transition>
 
-        <transition name="champion">
+        <Transition name="champion">
           <div class="champion" v-if="showText">CHAMPION</div>
-        </transition>
+        </Transition>
 
         <div class="text2" v-if="showText">
           <span style="color: orange">★</span>を獲得しました！
@@ -88,8 +88,7 @@ export default {
 
 <style scoped>
 .main {
-  position: absolute;
-  top: 30%;
+  margin-top: 240px;
 }
 
 .borders-enter-active {
@@ -228,7 +227,7 @@ export default {
   font-size: 50px;
   color: white;
   position: relative;
-  top: -50px;
+  top: -75px;
 }
 
 /* 「画面をタップしてください」の点滅の実装 */
