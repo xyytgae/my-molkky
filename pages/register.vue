@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { mapState } from 'pinia'
 import { useNuxtApp, useRouter } from '#app'
+import { mdiAccountCircle } from '@mdi/js'
 import { useMainStore } from '~/store/main'
 import { definePageMeta, ref, reactive } from '#imports'
 
@@ -80,8 +81,8 @@ const upload = async ({ localImageFile }: any) => {
 
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <v-toolbar-title>アカウント登録</v-toolbar-title>
+    <v-app-bar app color="primary">
+      <v-app-bar-title>アカウント登録</v-app-bar-title>
     </v-app-bar>
 
     <form class="v-form" @submit.prevent="onSubmit">
@@ -99,9 +100,12 @@ const upload = async ({ localImageFile }: any) => {
           </v-avatar>
         </template>
         <template v-else>
-          <v-icon color="gray" size="200" @click="selectImage"
-            >mdi-account-circle</v-icon
-          >
+          <v-icon
+            color="grey"
+            size="200"
+            :icon="mdiAccountCircle"
+            @click="selectImage"
+          ></v-icon>
         </template>
         <input
           ref="image"
