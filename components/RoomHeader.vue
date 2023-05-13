@@ -15,14 +15,13 @@ await getRoom({ roomId })
 </script>
 
 <template>
-  <v-app-bar app color="primary" dark>
-    <v-avatar v-if="getterRoomData">
-      <img :src="getterRoomData.topImageUrl" />
+  <v-app-bar color="primary" class="px-4">
+    <v-avatar v-if="getterRoomData" :image="getterRoomData.topImageUrl">
     </v-avatar>
 
-    <v-toolbar-title v-if="getterRoomData" class="name">
+    <v-app-bar-title v-if="getterRoomData" class="name">
       {{ getterRoomData.name }}
-    </v-toolbar-title>
+    </v-app-bar-title>
     <v-spacer></v-spacer>
     <slot />
     <!-- 
