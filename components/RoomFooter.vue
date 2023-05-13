@@ -1,10 +1,18 @@
+<script setup lang="ts">
+import { mdiChevronLeft } from '@mdi/js'
+</script>
+
 <template>
   <div>
     <v-footer fixed padless>
       <v-card tile flat color="primary" class="lighten-1" width="100%">
         <v-card-actions>
-          <v-btn dark text fab @click="$emit('exit-room')">
-            <v-icon x-large>mdi-chevron-left</v-icon>
+          <v-btn icon @click="$emit('exit-room')">
+            <v-icon
+              color="white"
+              size="x-large"
+              :icon="mdiChevronLeft"
+            ></v-icon>
           </v-btn>
 
           <v-spacer></v-spacer>
