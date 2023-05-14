@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
 import { useNuxtApp } from '#app'
+import { mdiMedal } from '@mdi/js'
 import { onUnmounted } from '#imports'
 import { useMainStore } from '~/store/main'
 
@@ -37,10 +38,10 @@ onUnmounted(() => {
               cols="12"
               v-for="(createdAt, index) in getterGameHistoryCreatedAt"
               :key="index"
-              class="card bg-blue"
+              class="card"
             >
-              <v-card :dark="index % 2 !== 0">
-                <v-card-title>
+              <v-card :theme="index % 2 !== 0 ? 'dark' : ''">
+                <v-card-title class="text-subtitle-1">
                   <span>
                     {{ createdAt.createdAt.toDate().getFullYear() }}年
                   </span>
@@ -57,7 +58,7 @@ onUnmounted(() => {
                 </v-card-title>
 
                 <v-card-text>
-                  <v-simple-table>
+                  <v-table>
                     <thead>
                       <tr>
                         <th>名前</th>
@@ -78,8 +79,8 @@ onUnmounted(() => {
                               getterGameHistoryUsers[index][0].sum === user.sum
                             "
                             color="orange"
-                            >mdi-medal</v-icon
-                          >
+                            :icon="mdiMedal"
+                          ></v-icon>
                           {{ user.name }}
                         </th>
 
@@ -95,7 +96,7 @@ onUnmounted(() => {
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </v-card-text>
               </v-card>
             </v-col>
