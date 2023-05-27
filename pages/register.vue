@@ -1,20 +1,15 @@
 <script setup lang="ts">
-import { mapState } from 'pinia'
 import { useNuxtApp, useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
-import { useMainStore } from '~/store/main'
-import { definePageMeta, ref, reactive } from '#imports'
+import { definePageMeta, ref, reactive, useUser } from '#imports'
 
 definePageMeta({
-  middleware: ['check-register'],
+  middleware: ['check-at-register'],
 })
 
 const router = useRouter()
-const store = useMainStore()
-const { $auth, $firestore, $fireStorage } = useNuxtApp()
-
-// TODO: 不要…？
-const { getterLogin_user } = store
+const { loginedUser } = useUser()
+const { $firestore, $fireStorage } = useNuxtApp()
 
 const form = reactive({
   name: {
@@ -29,17 +24,13 @@ const form = reactive({
 const image = ref<HTMLInputElement>()
 
 const onSubmit = async () => {
-  const user = await $auth
-
-  if (!user) router.push('/login')
-
   try {
-    await $firestore.collection('users').doc(user.uid).set({
+    await $firestore.collection('users').doc(loginedUser.value!.uid).set({
       name: form.name.value,
       iconImageUrl: form.image.value,
       stars: 0,
     })
-    router.push('/')
+    router.push('/rooms')
   } catch (e) {
     console.log('失敗しました')
   }
@@ -68,11 +59,11 @@ const onSelectFile = (e: any) => {
 
 // TODO: 型修正
 const upload = async ({ localImageFile }: any) => {
-  const user = await $auth
-
   const storageRef = $fireStorage.ref()
 
-  const imageRef = storageRef.child(`images/${user.uid}/${localImageFile.name}`)
+  const imageRef = storageRef.child(
+    `images/${loginedUser.value!.uid}/${localImageFile.name}`
+  )
 
   const snapShot = await imageRef.put(localImageFile)
   form.image.value = await snapShot.ref.getDownloadURL()

@@ -1,29 +1,27 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { useNuxtApp } from '#app'
 import { mdiMedal } from '@mdi/js'
-import { onUnmounted } from '#imports'
+import { definePageMeta, onUnmounted, useUser } from '#imports'
 import { useMainStore } from '~/store/main'
 
+definePageMeta({
+  middleware: ['check-auth'],
+})
 const store = useMainStore()
+const { loginedUser } = useUser()
 const { getterGameHistoryCreatedAt, getterGameHistoryUsers } =
   storeToRefs(store)
 
 const { getGameHistory, clearGameHistory } = store
 
-/**
- * init
- */
-useNuxtApp().$user.then(async (user) => {
-  if (user) {
-    const userId = user.uid
-    await getGameHistory({ userId })
-  }
-})
-
 onUnmounted(() => {
   clearGameHistory()
 })
+/**
+ * init
+ */
+const userId = loginedUser.value!.uid
+await getGameHistory({ userId })
 </script>
 
 <template>

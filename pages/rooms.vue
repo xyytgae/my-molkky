@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { useNuxtApp, useRouter } from '#app'
 import { mdiLock, mdiCloseCircle, mdiImage } from '@mdi/js'
-import { ref, reactive, onUnmounted } from '#imports'
+import { ref, reactive, onUnmounted, useUser, definePageMeta } from '#imports'
 import { useRoomsStore } from '~/store/rooms'
 
+definePageMeta({
+  middleware: ['check-auth'],
+})
+
 const router = useRouter()
+const { loginedUser } = useUser()
 const { getterRooms, subscribe, clear } = useRoomsStore()
-const { $user, $auth, $firestore, $fireStorage, $fireAuth, $firebase } =
-  useNuxtApp()
+const { $firestore, $fireStorage, $firebase } = useNuxtApp()
 
 const errorMessages = ref('')
 const tryToMoveRoom = reactive({
@@ -47,9 +51,8 @@ const correctPassword = (roomId: any) => {
 }
 
 // TODO: 型修正
-const moveToRoomPage = async (roomId: any) => {
-  const user = await $user
-  const userId = user.uid
+const moveToRoomPage = (roomId: any) => {
+  const userId = loginedUser.value!.uid
   const isPasswordEdited = getterRooms.find((r) => r.id === roomId)
   if (isPasswordEdited && userId === isPasswordEdited.hostId) {
     password.value = isPasswordEdited.password
@@ -88,12 +91,12 @@ const onSelectFile = (e: any) => {
 }
 
 const upload = async ({ localImageFile }: any) => {
-  const user = await $auth
+  const userId = loginedUser.value!.uid
 
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
-    `images/${user.uid}/rooms/${localImageFile.name}`
+    `images/${userId}/rooms/${localImageFile.name}`
   )
 
   const snapShot = await imageRef.put(localImageFile)
@@ -104,16 +107,14 @@ const createRoom = async () => {
   // ダイアログを閉じる
   dialog.value = false
 
-  // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
-  const user = $fireAuth.currentUser
-  if (!user) router.push('/login')
+  const userId = loginedUser.value!.uid
 
   const params = {
     name: form.name.value,
     topImageUrl: form.image.value,
     createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
     password: form.password.value,
-    hostId: user.uid,
+    hostId: userId,
     startFirstHalf: false,
     finishFirstHalf: false,
     startSecondHalf: false,
@@ -123,7 +124,7 @@ const createRoom = async () => {
   }
 
   try {
-    await $firestore.collection('rooms').doc(user.uid).set(params)
+    await $firestore.collection('rooms').doc(userId).set(params)
   } catch (e) {
     failDialog.value = true
   }

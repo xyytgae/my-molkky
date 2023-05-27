@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useNuxtApp, useRoute, useRouter } from '#app'
+import { useRoute, useRouter } from '#app'
 import { useGameStore } from '~/store/game'
 import { useResultStore } from '~/store/result'
-import { ref, onUnmounted } from '#imports'
+import { ref, onUnmounted, useUser } from '#imports'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,10 +17,10 @@ const {
   getWinner,
   clear,
 } = useResultStore()
-const { $user } = useNuxtApp()
+const { loginedUser } = useUser()
 
 const WLDialog = ref(true)
-const userId = ref(null)
+const userId = ref<string | null>(null)
 const roomId = ref(null)
 
 const startSecond = async () => {
@@ -47,12 +47,13 @@ const finish = async () => {
   }
 }
 
+onUnmounted(() => {
+  clear()
+})
 /**
  * init
  */
-
-const user = await $user
-userId.value = user.uid
+userId.value = loginedUser.value!.uid
 roomId.value = route.params.id
 await getResult({
   roomId: roomId.value,
@@ -69,10 +70,6 @@ if (getterStartSecondHalf) {
   //   userId: userId.value,
   // })
 }
-
-onUnmounted(() => {
-  clear()
-})
 </script>
 
 <template>

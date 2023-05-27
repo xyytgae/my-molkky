@@ -1,21 +1,7 @@
 <script setup lang="ts">
-import { useNuxtApp, useRouter } from '#app'
-import { definePageMeta } from '#imports'
-
-definePageMeta({
-  middleware: ['check-auth'],
-})
+import { useRouter } from '#app'
 
 const router = useRouter()
-
-const start = async () => {
-  const auth = await useNuxtApp().$auth
-  if (!auth) {
-    router.push('/login')
-  } else {
-    router.push('/rooms')
-  }
-}
 </script>
 
 <template>
@@ -24,7 +10,9 @@ const start = async () => {
     <div class="class">
       <h1>Molkky</h1>
       <!-- <v-btn color="primary" @click="changeName"><span>名前変更</span></v-btn> -->
-      <v-btn color="primary" @click="start"><span>START</span></v-btn>
+      <v-btn color="primary" @click="router.push('/rooms')"
+        ><span>START</span></v-btn
+      >
     </div>
   </v-app>
 </template>

@@ -12,7 +12,15 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
-    "noErrorTruncation": true,
+    "noErrorTruncation": true
   },
+  "include": [
+    "pages/**/*",
+    "composables/**/*",
+    "components/**/*",
+    "plugins/**/*",
+    "middleware/**/*",
+    "store/**/*"
+  ],
   "exclude": ["node_modules", ".nuxt", "dist"]
 }
