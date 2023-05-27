@@ -1,24 +1,10 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
-import { useNuxtApp, useRouter } from '#app'
+import { useRouter } from '#app'
 import { mdiAccount, mdiSwordCross, mdiHome } from '@mdi/js'
-import { useMainStore } from '~/store/main'
-import { ref } from '#imports'
+import { ref, useUser } from '#imports'
 
+const { loginedUser, logout } = useUser()
 const router = useRouter()
-const {
-  logout,
-  setLoginUser,
-  deleteLoginUser,
-  getRegisteredUser,
-  getGameHistory,
-} = useMainStore()
-const { getterLogin_user, getterRegistered_user } = storeToRefs(useMainStore())
-const { $fireAuth } = useNuxtApp()
-
-const login = () => {
-  router.push('/login')
-}
 
 const drawer = ref(null)
 const link_lists = ref([
@@ -39,20 +25,12 @@ const link_lists = ref([
   },
 ])
 
-/**
- * init
- */
-
-await $fireAuth.onAuthStateChanged((user) => {
-  if (user) {
-    const { uid, displayName, email } = user
-    setLoginUser({ uid, displayName, email })
-    getRegisteredUser({ uid })
-  } else {
-    deleteLoginUser()
+const handleLogout = async () => {
+  const { success } = await logout()
+  if (success) {
     router.push('/login')
   }
-})
+}
 </script>
 
 <template>
@@ -60,9 +38,9 @@ await $fireAuth.onAuthStateChanged((user) => {
     <v-navigation-drawer app v-model="drawer" clipped>
       <v-list>
         <v-list-item
-          v-if="getterRegistered_user"
-          :prepend-avatar="getterRegistered_user.iconImageUrl"
-          :title="getterRegistered_user.name"
+          v-if="loginedUser"
+          :prepend-avatar="loginedUser.iconImageUrl"
+          :title="loginedUser.name"
           class="my-4"
         />
       </v-list>
@@ -90,22 +68,22 @@ await $fireAuth.onAuthStateChanged((user) => {
       </template>
       <nuxt-link to="/profile">
         <v-avatar
-          v-if="getterRegistered_user"
-          :image="getterRegistered_user.iconImageUrl"
+          v-if="loginedUser"
+          :image="loginedUser.iconImageUrl"
           size="large"
         />
       </nuxt-link>
 
-      <v-app-bar-title v-if="getterRegistered_user" class="name"
-        >{{ getterRegistered_user.name }}
+      <v-app-bar-title v-if="loginedUser" class="name"
+        >{{ loginedUser.name }}
         <div>
           <span class="star"> ★ </span>
-          ×{{ getterRegistered_user.stars }}
+          ×{{ loginedUser.stars }}
         </div>
       </v-app-bar-title>
       <v-spacer></v-spacer>
-      <v-btn v-if="getterLogin_user" text @click="logout">ログアウト</v-btn>
-      <v-btn v-else text @click="login">ログイン</v-btn>
+      <v-btn v-if="loginedUser" text @click="handleLogout">ログアウト</v-btn>
+      <v-btn v-else text @click="router.push('/login')">ログイン</v-btn>
     </v-app-bar>
   </div>
 </template>

@@ -1,18 +1,18 @@
 <script setup lang="ts">
-import { useNuxtApp, useRoute, useRouter } from '#app'
+import { useRoute, useRouter } from '#app'
 import { useRoomStore } from '~/store/room'
-import { definePageMeta, ref, onUnmounted } from '#imports'
+import { definePageMeta, ref, onUnmounted, useUser } from '#imports'
 
 definePageMeta({
   middleware: ['check-auth'],
 })
 const route = useRoute()
 const router = useRouter()
-const { $user } = useNuxtApp()
+const { loginedUser } = useUser()
 const { getterRoom, setUser, subscribe, start, clear, exitRoom, deleteRoom } =
   useRoomStore()
 
-const userId = ref(null)
+const userId = ref<string | null>(null)
 const unsubscribe = ref(null)
 const unstart = ref(null)
 // const user = ref(null)
@@ -86,29 +86,7 @@ const startGame = async () => {
   await useRoomStore().startGame({ roomId: roomId.value })
 }
 
-/**
- * init
- */
-
-const user = await $user
-userId.value = user.uid
-roomId.value = route.params.id
-isHost.value = roomId.value === user.uid
-
-await setUser({ user, roomId: roomId.value })
-
-// const store = useRoomStore()
-
-unsubscribe.value = await subscribe({ roomId: roomId.value })
-unstart.value = await start({
-  userId: userId.value,
-  roomId: roomId.value,
-})
-
-onUnmounted(async () => {
-  const user = await $user
-  const userId = user.uid
-
+onUnmounted(() => {
   if (unsubscribe.value) {
     unsubscribe.value()
   }
@@ -116,6 +94,24 @@ onUnmounted(async () => {
     unstart.value()
   }
   clear()
+})
+
+/**
+ * init
+ */
+
+userId.value = loginedUser.value!.uid
+roomId.value = route.params.id
+isHost.value = roomId.value === userId.value
+
+await setUser({ user: loginedUser.value, roomId: roomId.value })
+
+// const store = useRoomStore()
+
+unsubscribe.value = await subscribe({ roomId: roomId.value })
+unstart.value = await start({
+  userId: userId.value,
+  roomId: roomId.value,
 })
 </script>
 

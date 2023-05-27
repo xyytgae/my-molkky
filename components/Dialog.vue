@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useNuxtApp } from '#app'
-import { ref, reactive } from '#imports'
+import { ref, reactive, useUser } from '#imports'
 
-const { $auth, $fireStorage } = useNuxtApp()
+const { $fireStorage } = useNuxtApp()
+const { loginedUser } = useUser()
 
 const dialog = ref(false)
 const isPassword = ref(false)
@@ -43,12 +44,10 @@ const onSelectFile = (e: any) => {
 }
 
 const upload = async ({ localImageFile }: any) => {
-  const user = await $auth
-
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
-    `images/${user.uid}/rooms/${localImageFile.name}`
+    `images/${loginedUser.value!.uid}/rooms/${localImageFile.name}`
   )
 
   const snapShot = await imageRef.put(localImageFile)

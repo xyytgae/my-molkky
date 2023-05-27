@@ -1,20 +1,29 @@
 <script setup lang="ts">
-import { definePageMeta, ref } from '#imports'
-import { useMainStore } from '~/store/main'
+import { useRouter } from '#app'
+import { definePageMeta, ref, useUser } from '#imports'
 
 definePageMeta({
-  middleware: ['check-login'],
+  middleware: ['check-at-login'],
 })
-
-const store = useMainStore()
-const { login, guestLogin } = store
+const { googleLogin, guestLogin } = useUser()
+const router = useRouter()
 
 const isOpenedOverlay = ref(false)
 
-// TODO: 型修正
-const guest = (email: any, password: any) => {
+const handleGuestLogin = async (email: string, password: string) => {
   isOpenedOverlay.value = true
-  guestLogin({ email, password })
+  const { success } = await guestLogin(email, password)
+  if (success) {
+    isOpenedOverlay.value = false
+    router.push('/rooms')
+  }
+}
+
+const handleGoogleLogin = async () => {
+  const { success } = await googleLogin()
+  if (success) {
+    router.push('/rooms')
+  }
 }
 </script>
 
@@ -34,7 +43,7 @@ const guest = (email: any, password: any) => {
               variant="elevated"
               size="large"
               block
-              @click="login"
+              @click="handleGoogleLogin"
               >Googleでログイン</v-btn
             >
           </v-col>
@@ -44,7 +53,7 @@ const guest = (email: any, password: any) => {
               variant="elevated"
               size="large"
               block
-              @click="guest('test1@example.com', '123456')"
+              @click="handleGuestLogin('test1@example.com', '123456')"
               >デモアカウント1でログイン</v-btn
             >
           </v-col>
@@ -54,7 +63,7 @@ const guest = (email: any, password: any) => {
               variant="elevated"
               size="large"
               block
-              @click="guest('test2@example.com', '123456')"
+              @click="handleGuestLogin('test2@example.com', '123456')"
               >デモアカウント2でログイン</v-btn
             >
           </v-col>

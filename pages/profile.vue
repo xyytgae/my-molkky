@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useNuxtApp, useRouter } from '#app'
-import { ref, reactive } from '#imports'
-import { useMainStore } from '~/store/main'
+import { definePageMeta, ref, reactive, useUser } from '#imports'
 
+definePageMeta({
+  middleware: ['check-auth'],
+})
 const router = useRouter()
-const store = useMainStore()
-const { $auth, $firestore, $fireStorage } = useNuxtApp()
-const { getterLogin_user, getterRegistered_user } = store
+const { $firestore, $fireStorage } = useNuxtApp()
+const { loginedUser } = useUser()
 
 const image = ref<HTMLInputElement>()
 const form = reactive({
@@ -25,18 +26,13 @@ const form = reactive({
 })
 
 const onSubmit = async () => {
-  const user = await $auth
-  // console.log(user)
-
-  if (!user) router.push('/login')
-
   try {
-    await $firestore.collection('users').doc(user.uid).update({
+    await $firestore.collection('users').doc(loginedUser.value!.uid).update({
       name: form.name.value,
       iconImageUrl: form.image.value,
       // stars: form.stars.value,
     })
-    router.push('/')
+    router.push('/rooms')
   } catch (e) {
     console.log('失敗しました')
     console.log(e)
@@ -65,11 +61,11 @@ const onSelectFile = (e: any) => {
 }
 
 const upload = async ({ localImageFile }: any) => {
-  const user = await $auth
-
   const storageRef = $fireStorage.ref()
 
-  const imageRef = storageRef.child(`images/${user.uid}/${localImageFile.name}`)
+  const imageRef = storageRef.child(
+    `images/${loginedUser.value!.uid}/${localImageFile.name}`
+  )
 
   const snapShot = await imageRef.put(localImageFile)
   form.image.value = await snapShot.ref.getDownloadURL()
@@ -78,9 +74,9 @@ const upload = async ({ localImageFile }: any) => {
 /**
  * init
  */
-form.name.value = getterRegistered_user.name
-form.image.value = getterRegistered_user.iconImageUrl
-form.stars.value = getterRegistered_user.stars
+form.name.value = loginedUser.value!.name
+form.image.value = loginedUser.value!.iconImageUrl
+form.stars.value = loginedUser.value!.stars
 </script>
 
 <template>

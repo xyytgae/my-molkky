@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useNuxtApp, useRoute } from '#app'
+import { useRoute } from '#app'
 import {
   mdiPencil,
   mdiArrowRightBoldCircle,
@@ -9,9 +9,14 @@ import {
   mdiWindowClose,
 } from '@mdi/js'
 import { useGameStore } from '~/store/game'
-import { ref, computed, onUnmounted } from '#imports'
+import { definePageMeta, ref, computed, onUnmounted, useUser } from '#imports'
+
+definePageMeta({
+  middleware: ['check-auth'],
+})
 
 const route = useRoute()
+const { loginedUser } = useUser()
 const {
   getterRoom,
   getterUsers,
@@ -21,7 +26,6 @@ const {
   subscribeRoom,
   setScore,
 } = useGameStore()
-const { $user } = useNuxtApp()
 
 const userId = ref(null)
 const roomId = ref(null)
@@ -126,8 +130,7 @@ const clickOK = async () => {
 /**
  * init
  */
-const user = await $user
-userId.value = user.uid
+userId.value = loginedUser.value!.uid
 roomId.value = route.params.id
 
 unsubscribe.value = await subscribe({ roomId: roomId.value })
