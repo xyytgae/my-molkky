@@ -1,27 +1,25 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
 import { mdiMedal } from '@mdi/js'
-import { definePageMeta, onUnmounted, useUser } from '#imports'
-import { useMainStore } from '~/store/main'
+import { GameHistory } from '~/types/api'
+import { definePageMeta, useUser, ref } from '#imports'
+import { gameHistoryRepository } from '~/apis/gameHistory'
 
 definePageMeta({
   middleware: ['check-auth'],
 })
-const store = useMainStore()
+
 const { loginedUser } = useUser()
-const { getterGameHistoryCreatedAt, getterGameHistoryUsers } =
-  storeToRefs(store)
 
-const { getGameHistory, clearGameHistory } = store
+const gameHistories = ref<GameHistory[]>([])
 
-onUnmounted(() => {
-  clearGameHistory()
-})
 /**
  * init
  */
 const userId = loginedUser.value!.uid
-await getGameHistory({ userId })
+const { data, success } = await gameHistoryRepository.get(userId)
+if (success) {
+  gameHistories.value = data
+}
 </script>
 
 <template>
@@ -33,26 +31,24 @@ await getGameHistory({ userId })
           <h3>最大15件まで表示されます</h3>
           <v-row>
             <v-col
-              cols="12"
-              v-for="(createdAt, index) in getterGameHistoryCreatedAt"
+              v-for="(history, index) in gameHistories"
               :key="index"
+              cols="12"
               class="card"
             >
               <v-card :theme="index % 2 !== 0 ? 'dark' : ''">
                 <v-card-title class="text-subtitle-1">
                   <span>
-                    {{ createdAt.createdAt.toDate().getFullYear() }}年
+                    {{ history.createdAt.toDate().getFullYear() }}年
                   </span>
                   <span>
-                    {{ createdAt.createdAt.toDate().getMonth() + 1 }}月
+                    {{ history.createdAt.toDate().getMonth() + 1 }}月
                   </span>
                   <span>
-                    {{ createdAt.createdAt.toDate().getDate() }}日&ensp;
+                    {{ history.createdAt.toDate().getDate() }}日&ensp;
                   </span>
-                  <span> {{ createdAt.createdAt.toDate().getHours() }}時</span>
-                  <span>
-                    {{ createdAt.createdAt.toDate().getMinutes() }}分</span
-                  >
+                  <span> {{ history.createdAt.toDate().getHours() }}時</span>
+                  <span> {{ history.createdAt.toDate().getMinutes() }}分</span>
                 </v-card-title>
 
                 <v-card-text>
@@ -68,14 +64,12 @@ await getGameHistory({ userId })
 
                     <tbody>
                       <tr
-                        v-for="user in getterGameHistoryUsers[index]"
+                        v-for="user in history.users"
                         :key="`${index}-${user.id}`"
                       >
                         <th>
                           <v-icon
-                            v-if="
-                              getterGameHistoryUsers[index][0].sum === user.sum
-                            "
+                            v-if="history.users[0].sum === user.sum"
                             color="orange"
                             :icon="mdiMedal"
                           ></v-icon>
