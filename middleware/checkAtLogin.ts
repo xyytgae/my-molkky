@@ -8,9 +8,9 @@ export default defineNuxtRouteMiddleware(async () => {
     loginedUser.value.uid !== '' &&
     loginedUser.value.name === ''
 
-  if (loginedUser.value === null) {
-    return navigateTo('/login')
-  } else if (isNotRegistered) {
+  if (isNotRegistered) {
     return navigateTo('/register')
+  } else if (loginedUser.value !== null) {
+    return navigateTo('/rooms')
   }
 })
