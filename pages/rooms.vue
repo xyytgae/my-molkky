@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { useNuxtApp, useRouter } from '#app'
 import { mdiLock, mdiCloseCircle, mdiImage } from '@mdi/js'
-import { ref, reactive, onUnmounted, useUser, definePageMeta } from '#imports'
-import { useRoomsStore } from '~/store/rooms'
+import {
+  ref,
+  reactive,
+  onUnmounted,
+  useUser,
+  definePageMeta,
+  useRooms,
+} from '#imports'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -10,7 +16,7 @@ definePageMeta({
 
 const router = useRouter()
 const { loginedUser } = useUser()
-const { getterRooms, subscribe, clear } = useRoomsStore()
+const { rooms, subscribe } = useRooms()
 const { $firestore, $fireStorage, $firebase } = useNuxtApp()
 
 const errorMessages = ref('')
@@ -24,7 +30,6 @@ const passwordDialog = ref(false)
 const failDialog = ref(false)
 const isPassword = ref(false)
 const password = ref(null)
-const unsubscribe = ref(null)
 const form = reactive({
   name: {
     label: '名前',
@@ -41,19 +46,17 @@ const form = reactive({
 })
 const image = ref<HTMLInputElement>()
 
-// TODO: 型修正
-const correctPassword = (roomId: any) => {
-  const isPasswordEdited = getterRooms.find((r) => r.id === roomId)
+const correctPassword = (roomId: string) => {
+  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && password.value === isPasswordEdited.password) {
     router.push(`/room/${roomId}`)
   }
   errorMessages.value = 'パスワードが違います'
 }
 
-// TODO: 型修正
-const moveToRoomPage = (roomId: any) => {
+const moveToRoomPage = (roomId: string) => {
   const userId = loginedUser.value!.uid
-  const isPasswordEdited = getterRooms.find((r) => r.id === roomId)
+  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && userId === isPasswordEdited.hostId) {
     password.value = isPasswordEdited.password
   } else if (isPasswordEdited && password.value !== isPasswordEdited.password) {
@@ -132,17 +135,10 @@ const createRoom = async () => {
 /**
  * init
  */
-
-// subscribe().then((value) => {
-//   unsubscribe.value = value
-// })
-
-unsubscribe.value = subscribe()
-
+const { data } = await subscribe()
 onUnmounted(() => {
-  clear()
-  if (unsubscribe.value) {
-    unsubscribe.value()
+  if (data) {
+    data()
   }
 })
 </script>
@@ -154,7 +150,7 @@ onUnmounted(() => {
 
       <v-main class="main">
         <v-container>
-          <v-row v-for="room in getterRooms" :key="room.id" dense>
+          <v-row v-for="room in rooms" :key="room.id" dense>
             <v-col cols="12">
               <v-card>
                 <div class="d-flex flex-no-wrap">
