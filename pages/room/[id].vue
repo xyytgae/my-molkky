@@ -22,13 +22,13 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { loginedUser } = useUser()
-const { users, subscribe } = useWaitingUsers()
+const { users, subscribeUsers } = useWaitingUsers()
 const { subscribeRoomDeletion } = useWaitingRoom()
 const { updateOrder, createUser, deleteUser } = waitingUsersRepo
 const { updateToStart, deleteRoom } = waitingRoomRepo
 
 const userId = ref<string>('')
-const unsubscribe = ref<Function | null>(null)
+const unsubscribeUsers = ref<Function | null>(null)
 const unsubscribeRoomDeletion = ref<Function | null>(null)
 // const user = ref(null)
 const roomId = ref<string>('')
@@ -96,8 +96,8 @@ const startGame = async () => {
 }
 
 const unsubscribeAll = () => {
-  if (unsubscribe.value) {
-    unsubscribe.value()
+  if (unsubscribeUsers.value) {
+    unsubscribeUsers.value()
   }
   if (unsubscribeRoomDeletion.value) {
     unsubscribeRoomDeletion.value()
@@ -120,8 +120,8 @@ if (loginedUser.value && roomId.value) {
   await createUser(loginedUser.value, roomId.value)
 }
 
-subscribe(roomId.value).then(({ data }) => {
-  unsubscribe.value = data
+subscribeUsers(roomId.value).then(({ data }) => {
+  unsubscribeUsers.value = data
 })
 
 subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {

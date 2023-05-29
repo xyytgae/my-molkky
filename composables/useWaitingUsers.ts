@@ -29,7 +29,7 @@ export const useWaitingUsers = () => {
   const { $firestore } = useNuxtApp()
   const users = useState<PlayingUser[]>('users', () => [])
 
-  const subscribe = async (
+  const subscribeUsers = async (
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
@@ -38,7 +38,7 @@ export const useWaitingUsers = () => {
         .collection('rooms')
         .doc(roomId)
         .collection('room')
-        .orderBy('createdAt', 'asc')
+        .orderBy('order', 'asc')
         .onSnapshot((usersSnapShot) => {
           usersSnapShot.docChanges().forEach((snapshot) => {
             const user: PlayingUser = {
@@ -78,6 +78,6 @@ export const useWaitingUsers = () => {
 
   return {
     users: readonly(users),
-    subscribe,
+    subscribeUsers,
   }
 }
