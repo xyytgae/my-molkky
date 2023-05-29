@@ -6,6 +6,14 @@ export type ApiResponse<T> = {
   error: any
 }
 
+// TODO: 型修正
+export type User = {
+  name: string
+  iconImageUrl: string
+  stars: number
+  uid: string
+}
+
 export type GameHistory = {
   createdAt: firestore.Timestamp
   users: Array<any>
@@ -24,4 +32,17 @@ export type Room = {
   finishSecondHalf: boolean
   delete: boolean
   users: Array<string>
+}
+
+export type PlayingUser = {
+  id: string
+  order: number
+  elimination: boolean
+  iconImageUrl: string
+  firstHalfScore: number
+  totalScore: number
+  score: Array<number>
+  createdAt: firestore.Timestamp | firestore.FieldValue
+  name: string
+  stars: number
 }
