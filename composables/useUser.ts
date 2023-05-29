@@ -1,4 +1,5 @@
 import { useState, useNuxtApp } from '#app'
+import { User } from '../types/api'
 
 // TODO: 型修正
 type ApiResponse = {
@@ -6,23 +7,15 @@ type ApiResponse = {
   error: any
 }
 
-// TODO: 型修正
-type UserState = {
-  name: string
-  iconImageUrl: string
-  stars: number
-  uid: string
-}
-
 export const useUser = () => {
   const { $firebase, $fireAuth, $firestore } = useNuxtApp()
-  const loginedUser = useState<UserState | null>('loginedUser', () => null)
+  const loginedUser = useState<User | null>('loginedUser', () => null)
 
   const getUser = async (uid: string): Promise<ApiResponse> => {
     try {
       const userSnapshot = await $firestore.collection('users').doc(uid).get()
       if (userSnapshot.exists) {
-        loginedUser.value = { ...userSnapshot.data(), uid } as UserState
+        loginedUser.value = { ...userSnapshot.data(), uid } as User
       } else {
         loginedUser.value = {
           name: '',

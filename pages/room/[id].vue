@@ -1,22 +1,37 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
-import { useRoomStore } from '~/store/room'
-import { definePageMeta, ref, onUnmounted, useUser } from '#imports'
+import {
+  definePageMeta,
+  ref,
+  onUnmounted,
+  useUser,
+  useWaitingUsers,
+  useWaitingRoom,
+} from '#imports'
+import { waitingUsersRepo } from '~/apis/waitingUser'
+import { waitingRoomRepo } from '~/apis/waitingRoom'
 
 definePageMeta({
   middleware: ['check-auth'],
+  validate: (route) => {
+    if (typeof route.params.id !== 'string') return false
+    return /^[a-zA-Z0-9]+$/.test(route.params.id)
+  },
 })
+
 const route = useRoute()
 const router = useRouter()
 const { loginedUser } = useUser()
-const { getterRoom, setUser, subscribe, start, clear, exitRoom, deleteRoom } =
-  useRoomStore()
+const { users, subscribe } = useWaitingUsers()
+const { subscribeRoomDeletion } = useWaitingRoom()
+const { updateOrder, createUser, deleteUser } = waitingUsersRepo
+const { updateToStart, deleteRoom } = waitingRoomRepo
 
-const userId = ref<string | null>(null)
-const unsubscribe = ref(null)
-const unstart = ref(null)
+const userId = ref<string>('')
+const unsubscribe = ref<Function | null>(null)
+const unsubscribeRoomDeletion = ref<Function | null>(null)
 // const user = ref(null)
-const roomId = ref(null)
+const roomId = ref<string>('')
 const orderedUsers = ref([])
 const order = ref(true)
 const disabledOrder = ref(true)
@@ -33,15 +48,16 @@ const slides = [
 ]
 
 const exit = async () => {
+  unsubscribeAll()
   if (isHost.value && dialog.value) {
-    await exitRoom({ userId: userId.value, roomId: roomId.value })
-    await deleteRoom({ roomId: roomId.value })
+    await deleteUser(userId.value, roomId.value)
+    await deleteRoom(roomId.value)
     router.push('/rooms')
   } else if (isHost.value) {
     dialog.value = true
   } else {
     router.push('/rooms')
-    await exitRoom({ userId: userId.value, roomId: roomId.value })
+    await deleteUser(userId.value, roomId.value)
   }
 }
 
@@ -62,15 +78,12 @@ const changeOrder = () => {
 
 const decideOrder = async () => {
   // 全員を選んでいない場合return
-  if (orderedUsers.value.length !== getterRoom.length) return
+  if (orderedUsers.value.length !== users.value.length) return
 
   order.value = !order.value
   disabledOrder.value = !disabledOrder.value
 
-  await useRoomStore().decideOrder({
-    users: orderedUsers.value,
-    roomId: roomId.value,
-  })
+  await updateOrder(orderedUsers.value, roomId.value)
 
   startButton.value = false
 
@@ -79,21 +92,20 @@ const decideOrder = async () => {
 }
 
 const startGame = async () => {
+  await updateToStart(roomId.value)
+}
+
+const unsubscribeAll = () => {
   if (unsubscribe.value) {
     unsubscribe.value()
   }
-  // await this.$store.dispatch('room/clear')
-  await useRoomStore().startGame({ roomId: roomId.value })
+  if (unsubscribeRoomDeletion.value) {
+    unsubscribeRoomDeletion.value()
+  }
 }
 
 onUnmounted(() => {
-  if (unsubscribe.value) {
-    unsubscribe.value()
-  }
-  if (unstart.value) {
-    unstart.value()
-  }
-  clear()
+  unsubscribeAll()
 })
 
 /**
@@ -101,17 +113,19 @@ onUnmounted(() => {
  */
 
 userId.value = loginedUser.value!.uid
-roomId.value = route.params.id
+roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 
-await setUser({ user: loginedUser.value, roomId: roomId.value })
+if (loginedUser.value && roomId.value) {
+  await createUser(loginedUser.value, roomId.value)
+}
 
-// const store = useRoomStore()
+subscribe(roomId.value).then(({ data }) => {
+  unsubscribe.value = data
+})
 
-unsubscribe.value = await subscribe({ roomId: roomId.value })
-unstart.value = await start({
-  userId: userId.value,
-  roomId: roomId.value,
+subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
+  unsubscribeRoomDeletion.value = data
 })
 </script>
 
@@ -160,11 +174,7 @@ unstart.value = await start({
 
           <v-card class="cards mb-10">
             <v-row>
-              <v-col
-                cols="12"
-                v-for="(user, index) in getterRoom"
-                :key="user.uid"
-              >
+              <v-col cols="12" v-for="(user, index) in users" :key="user.uid">
                 <v-card @click="chooseOrder(index)">
                   <input
                     ref="orderRefs"
@@ -194,7 +204,7 @@ unstart.value = await start({
               </v-col>
             </v-row>
 
-            <h1>{{ getterRoom.length }}/4</h1>
+            <h1>{{ users.length }}/4</h1>
           </v-card>
         </v-container>
 
@@ -216,7 +226,7 @@ unstart.value = await start({
           v-show="!order"
           variant="outlined"
           color="white"
-          :disabled="orderedUsers.length !== getterRoom.length"
+          :disabled="orderedUsers.length !== users.length"
           @click="decideOrder"
           >順番を決定</v-btn
         >
