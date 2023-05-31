@@ -1,7 +1,7 @@
 import { useState, useNuxtApp } from '#app'
 import { PlayingUser, ApiResponse } from '../types/api'
-import { readonly } from '#imports'
 import { Unsubscribe } from 'firebase'
+import { waitingRoomRepo } from '~~/apis/waitingRoom'
 
 const add = (users: PlayingUser[], addedUser: PlayingUser): PlayingUser[] => {
   const isNotAdded = !users.find((user) => user.id === addedUser.id)
@@ -27,9 +27,10 @@ const remove = (
 
 export const useWaitingUsers = () => {
   const { $firestore } = useNuxtApp()
+  const { finishGame } = waitingRoomRepo
   const users = useState<PlayingUser[]>('users', () => [])
 
-  const subscribe = async (
+  const subscribeUsers = async (
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
@@ -38,7 +39,7 @@ export const useWaitingUsers = () => {
         .collection('rooms')
         .doc(roomId)
         .collection('room')
-        .orderBy('createdAt', 'asc')
+        .orderBy('order', 'asc')
         .onSnapshot((usersSnapShot) => {
           usersSnapShot.docChanges().forEach((snapshot) => {
             const user: PlayingUser = {
@@ -59,6 +60,11 @@ export const useWaitingUsers = () => {
                 users.value = remove(users.value, user)
                 break
             }
+
+            // 50点に到達すれば、その時点でゲームを終了させる
+            if (user.totalScore === 50) {
+              finishGame(roomId)
+            }
           })
         })
 
@@ -77,7 +83,8 @@ export const useWaitingUsers = () => {
   }
 
   return {
-    users: readonly(users),
-    subscribe,
+    // NOTE: 型の都合でreadonlyをつけていない
+    users,
+    subscribeUsers,
   }
 }

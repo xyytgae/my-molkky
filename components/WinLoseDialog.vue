@@ -1,13 +1,24 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
-import { useGameStore } from '~/store/game'
+import { PlayingUser } from '../types/api'
 import { useResultStore } from '~/store/result'
 import { ref, onUnmounted, useUser } from '#imports'
+import { waitingUsersRepo } from '~/apis/waitingUser'
+import { waitingRoomRepo } from '~/apis/waitingRoom'
+
+interface Props {
+  users: PlayingUser[]
+  isStartedSecondHalf: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  users: () => [],
+  isStartedSecondHalf: () => false,
+})
 
 const route = useRoute()
 const router = useRouter()
 
-const { getterStartSecondHalf } = useGameStore()
 const {
   getterResult,
   getterWinner,
@@ -18,20 +29,27 @@ const {
   clear,
 } = useResultStore()
 const { loginedUser } = useUser()
+const { updateUsersToSecondHalf } = waitingUsersRepo
+const { updateToStartSecondHalf } = waitingRoomRepo
 
 const WLDialog = ref(true)
 const userId = ref<string | null>(null)
 const roomId = ref(null)
 
 const startSecond = async () => {
-  // this.$store.dispatch('game/clearUsers')
+  await updateUsersToSecondHalf(roomId.value!)
 
-  await useGameStore().startSecondHalf({ roomId: roomId.value })
+  // props.usersをtotalScoreを元にソートして、userIdの配列を作る
+  const copiedUsers = [...props.users]
+  const userIds = copiedUsers
+    .sort((a, b) => {
+      return b.totalScore - a.totalScore
+    })
+    .map((user) => user.id)
+  await updateToStartSecondHalf(roomId.value!, userIds)
 }
 
 const finish = async () => {
-  useGameStore().clear()
-
   await clearFirestore({
     userId: userId.value,
     roomId: roomId.value,
@@ -60,7 +78,7 @@ await getResult({
   userId: userId.value,
 })
 
-if (getterStartSecondHalf) {
+if (props.isStartedSecondHalf) {
   await getWinner({
     roomId: roomId.value,
     userId: userId.value,
@@ -79,10 +97,11 @@ if (getterStartSecondHalf) {
         <!-- <v-btn fab text color="white" @click="$emit('close-dialog')">
           <v-icon>mdi-window-close</v-icon>
         </v-btn> -->
+        {{ isStartedSecondHalf }}
 
         <v-spacer></v-spacer>
         <v-btn
-          v-if="!getterStartSecondHalf && userId === roomId"
+          v-if="!isStartedSecondHalf && userId === roomId"
           color="orange"
           class="text-white"
           rounded
@@ -91,7 +110,7 @@ if (getterStartSecondHalf) {
           >後半へ進む</v-btn
         >
         <v-btn
-          v-if="getterStartSecondHalf"
+          v-if="isStartedSecondHalf"
           color="orange"
           class="text-white"
           rounded
@@ -103,7 +122,7 @@ if (getterStartSecondHalf) {
       </v-card-actions>
 
       <v-container class="container">
-        <v-card-title v-if="getterStartSecondHalf">
+        <v-card-title v-if="isStartedSecondHalf">
           <v-row>
             <v-col cols="12" v-for="w in getterWinner" :key="w.id">
               Winner :
@@ -125,7 +144,7 @@ if (getterStartSecondHalf) {
             </thead>
 
             <!-- 2ndHalf終了時に表示 -->
-            <tbody v-if="getterStartSecondHalf">
+            <tbody v-if="isStartedSecondHalf">
               <tr v-for="r in getterResult" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
