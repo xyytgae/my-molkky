@@ -23,7 +23,7 @@ const route = useRoute()
 const router = useRouter()
 const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
-const { subscribeRoomDeletion } = useWaitingRoom()
+const { room, subscribeRoomDeletion } = useWaitingRoom()
 const { updateOrder, createUser, deleteUser } = waitingUsersRepo
 const { updateToStartFirstHalf, deleteRoom } = waitingRoomRepo
 
@@ -132,7 +132,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 <template>
   <div>
     <v-app>
-      <RoomHeader></RoomHeader>
+      <RoomHeader :room="room" />
       <v-main class="mb-15">
         <v-container>
           <v-row class="pb-3" justify="center" align-content="center">
