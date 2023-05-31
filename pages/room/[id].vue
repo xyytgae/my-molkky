@@ -25,7 +25,7 @@ const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
 const { subscribeRoomDeletion } = useWaitingRoom()
 const { updateOrder, createUser, deleteUser } = waitingUsersRepo
-const { updateToStart, deleteRoom } = waitingRoomRepo
+const { updateToStartFirstHalf, deleteRoom } = waitingRoomRepo
 
 const userId = ref<string>('')
 const unsubscribeUsers = ref<Function | null>(null)
@@ -92,7 +92,7 @@ const decideOrder = async () => {
 }
 
 const startGame = async () => {
-  await updateToStart(roomId.value)
+  await updateToStartFirstHalf(roomId.value)
 }
 
 const unsubscribeAll = () => {
