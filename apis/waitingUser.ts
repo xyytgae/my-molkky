@@ -18,6 +18,7 @@ const createDefaultUser = (
   name: user.name,
   iconImageUrl: user.iconImageUrl,
   createdAt,
+  sum: 0,
 })
 
 export const waitingUsersRepo = {
@@ -281,6 +282,30 @@ export const waitingUsersRepo = {
 
       return {
         data: newTotalScore,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  incrementStars: async (userId: string) => {
+    const { $firestore, $firebase } = useNuxtApp()
+    try {
+      await $firestore
+        .collection('users')
+        .doc(userId)
+        .update({
+          stars: $firebase.firestore.FieldValue.increment(1),
+          // stones: $firebase.firestore.FieldValue.increment(1),
+        })
+
+      return {
+        data: null,
         success: true,
         error: null,
       }

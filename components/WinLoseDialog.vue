@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
 import { PlayingUser } from '../types/api'
-import { useResultStore } from '~/store/result'
-import { ref, onUnmounted, useUser } from '#imports'
+import { ref, useUser } from '#imports'
 import { waitingUsersRepo } from '~/apis/waitingUser'
 import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { gameHistoryRepository } from '~/apis/gameHistory'
 
 interface Props {
   users: PlayingUser[]
@@ -19,18 +19,10 @@ const props = withDefaults(defineProps<Props>(), {
 const route = useRoute()
 const router = useRouter()
 
-const {
-  getterResult,
-  getterWinner,
-  clearFirestore,
-  resetRoom,
-  getResult,
-  getWinner,
-  clear,
-} = useResultStore()
 const { loginedUser } = useUser()
-const { updateUsersToSecondHalf } = waitingUsersRepo
-const { updateToStartSecondHalf } = waitingRoomRepo
+const { updateUsersToSecondHalf, incrementStars, deleteUser } = waitingUsersRepo
+const { updateToStartSecondHalf, resetRoom } = waitingRoomRepo
+const { create } = gameHistoryRepository
 
 const WLDialog = ref(true)
 const userId = ref<string | null>(null)
@@ -50,43 +42,39 @@ const startSecond = async () => {
 }
 
 const finish = async () => {
-  await clearFirestore({
-    userId: userId.value,
-    roomId: roomId.value,
-  })
+  await deleteUser(userId.value, roomId.value)
 
   if (userId.value === roomId.value) {
-    await resetRoom({
-      roomId: roomId.value,
-    })
+    await resetRoom(roomId.value)
     router.push(`/room/${roomId.value}`)
   } else {
     router.push('/rooms')
   }
 }
 
-onUnmounted(() => {
-  clear()
-})
+const winners = ref<PlayingUser[]>([])
+const result = ref<PlayingUser[]>([])
+
+const getWinners = (users: PlayingUser[]): PlayingUser[] => {
+  const sortedPlayers = users.sort((a, b) => b.sum - a.sum)
+  const winnerScore = sortedPlayers[0].sum
+  return sortedPlayers.filter((player) => player.sum === winnerScore)
+}
+
 /**
  * init
  */
 userId.value = loginedUser.value!.uid
 roomId.value = route.params.id
-await getResult({
-  roomId: roomId.value,
-  userId: userId.value,
-})
+result.value = [...props.users]
 
 if (props.isStartedSecondHalf) {
-  await getWinner({
-    roomId: roomId.value,
-    userId: userId.value,
-  })
-
-  // await resultStore.recordData({
-  //   userId: userId.value,
-  // })
+  winners.value = getWinners(result.value)
+  const isWinner = winners.value.some((winner) => winner.id === userId.value)
+  if (isWinner) {
+    await incrementStars(userId.value)
+  }
+  await create(userId.value, result.value)
 }
 </script>
 
@@ -97,7 +85,6 @@ if (props.isStartedSecondHalf) {
         <!-- <v-btn fab text color="white" @click="$emit('close-dialog')">
           <v-icon>mdi-window-close</v-icon>
         </v-btn> -->
-        {{ isStartedSecondHalf }}
 
         <v-spacer></v-spacer>
         <v-btn
@@ -124,7 +111,7 @@ if (props.isStartedSecondHalf) {
       <v-container class="container">
         <v-card-title v-if="isStartedSecondHalf">
           <v-row>
-            <v-col cols="12" v-for="w in getterWinner" :key="w.id">
+            <v-col cols="12" v-for="w in winners" :key="w.id">
               Winner :
               {{ w.name }}
               <WinnerDialog v-if="w.id == userId"></WinnerDialog>
@@ -145,7 +132,7 @@ if (props.isStartedSecondHalf) {
 
             <!-- 2ndHalf終了時に表示 -->
             <tbody v-if="isStartedSecondHalf">
-              <tr v-for="r in getterResult" :key="r.id">
+              <tr v-for="r in result" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
@@ -165,7 +152,7 @@ if (props.isStartedSecondHalf) {
 
             <!-- 1stHalf終了時に表示 -->
             <tbody v-else>
-              <tr v-for="r in getterResult" :key="r.id">
+              <tr v-for="r in result" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
