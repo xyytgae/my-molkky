@@ -216,7 +216,7 @@ watch(
         :users="users"
         :is-started-second-half="isStartedSecondHalf"
         @close-dialog="closeDialog"
-      ></WinLoseDialog>
+      />
 
       <!-- <WinnerDialog></WinnerDialog> -->
       <v-main>
@@ -225,7 +225,7 @@ watch(
             <tr>
               <th>名前</th>
               <th v-if="judge">1回</th>
-              <th v-else v-for="n in maxLength" :key="n">{{ n }}回</th>
+              <th v-for="n in maxLength" v-else :key="n">{{ n }}回</th>
               <th class="border" :class="[{ isActive: !isStartedSecondHalf }]">
                 前半
               </th>
@@ -247,25 +247,25 @@ watch(
                     color="red"
                     class="my-auto"
                     :icon="mdiArrowRightBoldCircle"
-                  ></v-icon>
+                  />
                   <v-icon
                     v-if="user.elimination"
                     color="red"
                     class="my-auto"
                     :icon="mdiCloseThick"
-                  ></v-icon>
+                  />
                   <img class="image" :src="user.iconImageUrl" />
                 </span>
                 {{ user.name }}
               </th>
 
               <td
-                v-show="!user.score.length < scoreLength"
                 v-for="(userScore, index) in user.score"
+                v-show="!user.score.length < scoreLength"
                 :key="index"
               >
                 <span v-show="userScore === 0">
-                  <v-icon color="red" :icon="mdiCloseThick"></v-icon>
+                  <v-icon color="red" :icon="mdiCloseThick" />
                 </span>
                 <span v-show="userScore > 0">
                   {{ userScore }}
@@ -273,32 +273,32 @@ watch(
               </td>
 
               <td
-                v-show="user.score.length < scoreLength"
                 v-for="n in spaceNumber(user.score.length)"
+                v-show="user.score.length < scoreLength"
                 :key="`${user.id}-${n}`"
               >
                 &nbsp;
               </td>
 
-              <td class="border" v-if="isStartedSecondHalf">
+              <td v-if="isStartedSecondHalf" class="border">
                 {{ user.firstHalfScore }}/50
               </td>
               <td
+                v-if="isStartedSecondHalf"
                 class="border"
                 :class="[{ isActive: isStartedSecondHalf }]"
-                v-if="isStartedSecondHalf"
               >
                 {{ user.totalScore }}/50
               </td>
 
               <td
+                v-if="!isStartedSecondHalf"
                 class="border"
                 :class="[{ isActive: !isStartedSecondHalf }]"
-                v-if="!isStartedSecondHalf"
               >
                 {{ user.totalScore }}/50
               </td>
-              <td class="border" v-if="!isStartedSecondHalf">
+              <td v-if="!isStartedSecondHalf" class="border">
                 {{ user.firstHalfScore }}/50
               </td>
               <td class="border">
@@ -313,10 +313,10 @@ watch(
         <v-card color="#387d39" dark>
           <v-card-actions>
             <v-btn icon @click="switchDialog">
-              <v-icon color="white" :icon="mdiWindowClose"></v-icon>
+              <v-icon color="white" :icon="mdiWindowClose" />
             </v-btn>
 
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn
               color="orange"
               rounded
@@ -331,16 +331,16 @@ watch(
             <v-col cols="12" class="input">
               <div class="skittles">
                 <div
-                  class="skittle"
-                  @click="selectFirstScores(index)"
                   v-for="(score, index) in allScores[0]"
                   :key="index"
+                  class="skittle"
+                  @click="selectFirstScores(index)"
                 >
                   <input
-                    style="display: none"
                     ref="firstScores"
-                    type="checkbox"
                     v-model="selectScore"
+                    style="display: none"
+                    type="checkbox"
                     :value="score"
                   />
                   <div class="score">{{ score }}</div>
@@ -349,16 +349,16 @@ watch(
 
               <div class="skittles">
                 <div
-                  class="skittle"
-                  @click="selectSecondScores(index)"
                   v-for="(score, index) in allScores[1]"
                   :key="index"
+                  class="skittle"
+                  @click="selectSecondScores(index)"
                 >
                   <input
-                    style="display: none"
                     ref="secondScores"
-                    type="checkbox"
                     v-model="selectScore"
+                    style="display: none"
+                    type="checkbox"
                     :value="score"
                   />
                   <div class="score">{{ score }}</div>
@@ -367,16 +367,16 @@ watch(
 
               <div class="skittles">
                 <div
-                  class="skittle"
-                  @click="selectThirdScores(index)"
                   v-for="(score, index) in allScores[2]"
                   :key="index"
+                  class="skittle"
+                  @click="selectThirdScores(index)"
                 >
                   <input
-                    style="display: none"
                     ref="thirdScores"
-                    type="checkbox"
                     v-model="selectScore"
+                    style="display: none"
+                    type="checkbox"
                     :value="score"
                   />
                   <div class="score">{{ score }}</div>
@@ -385,16 +385,16 @@ watch(
 
               <div class="skittles">
                 <div
-                  class="skittle"
-                  @click="selectFourthScores(index)"
                   v-for="(score, index) in allScores[3]"
                   :key="index"
+                  class="skittle"
+                  @click="selectFourthScores(index)"
                 >
                   <input
-                    style="display: none"
                     ref="fourthScores"
-                    type="checkbox"
                     v-model="selectScore"
+                    style="display: none"
+                    type="checkbox"
                     :value="score"
                   />
                   <div class="score">{{ score }}</div>
@@ -406,18 +406,18 @@ watch(
             点数：{{ score }}
           </v-card-title>
           <v-card-actions>
-            <v-spacer></v-spacer>
+            <v-spacer />
             <v-btn icon @click="howToUse = !howToUse">
               <v-icon
                 color="white"
                 :icon="howToUse ? mdiChevronUp : mdiChevronDown"
-              ></v-icon>
+              />
             </v-btn>
           </v-card-actions>
 
           <v-expand-transition>
             <div v-show="howToUse">
-              <v-divider></v-divider>
+              <v-divider />
               <v-card-text class="how-to-use">
                 <h3>＜使い方＞</h3>
                 <li>0本選択・・・0点</li>
@@ -430,16 +430,16 @@ watch(
       </v-dialog>
 
       <GameFooter>
-        <OthersTurnDialog v-show="userId !== room.users[0]"></OthersTurnDialog>
-        <YourTurnDialog v-show="userId === room.users[0]"></YourTurnDialog>
-        <v-spacer></v-spacer>
+        <OthersTurnDialog v-show="userId !== room.users[0]" />
+        <YourTurnDialog v-show="userId === room.users[0]" />
+        <v-spacer />
         <v-btn
           variant="flat"
           :disabled="userId !== room.users[0]"
           icon
           @click="switchDialog"
         >
-          <v-icon :icon="mdiPencil" color="primary"></v-icon>
+          <v-icon :icon="mdiPencil" color="primary" />
         </v-btn>
       </GameFooter>
     </v-app>

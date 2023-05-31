@@ -33,7 +33,7 @@ const handleGoogleLogin = async () => {
       <!-- <v-container> -->
       <v-card-title class="text-center my-3"> ログイン </v-card-title>
 
-      <v-divider class="mx-7"></v-divider>
+      <v-divider class="mx-7" />
 
       <v-card-actions>
         <v-row class="mx-6">

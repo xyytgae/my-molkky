@@ -87,10 +87,7 @@ const upload = async ({ localImageFile }: any) => {
               </div>
               <!-- <v-col cols="12"> </v-col> -->
               <v-col cols="12">
-                <v-text-field
-                  v-model="form.name.value"
-                  label="部屋の名前"
-                ></v-text-field>
+                <v-text-field v-model="form.name.value" label="部屋の名前" />
               </v-col>
 
               <v-col cols="12">
@@ -99,7 +96,7 @@ const upload = async ({ localImageFile }: any) => {
                   :label="`パスワードを${
                     isPassword ? '設定する' : '設定しない'
                   }`"
-                ></v-switch>
+                />
               </v-col>
               <v-col cols="12">
                 <v-text-field
@@ -107,7 +104,7 @@ const upload = async ({ localImageFile }: any) => {
                   :disabled="!isPassword"
                   label="Password"
                   :required="isPassword"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
           </v-container>
@@ -116,7 +113,7 @@ const upload = async ({ localImageFile }: any) => {
           <v-btn color="blue darken-1" text @click="dialog = false"
             >閉じる</v-btn
           >
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn color="blue darken-1" text @click="dialog = false"
             >部屋を公開する</v-btn
           >

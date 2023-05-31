@@ -16,12 +16,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
   <v-app-bar color="primary" class="px-4">
-    <v-avatar v-if="room" :image="room.topImageUrl"> </v-avatar>
+    <v-avatar v-if="room" :image="room.topImageUrl" />
 
     <v-app-bar-title v-if="room" class="name">
       {{ room.name }}
     </v-app-bar-title>
-    <v-spacer></v-spacer>
+    <v-spacer />
     <slot />
     <!--
     <v-toolbar-items class="align-center">

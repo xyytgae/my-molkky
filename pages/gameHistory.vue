@@ -25,7 +25,7 @@ if (success) {
 <template>
   <div>
     <v-app>
-      <UserHeader></UserHeader>
+      <UserHeader />
       <v-main>
         <v-container>
           <h3>最大15件まで表示されます</h3>
@@ -72,7 +72,7 @@ if (success) {
                             v-if="history.users[0].sum === user.sum"
                             color="orange"
                             :icon="mdiMedal"
-                          ></v-icon>
+                          />
                           {{ user.name }}
                         </th>
 

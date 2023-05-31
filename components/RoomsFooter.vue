@@ -6,13 +6,13 @@ import { mdiHome, mdiPlus } from '@mdi/js'
   <v-footer app fixed padless>
     <v-card tile flat color="primary" class="lighten-1" width="100%">
       <v-card-actions>
-        <v-btn :icon="mdiHome" size="large" to="/"></v-btn>
+        <v-btn :icon="mdiHome" size="large" to="/" />
 
-        <v-spacer></v-spacer>
+        <v-spacer />
 
         <v-btn :prepend-icon="mdiPlus" @click="$emit('open-dialog')">
           <template #prepend>
-            <v-icon size="x-large"></v-icon>
+            <v-icon size="x-large" />
           </template>
           <span>部屋を作成</span>
         </v-btn>

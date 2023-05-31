@@ -86,7 +86,7 @@ if (props.isStartedSecondHalf) {
           <v-icon>mdi-window-close</v-icon>
         </v-btn> -->
 
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn
           v-if="!isStartedSecondHalf && userId === roomId"
           color="orange"
@@ -111,10 +111,10 @@ if (props.isStartedSecondHalf) {
       <v-container class="container">
         <v-card-title v-if="isStartedSecondHalf">
           <v-row>
-            <v-col cols="12" v-for="w in winners" :key="w.id">
+            <v-col v-for="w in winners" :key="w.id" cols="12">
               Winner :
               {{ w.name }}
-              <WinnerDialog v-if="w.id == userId"></WinnerDialog>
+              <WinnerDialog v-if="w.id == userId" />
             </v-col>
           </v-row>
         </v-card-title>
@@ -136,7 +136,7 @@ if (props.isStartedSecondHalf) {
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
-                  <span> </span>
+                  <span />
                 </th>
                 <td>
                   {{ r.firstHalfScore }}
@@ -156,7 +156,7 @@ if (props.isStartedSecondHalf) {
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
-                  <span> </span>
+                  <span />
                 </th>
                 <td>
                   {{ r.totalScore }}

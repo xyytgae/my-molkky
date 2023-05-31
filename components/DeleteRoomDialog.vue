@@ -15,7 +15,7 @@ const dialog = ref(true)
         <v-btn variant="text" color="info" @click="$emit('close-dialog')"
           >キャンセル</v-btn
         >
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn variant="text" color="info" @click="$emit('delete-room')"
           >OK</v-btn
         >
