@@ -25,7 +25,7 @@ export type Room = {
   name: string
   password: string
   topImageUrl: string
-  createdAt: firestore.Timestamp
+  createdAt: firestore.Timestamp | firestore.FieldValue
   startSecondHalf: boolean
   startFirstHalf: boolean
   finishFirstHalf: boolean
