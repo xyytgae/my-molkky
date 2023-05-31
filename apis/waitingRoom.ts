@@ -192,4 +192,29 @@ export const waitingRoomRepo = {
       }
     }
   },
+
+  resetRoom: async (roomId: string): Promise<ApiResponse<string | null>> => {
+    const { $firestore } = useNuxtApp()
+    try {
+      await $firestore.collection('rooms').doc(roomId).update({
+        startFirstHalf: false,
+        startSecondHalf: false,
+        finishFirstHalf: false,
+        finishSecondHalf: false,
+        users: [],
+      })
+
+      return {
+        data: roomId,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
 }
