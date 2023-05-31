@@ -23,6 +23,10 @@ import { waitingRoomRepo } from '~/apis/waitingRoom'
 
 definePageMeta({
   middleware: ['check-auth'],
+  validate: (route) => {
+    if (typeof route.params.id !== 'string') return false
+    return /^[a-zA-Z0-9]+$/.test(route.params.id)
+  },
 })
 
 const route = useRoute()
@@ -160,7 +164,7 @@ onUnmounted(() => {
  * init
  */
 userId.value = loginedUser.value!.uid
-roomId.value = route.params.id
+roomId.value = route.params.id as string
 
 subscribeUsers(roomId.value).then(({ data }) => {
   unsubscribeUsers.value = data
