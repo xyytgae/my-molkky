@@ -202,7 +202,7 @@ watch(
 <template>
   <div class="bg-red">
     <v-app>
-      <RoomHeader>
+      <RoomHeader :room="room">
         <h1 v-if="isStartedSecondHalf" style="border: 1px solid white">後半</h1>
         <h1 v-else style="border: 1px solid white">前半</h1>
       </RoomHeader>

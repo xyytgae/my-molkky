@@ -47,6 +47,7 @@ export const useWaitingRoom = () => {
             if (docData.startFirstHalf) {
               router.push(`/game/${roomId}`)
             }
+            room.value = docData
           }
         )
 
