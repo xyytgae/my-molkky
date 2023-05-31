@@ -45,4 +45,5 @@ export type PlayingUser = {
   createdAt: firestore.Timestamp | firestore.FieldValue
   name: string
   stars: number
+  sum: number
 }
