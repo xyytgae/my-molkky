@@ -32,11 +32,6 @@
     "typescript": "^4.9.5",
     "vitest": "^0.31.2"
   },
-  "husky": {
-    "hooks": {
-      "pre-push": "yarn test"
-    }
-  },
   "volta": {
     "node": "18.16.0",
     "yarn": "1.22.11"
