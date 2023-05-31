@@ -11,6 +11,7 @@
     "commit": "git cz",
     "prepare": "husky install",
     "format": "prettier \"**/!(*.md)\" --write --ignore-unknown --ignore-path .gitignore",
+    "lint": "eslint pages/**/*.vue components/**/*.vue",
     "lint:fix": "eslint --fix pages/**/*.vue components/**/*.vue & yarn format"
   },
   "dependencies": {
