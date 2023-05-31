@@ -7,21 +7,21 @@ const { loginedUser, logout } = useUser()
 const router = useRouter()
 
 const drawer = ref(null)
-const link_lists = ref([
+const linkList = ref([
   {
     title: 'プロフィール変更',
     icon: mdiAccount,
-    link: '/profile',
+    url: '/profile',
   },
   {
     title: 'ゲーム履歴',
     icon: mdiSwordCross,
-    link: '/gameHistory',
+    url: '/gameHistory',
   },
   {
     title: 'ホーム',
     icon: mdiHome,
-    link: '/',
+    url: '/',
   },
 ])
 
@@ -48,16 +48,12 @@ const handleLogout = async () => {
       <v-divider />
 
       <v-list dense>
-        <v-list-item
-          v-for="link_list in link_lists"
-          :key="link_list.title"
-          :to="link_list.link"
-        >
+        <v-list-item v-for="link in linkList" :key="link.title" :to="link.url">
           <template #prepend>
-            <v-icon :icon="link_list.icon" />
+            <v-icon :icon="link.icon" />
           </template>
           <v-list-item-title class="text-subtitle-2">{{
-            link_list.title
+            link.title
           }}</v-list-item-title>
         </v-list-item>
       </v-list>

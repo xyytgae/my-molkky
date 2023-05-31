@@ -331,7 +331,7 @@ watch(
             <v-col cols="12" class="input">
               <div class="skittles">
                 <div
-                  v-for="(score, index) in allScores[0]"
+                  v-for="(firstScore, index) in allScores[0]"
                   :key="index"
                   class="skittle"
                   @click="selectFirstScores(index)"
@@ -341,15 +341,15 @@ watch(
                     v-model="selectScore"
                     style="display: none"
                     type="checkbox"
-                    :value="score"
+                    :value="firstScore"
                   />
-                  <div class="score">{{ score }}</div>
+                  <div class="score">{{ firstScore }}</div>
                 </div>
               </div>
 
               <div class="skittles">
                 <div
-                  v-for="(score, index) in allScores[1]"
+                  v-for="(secondScore, index) in allScores[1]"
                   :key="index"
                   class="skittle"
                   @click="selectSecondScores(index)"
@@ -359,15 +359,15 @@ watch(
                     v-model="selectScore"
                     style="display: none"
                     type="checkbox"
-                    :value="score"
+                    :value="secondScore"
                   />
-                  <div class="score">{{ score }}</div>
+                  <div class="score">{{ secondScore }}</div>
                 </div>
               </div>
 
               <div class="skittles">
                 <div
-                  v-for="(score, index) in allScores[2]"
+                  v-for="(thirdScore, index) in allScores[2]"
                   :key="index"
                   class="skittle"
                   @click="selectThirdScores(index)"
@@ -377,15 +377,15 @@ watch(
                     v-model="selectScore"
                     style="display: none"
                     type="checkbox"
-                    :value="score"
+                    :value="thirdScore"
                   />
-                  <div class="score">{{ score }}</div>
+                  <div class="score">{{ thirdScore }}</div>
                 </div>
               </div>
 
               <div class="skittles">
                 <div
-                  v-for="(score, index) in allScores[3]"
+                  v-for="(fourthScore, index) in allScores[3]"
                   :key="index"
                   class="skittle"
                   @click="selectFourthScores(index)"
@@ -395,9 +395,9 @@ watch(
                     v-model="selectScore"
                     style="display: none"
                     type="checkbox"
-                    :value="score"
+                    :value="fourthScore"
                   />
-                  <div class="score">{{ score }}</div>
+                  <div class="score">{{ fourthScore }}</div>
                 </div>
               </div>
             </v-col>

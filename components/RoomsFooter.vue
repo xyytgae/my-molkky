@@ -1,5 +1,11 @@
 <script setup lang="ts">
 import { mdiHome, mdiPlus } from '@mdi/js'
+
+interface Emits {
+  (e: 'openDialog'): void
+}
+
+defineEmits<Emits>()
 </script>
 
 <template>
@@ -10,7 +16,7 @@ import { mdiHome, mdiPlus } from '@mdi/js'
 
         <v-spacer />
 
-        <v-btn :prepend-icon="mdiPlus" @click="$emit('open-dialog')">
+        <v-btn :prepend-icon="mdiPlus" @click="$emit('openDialog')">
           <template #prepend>
             <v-icon size="x-large" />
           </template>

@@ -5,7 +5,7 @@ interface Props {
   room: Room | null
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   room: () => null,
 })
 

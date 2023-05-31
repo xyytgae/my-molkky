@@ -9,8 +9,8 @@ import 'firebase/storage'
 import { FirebaseFirestore } from '@firebase/firestore-types'
 import { FirebaseAuth } from '@firebase/auth-types'
 import { FirebaseStorage } from '@firebase/storage-types'
-import config from '../firebaseConfig.json'
 import { defineNuxtPlugin } from '#app'
+import config from '../firebaseConfig.json'
 
 if (!firebase.apps.length) {
   firebase.initializeApp({ ...config })
