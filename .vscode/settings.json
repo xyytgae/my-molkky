@@ -1,6 +1,6 @@
 {
-    "git.ignoreLimitWarning": true,
-    "javascript.preferences.quoteStyle": "single",
-    "prettier.jsxSingleQuote": true,
-    "editor.formatOnSave": true
+  "git.ignoreLimitWarning": true,
+  "javascript.preferences.quoteStyle": "single",
+  "prettier.jsxSingleQuote": true,
+  "editor.formatOnSave": true
 }

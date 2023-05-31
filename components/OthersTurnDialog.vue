@@ -7,7 +7,7 @@
         height="6"
         indeterminate
         rounded
-      ></v-progress-linear>
+      />
     </v-card-text>
   </v-card>
 </template>

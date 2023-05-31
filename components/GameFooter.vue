@@ -2,7 +2,7 @@
   <v-footer app class="pa-0" color="primary">
     <v-card color="primary" width="100%">
       <v-card-actions>
-        <v-spacer></v-spacer>
+        <v-spacer />
         <slot />
         <!-- <v-spacer></v-spacer> -->
       </v-card-actions>

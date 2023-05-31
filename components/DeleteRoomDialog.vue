@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { ref } from '#imports'
 
+interface Emits {
+  (e: 'closeDialog'): void
+  (e: 'deleteRoom'): void
+}
+
+defineEmits<Emits>()
+
 const dialog = ref(true)
 </script>
 
@@ -12,11 +19,11 @@ const dialog = ref(true)
       </v-card-item>
       <v-card-text> ルームを退出しますか？ </v-card-text>
       <v-card-actions>
-        <v-btn variant="text" color="info" @click="$emit('close-dialog')"
+        <v-btn variant="text" color="info" @click="$emit('closeDialog')"
           >キャンセル</v-btn
         >
-        <v-spacer></v-spacer>
-        <v-btn variant="text" color="info" @click="$emit('delete-room')"
+        <v-spacer />
+        <v-btn variant="text" color="info" @click="$emit('deleteRoom')"
           >OK</v-btn
         >
       </v-card-actions>

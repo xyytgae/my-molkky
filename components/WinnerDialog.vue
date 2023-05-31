@@ -4,32 +4,32 @@
       <v-card-text class="main">
         <Transition>
           <div v-if="showChampion">
-            <div class="text1"></div>
+            <div class="text1" />
             <div class="word">YOU ARE THE</div>
           </div>
         </Transition>
 
         <Transition name="background">
-          <div class="background" v-if="showChampion">
+          <div v-if="showChampion" class="background">
             <Transition name="borders">
-              <div class="borders" v-if="showBorders">
-                <div class="border1"></div>
-                <div class="border2"></div>
-                <div class="border3"></div>
+              <div v-if="showBorders" class="borders">
+                <div class="border1" />
+                <div class="border2" />
+                <div class="border3" />
               </div>
             </Transition>
-            <div class="black-back"></div>
+            <div class="black-back" />
             <Transition name="white">
-              <div class="white-back" v-if="showChampion"></div>
+              <div v-if="showChampion" class="white-back" />
             </Transition>
           </div>
         </Transition>
 
         <Transition name="champion">
-          <div class="champion" v-if="showText">CHAMPION</div>
+          <div v-if="showText" class="champion">CHAMPION</div>
         </Transition>
 
-        <div class="text2" v-if="showText">
+        <div v-if="showText" class="text2">
           <span style="color: orange">★</span>を獲得しました！
         </div>
         <p v-if="showText">- - 画面をタップしてください - -</p>

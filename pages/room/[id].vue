@@ -151,7 +151,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
                 >
                   <v-sheet height="100%">
                     <div class="d-flex fill-height justify-center align-center">
-                      <div class="text-h6 pa-6" v-text="slide"></div>
+                      <div class="text-h6 pa-6" v-text="slide" />
                     </div>
                   </v-sheet>
                 </v-carousel-item>
@@ -162,11 +162,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
               <v-card color="primary">
                 <v-card-text>
                   ホストがスタートするまでお待ちください
-                  <v-progress-linear
-                    indeterminate
-                    color="white"
-                    class="mb-0"
-                  ></v-progress-linear>
+                  <v-progress-linear indeterminate color="white" class="mb-0" />
                 </v-card-text>
               </v-card>
             </v-col>
@@ -174,13 +170,13 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 
           <v-card class="cards mb-10">
             <v-row>
-              <v-col cols="12" v-for="(user, index) in users" :key="user.uid">
+              <v-col v-for="(user, index) in users" :key="user.uid" cols="12">
                 <v-card @click="chooseOrder(index)">
                   <input
                     ref="orderRefs"
+                    v-model="orderedUsers"
                     type="checkbox"
                     style="display: none"
-                    v-model="orderedUsers"
                     :value="user.id"
                     :disabled="disabledOrder"
                   />
@@ -212,7 +208,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
           v-if="dialog && isHost"
           @close-dialog="dialog = false"
           @delete-room="exit()"
-        ></DeleteRoomDialog>
+        />
       </v-main>
       <RoomFooter v-if="isHost" @exit-room="exit()">
         <v-btn
@@ -230,7 +226,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
           @click="decideOrder"
           >順番を決定</v-btn
         >
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn
           v-show="!startButton"
           variant="elevated"

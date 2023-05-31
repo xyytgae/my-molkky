@@ -157,10 +157,10 @@ onUnmounted(() => {
                   <img :src="room.topImageUrl" class="room-icon" />
                   <v-card-title class="text-h6 my-auto">
                     {{ room.name }}
-                    <v-icon v-if="room.password" :icon="mdiLock"></v-icon>
+                    <v-icon v-if="room.password" :icon="mdiLock" />
                   </v-card-title>
 
-                  <v-spacer></v-spacer>
+                  <v-spacer />
 
                   <v-card-actions>
                     <v-btn
@@ -192,7 +192,7 @@ onUnmounted(() => {
                         class="close"
                         :icon="mdiCloseCircle"
                         @click="form.image.value = null"
-                      ></v-icon>
+                      />
                       <template v-if="form.image.value">
                         <img
                           class="icon"
@@ -206,7 +206,7 @@ onUnmounted(() => {
                           :icon="mdiImage"
                           color="grey lighten-1"
                           @click="selectImage"
-                        ></v-icon>
+                        />
                       </template>
                       <input
                         ref="image"
@@ -221,7 +221,7 @@ onUnmounted(() => {
                         v-model="form.name.value"
                         label="部屋の名前"
                         variant="underlined"
-                      ></v-text-field>
+                      />
                     </v-col>
 
                     <v-col cols="12">
@@ -231,7 +231,7 @@ onUnmounted(() => {
                           isPassword ? '設定する' : '設定しない'
                         }`"
                         color="primary"
-                      ></v-switch>
+                      />
                     </v-col>
                     <v-col cols="12">
                       <v-text-field
@@ -240,7 +240,7 @@ onUnmounted(() => {
                         label="Password"
                         :required="isPassword"
                         variant="underlined"
-                      ></v-text-field>
+                      />
                     </v-col>
                   </v-row>
                 </v-container>
@@ -249,7 +249,7 @@ onUnmounted(() => {
                 <v-btn color="blue darken-1" text @click="dialog = false"
                   >閉じる</v-btn
                 >
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-btn color="blue darken-1" text @click="createRoom"
                   >部屋を公開する</v-btn
                 >
@@ -264,7 +264,7 @@ onUnmounted(() => {
                 </v-alert>
               </v-card-title>
               <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-btn color="blue darken-1" text @click="failDialog = false"
                   >閉じる</v-btn
                 >
@@ -285,11 +285,11 @@ onUnmounted(() => {
             <v-card-text>
               <v-container>
                 <v-text-field
+                  v-model="password"
                   label="パスワード"
                   :error-messages="errorMessages"
-                  v-model="password"
                   variant="underlined"
-                ></v-text-field>
+                />
               </v-container>
             </v-card-text>
 
@@ -300,7 +300,7 @@ onUnmounted(() => {
                 @click=";(passwordDialog = false), (password = null)"
                 >閉じる</v-btn
               >
-              <v-spacer></v-spacer>
+              <v-spacer />
               <v-btn
                 color="blue darken-1"
                 text
@@ -311,7 +311,7 @@ onUnmounted(() => {
           </v-card>
         </v-dialog>
       </v-main>
-      <RoomsFooter @open-dialog="dialog = true"></RoomsFooter>
+      <RoomsFooter @open-dialog="dialog = true" />
     </v-app>
   </div>
 </template>

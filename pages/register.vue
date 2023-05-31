@@ -96,7 +96,7 @@ const upload = async ({ localImageFile }: any) => {
             size="200"
             :icon="mdiAccountCircle"
             @click="selectImage"
-          ></v-icon>
+          />
         </template>
         <input
           ref="image"
@@ -108,11 +108,11 @@ const upload = async ({ localImageFile }: any) => {
       </div>
       <div>
         <v-text-field
-          label="プレイヤー名"
           v-model="form.name.value"
+          label="プレイヤー名"
           counter="8"
           hide-details="auto"
-        ></v-text-field>
+        />
       </div>
 
       <div class="button">

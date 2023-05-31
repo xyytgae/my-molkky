@@ -7,21 +7,21 @@ const { loginedUser, logout } = useUser()
 const router = useRouter()
 
 const drawer = ref(null)
-const link_lists = ref([
+const linkList = ref([
   {
     title: 'プロフィール変更',
     icon: mdiAccount,
-    link: '/profile',
+    url: '/profile',
   },
   {
     title: 'ゲーム履歴',
     icon: mdiSwordCross,
-    link: '/gameHistory',
+    url: '/gameHistory',
   },
   {
     title: 'ホーム',
     icon: mdiHome,
-    link: '/',
+    url: '/',
   },
 ])
 
@@ -35,7 +35,7 @@ const handleLogout = async () => {
 
 <template>
   <div>
-    <v-navigation-drawer app v-model="drawer" clipped>
+    <v-navigation-drawer v-model="drawer" app clipped>
       <v-list>
         <v-list-item
           v-if="loginedUser"
@@ -45,26 +45,22 @@ const handleLogout = async () => {
         />
       </v-list>
 
-      <v-divider></v-divider>
+      <v-divider />
 
       <v-list dense>
-        <v-list-item
-          v-for="link_list in link_lists"
-          :key="link_list.title"
-          :to="link_list.link"
-        >
+        <v-list-item v-for="link in linkList" :key="link.title" :to="link.url">
           <template #prepend>
-            <v-icon :icon="link_list.icon" />
+            <v-icon :icon="link.icon" />
           </template>
           <v-list-item-title class="text-subtitle-2">{{
-            link_list.title
+            link.title
           }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
     <v-app-bar app color="primary" dark>
       <template #prepend>
-        <v-app-bar-nav-icon @click="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon @click="drawer = !drawer" />
       </template>
       <nuxt-link to="/profile">
         <v-avatar
@@ -81,7 +77,7 @@ const handleLogout = async () => {
           ×{{ loginedUser.stars }}
         </div>
       </v-app-bar-title>
-      <v-spacer></v-spacer>
+      <v-spacer />
       <v-btn v-if="loginedUser" text @click="handleLogout">ログアウト</v-btn>
       <v-btn v-else text @click="router.push('/login')">ログイン</v-btn>
     </v-app-bar>
