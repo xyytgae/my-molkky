@@ -19,18 +19,26 @@ const { loginedUser } = useUser()
 const { rooms, subscribe } = useRooms()
 const { $firestore, $fireStorage, $firebase } = useNuxtApp()
 
-const errorMessages = ref('')
-const tryToMoveRoom = reactive({
+const errorMessages = ref<string>('')
+const tryToMoveRoom = reactive<{
+  name: string
+  password: string
+  id: string
+}>({
   name: '',
-  password: null,
-  id: null,
+  password: '',
+  id: '',
 })
-const dialog = ref(false)
-const passwordDialog = ref(false)
-const failDialog = ref(false)
-const isPassword = ref(false)
-const password = ref(null)
-const form = reactive({
+const dialog = ref<boolean>(false)
+const passwordDialog = ref<boolean>(false)
+const failDialog = ref<boolean>(false)
+const isPassword = ref<boolean>(false)
+const password = ref<string>('')
+const form = reactive<{
+  name: { label: string; value: string | null }
+  image: { label: string; value: string | null }
+  password: { label: string; value: string | null }
+}>({
   name: {
     label: '名前',
     value: null,
@@ -44,9 +52,9 @@ const form = reactive({
     value: null,
   },
 })
-const image = ref<HTMLInputElement>()
+const image = ref<HTMLInputElement | null>(null)
 
-const correctPassword = (roomId: string) => {
+const correctPassword = (roomId: string): void => {
   const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && password.value === isPasswordEdited.password) {
     router.push(`/room/${roomId}`)
@@ -54,7 +62,7 @@ const correctPassword = (roomId: string) => {
   errorMessages.value = 'パスワードが違います'
 }
 
-const moveToRoomPage = (roomId: string) => {
+const moveToRoomPage = (roomId: string): void => {
   const userId = loginedUser.value!.uid
   const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && userId === isPasswordEdited.hostId) {
@@ -72,16 +80,19 @@ const moveToRoomPage = (roomId: string) => {
   router.push(`/room/${roomId}`)
 }
 
-const selectImage = () => {
+const selectImage = (): void => {
   if (image.value) {
     image.value.click()
   }
 }
 
-// TODO: 型修正
-const onSelectFile = (e: any) => {
+const onSelectFile = (e: Event): void => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
+
   const files = e.target.files
-  if (files.length === 0) return
+  if (files === null || files.length === 0) return
 
   const reader = new FileReader()
   reader.readAsDataURL(files[0])
@@ -93,7 +104,11 @@ const onSelectFile = (e: any) => {
   })
 }
 
-const upload = async ({ localImageFile }: any) => {
+const upload = async ({
+  localImageFile,
+}: {
+  localImageFile: File
+}): Promise<void> => {
   const userId = loginedUser.value!.uid
 
   const storageRef = $fireStorage.ref()
@@ -106,7 +121,7 @@ const upload = async ({ localImageFile }: any) => {
   form.image.value = await snapShot.ref.getDownloadURL()
 }
 
-const createRoom = async () => {
+const createRoom = async (): Promise<void> => {
   // ダイアログを閉じる
   dialog.value = false
 
@@ -297,7 +312,7 @@ onUnmounted(() => {
               <v-btn
                 color="blue darken-1"
                 text
-                @click=";(passwordDialog = false), (password = null)"
+                @click=";(passwordDialog = false), (password = '')"
                 >閉じる</v-btn
               >
               <v-spacer />
