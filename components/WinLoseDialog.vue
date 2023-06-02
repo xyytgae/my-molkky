@@ -24,9 +24,9 @@ const { updateUsersToSecondHalf, incrementStars, deleteUser } = waitingUsersRepo
 const { updateToStartSecondHalf, resetRoom } = waitingRoomRepo
 const { create } = gameHistoryRepository
 
-const WLDialog = ref(true)
-const userId = ref<string | null>(null)
-const roomId = ref(null)
+const WLDialog = ref<boolean>(true)
+const userId = ref<string>('')
+const roomId = ref<string>('')
 
 const startSecond = async () => {
   await updateUsersToSecondHalf(roomId.value!)
@@ -65,7 +65,7 @@ const getWinners = (users: PlayingUser[]): PlayingUser[] => {
  * init
  */
 userId.value = loginedUser.value!.uid
-roomId.value = route.params.id
+roomId.value = route.params.id as string
 result.value = [...props.users]
 
 if (props.isStartedSecondHalf) {
