@@ -8,7 +8,7 @@ definePageMeta({
 const { googleLogin, guestLogin } = useUser()
 const router = useRouter()
 
-const isOpenedOverlay = ref(false)
+const isOpenedOverlay = ref<boolean>(false)
 
 const handleGuestLogin = async (email: string, password: string) => {
   isOpenedOverlay.value = true

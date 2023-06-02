@@ -32,16 +32,16 @@ const unsubscribeUsers = ref<Function | null>(null)
 const unsubscribeRoomDeletion = ref<Function | null>(null)
 // const user = ref(null)
 const roomId = ref<string>('')
-const orderedUsers = ref([])
-const order = ref(true)
-const disabledOrder = ref(true)
-const isHost = ref(false)
-const dialog = ref(false)
-const startButton = ref(true)
-const stepper = ref(0)
-const orderRefs = ref()
+const orderedUsers = ref<string[]>([])
+const order = ref<boolean>(true)
+const disabledOrder = ref<boolean>(true)
+const isHost = ref<boolean>(false)
+const dialog = ref<boolean>(false)
+const startButton = ref<boolean>(true)
+const stepper = ref<number>(0)
+const orderRefs = ref<HTMLInputElement[] | null>(null)
 
-const slides = [
+const slides: string[] = [
   '「順番を選択」を押してください',
   '投げる順番にユーザーを選択してから「順番を決定」を押してください',
   '「START」を押すとゲームが始まります選び直す場合、「順番を選択」を押してください',
@@ -61,8 +61,10 @@ const exit = async () => {
   }
 }
 
-const chooseOrder = (index: any) => {
-  orderRefs.value[index].click()
+const chooseOrder = (index: number) => {
+  if (orderRefs.value) {
+    orderRefs.value[index].click()
+  }
 }
 
 const changeOrder = () => {
@@ -170,7 +172,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 
           <v-card class="cards mb-10">
             <v-row>
-              <v-col v-for="(user, index) in users" :key="user.uid" cols="12">
+              <v-col v-for="(user, index) in users" :key="user.id" cols="12">
                 <v-card @click="chooseOrder(index)">
                   <input
                     ref="orderRefs"

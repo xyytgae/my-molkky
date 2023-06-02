@@ -20,6 +20,7 @@ import {
 } from '#imports'
 import { waitingUsersRepo } from '~/apis/waitingUser'
 import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { PlayingUser } from '~~/types/api'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -36,32 +37,32 @@ const { room, subscribeRoomStatusAndUserIds } = useWaitingRoom()
 const { setScore, eliminateUser, updateTotalScore } = waitingUsersRepo
 const { clearUsers } = waitingRoomRepo
 
-const userId = ref(null)
-const roomId = ref(null)
+const userId = ref<string>('')
+const roomId = ref<string>('')
 const unsubscribeRoom = ref<Function | null>(null)
 const unsubscribeUsers = ref<Function | null>(null)
 
-const judge = ref(true)
-const howToUse = ref(false)
-const dialog = ref(false)
+const judge = ref<boolean>(true)
+const howToUse = ref<boolean>(false)
+const dialog = ref<boolean>(false)
 
-const selectScore = ref([])
-const allScores = ref([
+const selectScore = ref<number[]>([])
+const allScores = ref<number[][]>([
   [7, 9, 8],
   [5, 11, 12, 6],
   [3, 10, 4],
   [1, 2],
 ])
 
-const firstScores = ref<HTMLInputElement[]>()
-const secondScores = ref<HTMLInputElement[]>()
-const thirdScores = ref<HTMLInputElement[]>()
-const fourthScores = ref<HTMLInputElement[]>()
+const firstScores = ref<HTMLInputElement[] | null>(null)
+const secondScores = ref<HTMLInputElement[] | null>(null)
+const thirdScores = ref<HTMLInputElement[] | null>(null)
+const fourthScores = ref<HTMLInputElement[] | null>(null)
 
 const isShowWinLoseDialog = ref<boolean>(false)
 const isStartedSecondHalf = ref<boolean>(false)
 
-const score = computed(() => {
+const score = computed<number>(() => {
   if (selectScore.value.length === 1) {
     return selectScore.value[0]
   } else {
@@ -69,7 +70,7 @@ const score = computed(() => {
   }
 })
 
-const maxLength = computed(() => {
+const maxLength = computed<number>(() => {
   if (!users.value || users.value.length < 1) return 1
   const array = []
   for (let index = 0; index < users.value.length; index++) {
@@ -78,20 +79,20 @@ const maxLength = computed(() => {
   return Math.max.apply(null, array)
 })
 
-const scoreLength = computed(() => {
+const scoreLength = computed<number>(() => {
   if (judge.value) return 1
   return maxLength.value
 })
 
-const spaceNumber = computed(() => {
-  return function (number: any) {
+const spaceNumber = computed<(number: number) => number>(
+  () => (number: number) => {
     if (maxLength.value - number < 1) {
       return 1
     } else {
       return maxLength.value - number
     }
   }
-})
+)
 
 const switchDialog = () => {
   dialog.value = !dialog.value
@@ -100,35 +101,35 @@ const switchDialog = () => {
 const closeDialog = () => {
   isShowWinLoseDialog.value = false
 }
-const selectFirstScores = (index: any) => {
+const selectFirstScores = (index: number) => {
   if (firstScores.value) {
     firstScores.value[index].click()
   }
 }
-const selectSecondScores = (index: any) => {
+const selectSecondScores = (index: number) => {
   if (secondScores.value) {
     secondScores.value[index].click()
   }
 }
-const selectThirdScores = (index: any) => {
+const selectThirdScores = (index: number) => {
   if (thirdScores.value) {
     thirdScores.value[index].click()
   }
 }
-const selectFourthScores = (index: any) => {
+const selectFourthScores = (index: number) => {
   if (fourthScores.value) {
     fourthScores.value[index].click()
   }
 }
 
-const myScores = computed(() => {
+const myScores = computed<number[]>(() => {
   if (!users) return []
   const myScores = users.value.find((user) => user.id === userId.value)?.score
   if (!myScores) return []
   return myScores
 })
 
-const myUser = computed(() => {
+const myUser = computed<PlayingUser | null>(() => {
   if (!users) return null
   const myUser = users.value.find((user) => user.id === userId.value)
   if (!myUser) return null
@@ -259,11 +260,7 @@ watch(
                 {{ user.name }}
               </th>
 
-              <td
-                v-for="(userScore, index) in user.score"
-                v-show="!user.score.length < scoreLength"
-                :key="index"
-              >
+              <td v-for="(userScore, index) in user.score" :key="index">
                 <span v-show="userScore === 0">
                   <v-icon color="red" :icon="mdiCloseThick" />
                 </span>
