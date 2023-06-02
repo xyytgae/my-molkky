@@ -6,8 +6,14 @@ import { ref, useUser } from '#imports'
 const { loginedUser, logout } = useUser()
 const router = useRouter()
 
-const drawer = ref(null)
-const linkList = ref([
+const drawer = ref<boolean>(false)
+const linkList = ref<
+  {
+    title: string
+    icon: string
+    url: string
+  }[]
+>([
   {
     title: 'プロフィール変更',
     icon: mdiAccount,
