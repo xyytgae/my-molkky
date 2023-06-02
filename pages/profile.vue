@@ -9,8 +9,21 @@ const router = useRouter()
 const { $firestore, $fireStorage } = useNuxtApp()
 const { loginedUser } = useUser()
 
-const image = ref<HTMLInputElement>()
-const form = reactive({
+const image = ref<HTMLInputElement | null>(null)
+const form = reactive<{
+  name: {
+    label: string
+    value: string | null
+  }
+  image: {
+    label: string
+    value: string | null
+  }
+  stars: {
+    label: string
+    value: number
+  }
+}>({
   name: {
     label: 'プレイヤー名',
     value: null,
@@ -45,10 +58,12 @@ const selectImage = () => {
   }
 }
 
-// TODO: 型修正
-const onSelectFile = (e: any) => {
+const onSelectFile = (e: Event) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
   const files = e.target.files
-  if (files.length === 0) return
+  if (files === null || files.length === 0) return
 
   const reader = new FileReader()
   reader.readAsDataURL(files[0])
@@ -60,7 +75,7 @@ const onSelectFile = (e: any) => {
   })
 }
 
-const upload = async ({ localImageFile }: any) => {
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
