@@ -54,7 +54,7 @@ const form = reactive<{
 })
 const image = ref<HTMLInputElement | null>(null)
 
-const correctPassword = (roomId: string): void => {
+const correctPassword = (roomId: string) => {
   const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && password.value === isPasswordEdited.password) {
     router.push(`/room/${roomId}`)
@@ -62,12 +62,12 @@ const correctPassword = (roomId: string): void => {
   errorMessages.value = 'パスワードが違います'
 }
 
-const moveToRoomPage = (roomId: string): void => {
+const moveToRoomPage = (roomId: string) => {
   const userId = loginedUser.value!.uid
   const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && userId === isPasswordEdited.hostId) {
     password.value = isPasswordEdited.password
-  } else if (isPasswordEdited && password.value !== isPasswordEdited.password) {
+  } else if (isPasswordEdited && isPasswordEdited.password !== null) {
     errorMessages.value = ''
     passwordDialog.value = true
     Object.assign(tryToMoveRoom, {
@@ -80,13 +80,13 @@ const moveToRoomPage = (roomId: string): void => {
   router.push(`/room/${roomId}`)
 }
 
-const selectImage = (): void => {
+const selectImage = () => {
   if (image.value) {
     image.value.click()
   }
 }
 
-const onSelectFile = (e: Event): void => {
+const onSelectFile = (e: Event) => {
   if (!(e.target instanceof HTMLInputElement)) {
     return
   }
@@ -104,11 +104,7 @@ const onSelectFile = (e: Event): void => {
   })
 }
 
-const upload = async ({
-  localImageFile,
-}: {
-  localImageFile: File
-}): Promise<void> => {
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
   const userId = loginedUser.value!.uid
 
   const storageRef = $fireStorage.ref()
@@ -121,7 +117,7 @@ const upload = async ({
   form.image.value = await snapShot.ref.getDownloadURL()
 }
 
-const createRoom = async (): Promise<void> => {
+const createRoom = async () => {
   // ダイアログを閉じる
   dialog.value = false
 
