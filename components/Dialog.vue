@@ -5,9 +5,22 @@ import { ref, reactive, useUser } from '#imports'
 const { $fireStorage } = useNuxtApp()
 const { loginedUser } = useUser()
 
-const dialog = ref(false)
-const isPassword = ref(false)
-const form = reactive({
+const dialog = ref<boolean>(false)
+const isPassword = ref<boolean>(false)
+const form = reactive<{
+  name: {
+    label: string
+    value: string | null
+  }
+  image: {
+    label: string
+    value: string | null
+  }
+  password: {
+    label: string
+    value: string | null
+  }
+}>({
   name: {
     label: '名前',
     value: null,
@@ -21,7 +34,7 @@ const form = reactive({
     value: null,
   },
 })
-const image = ref<HTMLInputElement>()
+const image = ref<HTMLInputElement | null>(null)
 
 const selectImage = () => {
   if (image.value) {
@@ -29,9 +42,12 @@ const selectImage = () => {
   }
 }
 
-const onSelectFile = (e: any) => {
+const onSelectFile = (e: Event) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
   const files = e.target.files
-  if (files.length === 0) return
+  if (files === null || files.length === 0) return
 
   const reader = new FileReader()
   reader.readAsDataURL(files[0])
@@ -43,7 +59,7 @@ const onSelectFile = (e: any) => {
   })
 }
 
-const upload = async ({ localImageFile }: any) => {
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
