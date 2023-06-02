@@ -8,7 +8,7 @@ interface Emits {
 
 defineEmits<Emits>()
 
-const dialog = ref(true)
+const dialog = ref<boolean>(true)
 </script>
 
 <template>
