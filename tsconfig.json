@@ -12,7 +12,6 @@
     "noEmit": true,
     "experimentalDecorators": true,
     "baseUrl": ".",
-    "noErrorTruncation": true
   },
   "include": [
     "pages/**/*",
