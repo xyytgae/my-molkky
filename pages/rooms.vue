@@ -1,3 +1,159 @@
+<script setup lang="ts">
+import { useNuxtApp, useRouter } from '#app'
+import { mdiLock, mdiCloseCircle, mdiImage } from '@mdi/js'
+import {
+  ref,
+  reactive,
+  onUnmounted,
+  useUser,
+  definePageMeta,
+  useRooms,
+} from '#imports'
+
+definePageMeta({
+  middleware: ['check-auth'],
+})
+
+const router = useRouter()
+const { loginedUser } = useUser()
+const { rooms, subscribe } = useRooms()
+const { $firestore, $fireStorage, $firebase } = useNuxtApp()
+
+const errorMessages = ref<string>('')
+const tryToMoveRoom = reactive<{
+  name: string
+  password: string
+  id: string
+}>({
+  name: '',
+  password: '',
+  id: '',
+})
+const dialog = ref<boolean>(false)
+const passwordDialog = ref<boolean>(false)
+const failDialog = ref<boolean>(false)
+const isPassword = ref<boolean>(false)
+const password = ref<string>('')
+const form = reactive<{
+  name: { label: string; value: string | null }
+  image: { label: string; value: string | null }
+  password: { label: string; value: string | null }
+}>({
+  name: {
+    label: '名前',
+    value: null,
+  },
+  image: {
+    label: '画像',
+    value: null,
+  },
+  password: {
+    label: 'パスワード',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement | null>(null)
+
+const correctPassword = (roomId: string) => {
+  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
+  if (isPasswordEdited && password.value === isPasswordEdited.password) {
+    router.push(`/room/${roomId}`)
+  }
+  errorMessages.value = 'パスワードが違います'
+}
+
+const moveToRoomPage = (roomId: string) => {
+  const userId = loginedUser.value!.uid
+  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
+  if (isPasswordEdited && userId === isPasswordEdited.hostId) {
+    password.value = isPasswordEdited.password
+  } else if (isPasswordEdited && isPasswordEdited.password !== null) {
+    errorMessages.value = ''
+    passwordDialog.value = true
+    Object.assign(tryToMoveRoom, {
+      name: isPasswordEdited.name,
+      password: isPasswordEdited.password,
+      id: isPasswordEdited.id,
+    })
+    return
+  }
+  router.push(`/room/${roomId}`)
+}
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+const onSelectFile = (e: Event) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
+
+  const files = e.target.files
+  if (files === null || files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
+  const userId = loginedUser.value!.uid
+
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(
+    `images/${userId}/rooms/${localImageFile.name}`
+  )
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+
+const createRoom = async () => {
+  // ダイアログを閉じる
+  dialog.value = false
+
+  const userId = loginedUser.value!.uid
+
+  const params = {
+    name: form.name.value,
+    topImageUrl: form.image.value,
+    createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+    password: form.password.value,
+    hostId: userId,
+    startFirstHalf: false,
+    finishFirstHalf: false,
+    startSecondHalf: false,
+    finishSecondHalf: false,
+    delete: false,
+    users: [],
+  }
+
+  try {
+    await $firestore.collection('rooms').doc(userId).set(params)
+  } catch (e) {
+    failDialog.value = true
+  }
+}
+/**
+ * init
+ */
+const { data } = await subscribe()
+onUnmounted(() => {
+  if (data) {
+    data()
+  }
+})
+</script>
+
 <template>
   <div>
     <v-app>
@@ -10,15 +166,18 @@
               <v-card>
                 <div class="d-flex flex-no-wrap">
                   <img :src="room.topImageUrl" class="room-icon" />
-                  <v-card-title class="headline">
+                  <v-card-title class="text-h6 my-auto">
                     {{ room.name }}
-                    <v-icon v-if="room.password">mdi-lock</v-icon>
+                    <v-icon v-if="room.password" :icon="mdiLock" />
                   </v-card-title>
 
-                  <v-spacer></v-spacer>
+                  <v-spacer />
 
                   <v-card-actions>
-                    <v-btn color="info" @click="moveToRoomPage(room.id)"
+                    <v-btn
+                      color="primary"
+                      variant="elevated"
+                      @click="moveToRoomPage(room.id)"
                       >入室</v-btn
                     >
                   </v-card-actions>
@@ -31,8 +190,8 @@
         <v-row justify="center">
           <v-dialog v-model="dialog" max-width="600px">
             <v-card>
-              <v-card-title>
-                <span class="headline">部屋を立てる</span>
+              <v-card-title class="py-4 px-6">
+                <span class="text-h5">部屋を立てる</span>
               </v-card-title>
               <v-card-text>
                 <v-container>
@@ -42,9 +201,9 @@
                         v-if="form.image.value"
                         size="30"
                         class="close"
+                        :icon="mdiCloseCircle"
                         @click="form.image.value = null"
-                        >mdi-close-circle</v-icon
-                      >
+                      />
                       <template v-if="form.image.value">
                         <img
                           class="icon"
@@ -53,9 +212,12 @@
                         />
                       </template>
                       <template v-else>
-                        <v-icon size="80" @click="selectImage"
-                          >mdi-image</v-icon
-                        >
+                        <v-icon
+                          size="80"
+                          :icon="mdiImage"
+                          color="grey lighten-1"
+                          @click="selectImage"
+                        />
                       </template>
                       <input
                         ref="image"
@@ -69,18 +231,18 @@
                       <v-text-field
                         v-model="form.name.value"
                         label="部屋の名前"
-                      ></v-text-field>
+                        variant="underlined"
+                      />
                     </v-col>
 
                     <v-col cols="12">
                       <v-switch
                         v-model="isPassword"
-                        :label="
-                          `パスワードを${
-                            isPassword ? '設定する' : '設定しない'
-                          }`
-                        "
-                      ></v-switch>
+                        :label="`パスワードを${
+                          isPassword ? '設定する' : '設定しない'
+                        }`"
+                        color="primary"
+                      />
                     </v-col>
                     <v-col cols="12">
                       <v-text-field
@@ -88,7 +250,8 @@
                         :disabled="!isPassword"
                         label="Password"
                         :required="isPassword"
-                      ></v-text-field>
+                        variant="underlined"
+                      />
                     </v-col>
                   </v-row>
                 </v-container>
@@ -97,7 +260,7 @@
                 <v-btn color="blue darken-1" text @click="dialog = false"
                   >閉じる</v-btn
                 >
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-btn color="blue darken-1" text @click="createRoom"
                   >部屋を公開する</v-btn
                 >
@@ -112,7 +275,7 @@
                 </v-alert>
               </v-card-title>
               <v-card-actions>
-                <v-spacer></v-spacer>
+                <v-spacer />
                 <v-btn color="blue darken-1" text @click="failDialog = false"
                   >閉じる</v-btn
                 >
@@ -123,8 +286,8 @@
 
         <v-dialog v-model="passwordDialog" max-width="450px">
           <v-card>
-            <v-card-title>
-              <span
+            <v-card-title class="py-4 px-6 text-wrap">
+              <span class="text-h6"
                 >「{{
                   tryToMoveRoom.name
                 }}」のパスワードを入力してください</span
@@ -133,10 +296,11 @@
             <v-card-text>
               <v-container>
                 <v-text-field
+                  v-model="password"
                   label="パスワード"
                   :error-messages="errorMessages"
-                  v-model="password"
-                ></v-text-field>
+                  variant="underlined"
+                />
               </v-container>
             </v-card-text>
 
@@ -144,10 +308,10 @@
               <v-btn
                 color="blue darken-1"
                 text
-                @click=";(passwordDialog = false), (password = null)"
+                @click=";(passwordDialog = false), (password = '')"
                 >閉じる</v-btn
               >
-              <v-spacer></v-spacer>
+              <v-spacer />
               <v-btn
                 color="blue darken-1"
                 text
@@ -158,154 +322,10 @@
           </v-card>
         </v-dialog>
       </v-main>
-      <RoomsFooter @open-dialog="dialog = true"></RoomsFooter>
+      <RoomsFooter @open-dialog="dialog = true" />
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapGetters } from 'vuex'
-import UserHeader from '~/components/UserHeader'
-import RoomsFooter from '~/components/RoomsFooter'
-
-export default {
-  async asyncData({ store }) {
-    const unsubscribe = await store.dispatch('rooms/subscribe')
-
-    return {
-      unsubscribe,
-    }
-  },
-  destroyed() {
-    this.$store.dispatch('rooms/clear')
-    this.unsubscribe()
-  },
-
-  data() {
-    return {
-      errorMessages: '',
-      tryToMoveRoom: {
-        name: '',
-        password: null,
-        id: null,
-      },
-      dialog: false,
-      passwordDialog: false,
-      failDialog: false,
-      isPassword: false,
-      password: null,
-      unsubscribe: null,
-      form: {
-        name: {
-          label: '名前',
-          value: null,
-        },
-        image: {
-          label: '画像',
-          value: null,
-        },
-        password: {
-          label: 'パスワード',
-          value: null,
-        },
-      },
-    }
-  },
-  components: {
-    UserHeader,
-    RoomsFooter,
-  },
-  computed: {
-    ...mapGetters('rooms', ['rooms']),
-  },
-  methods: {
-    correctPassword(roomId) {
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
-      if (this.password === isPasswordEdited.password) {
-        this.$router.push(`/room/${roomId}`)
-      }
-      this.errorMessages = 'パスワードが違います'
-    },
-    async moveToRoomPage(roomId) {
-      const user = await this.$user()
-      const userId = user.uid
-      const isPasswordEdited = this.rooms.find(r => r.id === roomId)
-      if (userId === isPasswordEdited.hostId) {
-        this.password = isPasswordEdited.password
-      } else if (this.password !== isPasswordEdited.password) {
-        this.errorMessages = ''
-        this.passwordDialog = true
-        this.tryToMoveRoom = {
-          name: isPasswordEdited.name,
-          password: isPasswordEdited.password,
-          id: isPasswordEdited.id,
-        }
-        return
-      }
-      this.$router.push(`/room/${roomId}`)
-    },
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await this.$auth()
-
-      const storageRef = this.$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/rooms/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-    async createRoom() {
-      // ダイアログを閉じる
-      this.dialog = false
-
-      // 現在ログインしているユーザーを取得後、ログインしていなければページを移動
-      const user = this.$fireAuth.currentUser
-      if (!user) this.$router.push('/login')
-
-      const params = {
-        name: this.form.name.value,
-        topImageUrl: this.form.image.value,
-        createdAt: this.$firebase.firestore.FieldValue.serverTimestamp(),
-        password: this.form.password.value,
-        hostId: user.uid,
-        startFirstHalf: false,
-        finishFirstHalf: false,
-        startSecondHalf: false,
-        finishSecondHalf: false,
-        delete: false,
-        users: [],
-      }
-
-      try {
-        await this.$firestore
-          .collection('rooms')
-          .doc(user.uid)
-          .set(params)
-      } catch (e) {
-        this.failDialog = true
-      }
-    },
-  },
-}
-</script>
 
 <style scoped>
 .main {

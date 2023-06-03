@@ -1,3 +1,76 @@
+<script setup lang="ts">
+import { useNuxtApp } from '#app'
+import { ref, reactive, useUser } from '#imports'
+
+const { $fireStorage } = useNuxtApp()
+const { loginedUser } = useUser()
+
+const dialog = ref<boolean>(false)
+const isPassword = ref<boolean>(false)
+const form = reactive<{
+  name: {
+    label: string
+    value: string | null
+  }
+  image: {
+    label: string
+    value: string | null
+  }
+  password: {
+    label: string
+    value: string | null
+  }
+}>({
+  name: {
+    label: '名前',
+    value: null,
+  },
+  image: {
+    label: '画像',
+    value: null,
+  },
+  password: {
+    label: 'パスワード',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement | null>(null)
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+const onSelectFile = (e: Event) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
+  const files = e.target.files
+  if (files === null || files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(
+    `images/${loginedUser.value!.uid}/rooms/${localImageFile.name}`
+  )
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+</script>
+
 <template>
   <v-row justify="center">
     <v-dialog v-model="dialog" max-width="600px">
@@ -30,19 +103,16 @@
               </div>
               <!-- <v-col cols="12"> </v-col> -->
               <v-col cols="12">
-                <v-text-field
-                  v-model="form.name.value"
-                  label="部屋の名前"
-                ></v-text-field>
+                <v-text-field v-model="form.name.value" label="部屋の名前" />
               </v-col>
 
               <v-col cols="12">
                 <v-switch
                   v-model="isPassword"
-                  :label="
-                    `パスワードを${isPassword ? '設定する' : '設定しない'}`
-                  "
-                ></v-switch>
+                  :label="`パスワードを${
+                    isPassword ? '設定する' : '設定しない'
+                  }`"
+                />
               </v-col>
               <v-col cols="12">
                 <v-text-field
@@ -50,7 +120,7 @@
                   :disabled="!isPassword"
                   label="Password"
                   :required="isPassword"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
           </v-container>
@@ -59,7 +129,7 @@
           <v-btn color="blue darken-1" text @click="dialog = false"
             >閉じる</v-btn
           >
-          <v-spacer></v-spacer>
+          <v-spacer />
           <v-btn color="blue darken-1" text @click="dialog = false"
             >部屋を公開する</v-btn
           >
@@ -68,61 +138,6 @@
     </v-dialog>
   </v-row>
 </template>
-
-<script>
-export default {
-  data() {
-    return {
-      dialog: false,
-      isPassword: false,
-      form: {
-        name: {
-          label: '名前',
-          value: null,
-        },
-        image: {
-          label: '画像',
-          value: null,
-        },
-        password: {
-          label: 'パスワード',
-          value: null,
-        },
-      },
-    }
-  },
-  methods: {
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await this.$auth()
-
-      const storageRef = this.$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/rooms/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .image {

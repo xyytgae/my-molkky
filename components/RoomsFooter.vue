@@ -1,15 +1,25 @@
+<script setup lang="ts">
+import { mdiHome, mdiPlus } from '@mdi/js'
+
+interface Emits {
+  (e: 'openDialog'): void
+}
+
+defineEmits<Emits>()
+</script>
+
 <template>
   <v-footer app fixed padless>
     <v-card tile flat color="primary" class="lighten-1" width="100%">
       <v-card-actions>
-        <v-btn dark text fab to="/">
-          <v-icon x-large>mdi-home</v-icon>
-        </v-btn>
+        <v-btn :icon="mdiHome" size="large" to="/" />
 
-        <v-spacer></v-spacer>
+        <v-spacer />
 
-        <v-btn text dark @click="$emit('open-dialog')">
-          <v-icon large>mdi-plus</v-icon>
+        <v-btn :prepend-icon="mdiPlus" @click="$emit('openDialog')">
+          <template #prepend>
+            <v-icon size="x-large" />
+          </template>
           <span>部屋を作成</span>
         </v-btn>
       </v-card-actions>

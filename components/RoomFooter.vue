@@ -1,13 +1,23 @@
+<script setup lang="ts">
+import { mdiChevronLeft } from '@mdi/js'
+
+interface Emits {
+  (e: 'exitRoom'): void
+}
+
+defineEmits<Emits>()
+</script>
+
 <template>
   <div>
     <v-footer fixed padless>
       <v-card tile flat color="primary" class="lighten-1" width="100%">
         <v-card-actions>
-          <v-btn dark text fab @click="$emit('exit-room')">
-            <v-icon x-large>mdi-chevron-left</v-icon>
+          <v-btn icon @click="$emit('exitRoom')">
+            <v-icon color="white" size="x-large" :icon="mdiChevronLeft" />
           </v-btn>
 
-          <v-spacer></v-spacer>
+          <v-spacer />
 
           <slot />
         </v-card-actions>

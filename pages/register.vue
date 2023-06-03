@@ -1,7 +1,89 @@
+<script setup lang="ts">
+import { useNuxtApp, useRouter } from '#app'
+import { mdiAccountCircle } from '@mdi/js'
+import { definePageMeta, ref, reactive, useUser } from '#imports'
+
+definePageMeta({
+  middleware: ['check-at-register'],
+})
+
+const router = useRouter()
+const { loginedUser } = useUser()
+const { $firestore, $fireStorage } = useNuxtApp()
+
+const form = reactive<{
+  name: {
+    label: string
+    value: string | null
+  }
+  image: {
+    label: string
+    value: string | null
+  }
+}>({
+  name: {
+    label: 'プレイヤー名',
+    value: null,
+  },
+  image: {
+    label: 'アイコン画像',
+    value: null,
+  },
+})
+const image = ref<HTMLInputElement | null>(null)
+
+const onSubmit = async () => {
+  try {
+    await $firestore.collection('users').doc(loginedUser.value!.uid).set({
+      name: form.name.value,
+      iconImageUrl: form.image.value,
+      stars: 0,
+    })
+    router.push('/rooms')
+  } catch (e) {
+    console.log('失敗しました')
+  }
+}
+
+const selectImage = () => {
+  if (image.value) {
+    image.value.click()
+  }
+}
+
+const onSelectFile = (e: Event) => {
+  if (!(e.target instanceof HTMLInputElement)) {
+    return
+  }
+  const files = e.target.files
+  if (files === null || files.length === 0) return
+
+  const reader = new FileReader()
+  reader.readAsDataURL(files[0])
+
+  reader.addEventListener('load', () => {
+    upload({
+      localImageFile: files[0],
+    })
+  })
+}
+
+const upload = async ({ localImageFile }: { localImageFile: File }) => {
+  const storageRef = $fireStorage.ref()
+
+  const imageRef = storageRef.child(
+    `images/${loginedUser.value!.uid}/${localImageFile.name}`
+  )
+
+  const snapShot = await imageRef.put(localImageFile)
+  form.image.value = await snapShot.ref.getDownloadURL()
+}
+</script>
+
 <template>
   <v-app>
-    <v-app-bar app color="primary" dark>
-      <v-toolbar-title>アカウント登録</v-toolbar-title>
+    <v-app-bar app color="primary">
+      <v-app-bar-title>アカウント登録</v-app-bar-title>
     </v-app-bar>
 
     <form class="v-form" @submit.prevent="onSubmit">
@@ -19,9 +101,12 @@
           </v-avatar>
         </template>
         <template v-else>
-          <v-icon color="gray" size="200" @click="selectImage"
-            >mdi-account-circle</v-icon
-          >
+          <v-icon
+            color="grey"
+            size="200"
+            :icon="mdiAccountCircle"
+            @click="selectImage"
+          />
         </template>
         <input
           ref="image"
@@ -33,11 +118,11 @@
       </div>
       <div>
         <v-text-field
-          label="プレイヤー名"
           v-model="form.name.value"
+          label="プレイヤー名"
           counter="8"
           hide-details="auto"
-        ></v-text-field>
+        />
       </div>
 
       <div class="button">
@@ -46,80 +131,6 @@
     </form>
   </v-app>
 </template>
-
-<script>
-import { mapGetters } from 'vuex'
-
-export default {
-  middleware: ['checkRegister'],
-  data() {
-    return {
-      form: {
-        name: {
-          label: 'プレイヤー名',
-          value: null,
-        },
-        image: {
-          label: 'アイコン画像',
-          value: null,
-        },
-      },
-    }
-  },
-  computed: {
-    ...mapGetters('main', ['login_user']),
-  },
-  methods: {
-    async onSubmit() {
-      const user = await this.$auth()
-
-      if (!user) this.$router.push('/login')
-
-      try {
-        await this.$firestore
-          .collection('users')
-          .doc(user.uid)
-          .set({
-            name: this.form.name.value,
-            iconImageUrl: this.form.image.value,
-            stars: 0,
-          })
-        this.$router.push('/')
-      } catch (e) {
-        console.log('失敗しました')
-      }
-    },
-    selectImage() {
-      this.$refs.image.click()
-    },
-    onSelectFile(e) {
-      const files = e.target.files
-      if (files.length === 0) return
-
-      const reader = new FileReader()
-      reader.readAsDataURL(files[0])
-
-      reader.addEventListener('load', () => {
-        this.upload({
-          localImageFile: files[0],
-        })
-      })
-    },
-    async upload({ localImageFile }) {
-      const user = await this.$auth()
-
-      const storageRef = this.$fireStorage.ref()
-
-      const imageRef = storageRef.child(
-        `images/${user.uid}/${localImageFile.name}`,
-      )
-
-      const snapShot = await imageRef.put(localImageFile)
-      this.form.image.value = await snapShot.ref.getDownloadURL()
-    },
-  },
-}
-</script>
 
 <style scoped>
 .v-form {

@@ -1,35 +1,79 @@
+<script setup lang="ts">
+import { ref, onMounted } from '#imports'
+
+const dialog = ref<boolean>(true)
+const showChampion = ref<boolean>(false)
+const showBorders = ref<boolean>(false)
+const showText = ref<boolean>(false)
+
+const timer = ref<NodeJS.Timer | null>(null)
+const time = ref<number>(0)
+
+const clickScreen = () => {
+  dialog.value = false
+}
+
+const stopTimer = () => {
+  if (timer.value) {
+    clearInterval(timer.value)
+    time.value = 0
+    timer.value = null
+  }
+}
+
+onMounted(() => {
+  timer.value = setInterval(() => {
+    time.value++
+    switch (time.value) {
+      case 1:
+        showChampion.value = true
+        break
+
+      case 2:
+        showText.value = true
+        break
+
+      case 3:
+        showBorders.value = true
+        break
+    }
+    if (time.value >= 3) stopTimer()
+  }, 1000)
+})
+</script>
+
 <template>
-  <v-dialog v-model="dialog" fullscreen hide-overlay>
-    <v-card class="text-center" @click="clickScreen" dark>
+  <v-dialog v-model="dialog" fullscreen>
+    <v-card class="text-center" color="black" @click="clickScreen">
       <v-card-text class="main">
-        <transition>
+        <Transition>
           <div v-if="showChampion">
-            <div class="text1"></div>
+            <div class="text1" />
             <div class="word">YOU ARE THE</div>
           </div>
-        </transition>
+        </Transition>
 
-        <transition name="background">
-          <div class="background" v-if="showChampion">
-            <transition name="borders">
-              <div class="borders" v-if="showBorders">
-                <div class="border1"></div>
-                <div class="border2"></div>
-                <div class="border3"></div>
+        <Transition name="background">
+          <div v-if="showChampion" class="background">
+            <Transition name="borders">
+              <div v-if="showBorders" class="borders">
+                <div class="border1" />
+                <div class="border2" />
+                <div class="border3" />
               </div>
-            </transition>
-            <div class="black-back"></div>
-            <transition name="white">
-              <div class="white-back" v-if="showChampion"></div>
-            </transition>
+            </Transition>
+            <div class="black-back" />
+            <Transition name="white">
+              <div v-if="showChampion" class="white-back" />
+            </Transition>
           </div>
-        </transition>
+        </Transition>
 
-        <transition name="champion">
-          <div class="champion" v-if="showText">CHAMPION</div>
-        </transition>
+        <Transition name="champion">
+          <div v-if="showText" class="champion">CHAMPION</div>
+        </Transition>
 
-        <div class="text2" v-if="showText">
+        <div v-if="showText" class="text2">
           <span style="color: orange">★</span>を獲得しました！
         </div>
         <p v-if="showText">- - 画面をタップしてください - -</p>
@@ -38,58 +82,9 @@
   </v-dialog>
 </template>
 
-<script>
-export default {
-  data() {
-    return {
-      dialog: true,
-      showChampion: false,
-      showBorders: false,
-      showText: false,
-
-      timer: null,
-      time: 0,
-    }
-  },
-  mounted() {
-    this.timer = setInterval(() => {
-      this.time++
-      switch (this.time) {
-        case 1:
-          this.showChampion = true
-          break
-
-        case 2:
-          this.showText = true
-          break
-
-        case 3:
-          this.showBorders = true
-          break
-      }
-      if (this.time >= 3) this.stopTimer()
-    }, 1000)
-  },
-  methods: {
-    clickScreen() {
-      this.dialog = false
-    },
-
-    stopTimer() {
-      if (this.timer) {
-        clearInterval(this.timer)
-        this.time = 0
-        this.timer = 0
-      }
-    },
-  },
-}
-</script>
-
 <style scoped>
 .main {
-  position: absolute;
-  top: 30%;
+  margin-top: 240px;
 }
 
 .borders-enter-active {
@@ -228,7 +223,7 @@ export default {
   font-size: 50px;
   color: white;
   position: relative;
-  top: -50px;
+  top: -75px;
 }
 
 /* 「画面をタップしてください」の点滅の実装 */

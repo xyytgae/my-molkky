@@ -1,37 +1,126 @@
+<script setup lang="ts">
+import { useRoute, useRouter } from '#app'
+import { PlayingUser } from '../types/api'
+import { ref, useUser } from '#imports'
+import { waitingUsersRepo } from '~/apis/waitingUser'
+import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { gameHistoryRepository } from '~/apis/gameHistory'
+
+interface Props {
+  users: PlayingUser[]
+  isStartedSecondHalf: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  users: () => [],
+  isStartedSecondHalf: () => false,
+})
+
+const route = useRoute()
+const router = useRouter()
+
+const { loginedUser } = useUser()
+const { updateUsersToSecondHalf, incrementStars, deleteUser } = waitingUsersRepo
+const { updateToStartSecondHalf, resetRoom } = waitingRoomRepo
+const { create } = gameHistoryRepository
+
+const WLDialog = ref<boolean>(true)
+const userId = ref<string>('')
+const roomId = ref<string>('')
+
+const startSecond = async () => {
+  await updateUsersToSecondHalf(roomId.value!)
+
+  // props.usersをtotalScoreを元にソートして、userIdの配列を作る
+  const copiedUsers = [...props.users]
+  const userIds = copiedUsers
+    .sort((a, b) => {
+      return b.totalScore - a.totalScore
+    })
+    .map((user) => user.id)
+  await updateToStartSecondHalf(roomId.value!, userIds)
+}
+
+const finish = async () => {
+  await deleteUser(userId.value, roomId.value)
+
+  if (userId.value === roomId.value) {
+    await resetRoom(roomId.value)
+    router.push(`/room/${roomId.value}`)
+  } else {
+    router.push('/rooms')
+  }
+}
+
+const winners = ref<PlayingUser[]>([])
+const result = ref<PlayingUser[]>([])
+
+const getWinners = (users: PlayingUser[]): PlayingUser[] => {
+  const sortedPlayers = users.sort((a, b) => b.sum - a.sum)
+  const winnerScore = sortedPlayers[0].sum
+  return sortedPlayers.filter((player) => player.sum === winnerScore)
+}
+
+/**
+ * init
+ */
+userId.value = loginedUser.value!.uid
+roomId.value = route.params.id as string
+result.value = [...props.users]
+
+if (props.isStartedSecondHalf) {
+  winners.value = getWinners(result.value)
+  const isWinner = winners.value.some((winner) => winner.id === userId.value)
+  if (isWinner) {
+    await incrementStars(userId.value)
+  }
+  await create(userId.value, result.value)
+}
+</script>
+
 <template>
   <v-dialog v-model="WLDialog" persistent max-width="600px">
-    <v-card color="blue" dark>
+    <v-card color="primary">
       <v-card-actions>
         <!-- <v-btn fab text color="white" @click="$emit('close-dialog')">
           <v-icon>mdi-window-close</v-icon>
         </v-btn> -->
 
-        <v-spacer></v-spacer>
+        <v-spacer />
         <v-btn
-          v-if="!startSecondHalf && userId === roomId"
+          v-if="!isStartedSecondHalf && userId === roomId"
           color="orange"
-          @click="startSecond"
+          class="text-white"
           rounded
+          variant="elevated"
+          @click="startSecond"
           >後半へ進む</v-btn
         >
-        <v-btn v-if="startSecondHalf" color="orange" @click="finish" rounded>
+        <v-btn
+          v-if="isStartedSecondHalf"
+          color="orange"
+          class="text-white"
+          rounded
+          variant="elevated"
+          @click="finish"
+        >
           終了
         </v-btn>
       </v-card-actions>
 
       <v-container class="container">
-        <v-card-title class="headline" v-if="startSecondHalf">
+        <v-card-title v-if="isStartedSecondHalf">
           <v-row>
-            <v-col cols="12" v-for="w in winner" :key="w.id">
+            <v-col v-for="w in winners" :key="w.id" cols="12">
               Winner :
               {{ w.name }}
-              <WinnerDialog v-if="w.id == userId"></WinnerDialog>
+              <WinnerDialog v-if="w.id == userId" />
             </v-col>
           </v-row>
         </v-card-title>
 
         <v-col cols="12">
-          <v-simple-table>
+          <v-table>
             <thead>
               <tr>
                 <th>名前</th>
@@ -42,12 +131,12 @@
             </thead>
 
             <!-- 2ndHalf終了時に表示 -->
-            <tbody v-if="startSecondHalf">
+            <tbody v-if="isStartedSecondHalf">
               <tr v-for="r in result" :key="r.id">
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
-                  <span> </span>
+                  <span />
                 </th>
                 <td>
                   {{ r.firstHalfScore }}
@@ -67,7 +156,7 @@
                 <th>
                   <img class="image" :src="r.iconImageUrl" />
                   {{ r.name }}
-                  <span> </span>
+                  <span />
                 </th>
                 <td>
                   {{ r.totalScore }}
@@ -76,83 +165,12 @@
                 <td>{{ r.totalScore }}</td>
               </tr>
             </tbody>
-          </v-simple-table>
+          </v-table>
         </v-col>
       </v-container>
     </v-card>
   </v-dialog>
 </template>
-
-<script>
-import { mapGetters } from 'vuex'
-import WinnerDialog from '../components/WinnerDialog'
-
-export default {
-  components: {
-    WinnerDialog,
-  },
-  async created() {
-    const user = await this.$user()
-    this.userId = user.uid
-    const roomId = this.$route.params.id
-    this.roomId = roomId
-    await this.$store.dispatch('result/getResult', {
-      roomId,
-      userId: this.userId,
-    })
-    if (this.startSecondHalf) {
-      await this.$store.dispatch('result/getWinner', {
-        roomId,
-        userId: this.userId,
-      })
-
-      // await this.$store.dispatch('result/recordData', {
-      //   userId: this.userId,
-      // })
-    }
-  },
-  destroyed() {
-    this.$store.dispatch('result/clear')
-  },
-  data() {
-    return {
-      WLDialog: true,
-      userId: null,
-      roomId: null,
-    }
-  },
-  methods: {
-    async startSecond() {
-      // this.$store.dispatch('game/clearUsers')
-
-      await this.$store.dispatch('game/startSecondHalf', {
-        roomId: this.roomId,
-      })
-    },
-    async finish() {
-      this.$store.dispatch('game/clear')
-
-      await this.$store.dispatch('result/clearFirestore', {
-        userId: this.userId,
-        roomId: this.roomId,
-      })
-
-      if (this.userId === this.roomId) {
-        await this.$store.dispatch('result/resetRoom', {
-          roomId: this.roomId,
-        })
-        this.$router.push(`/room/${this.roomId}`)
-      } else {
-        this.$router.push('/rooms')
-      }
-    },
-  },
-  computed: {
-    ...mapGetters('result', ['result', 'winner']),
-    ...mapGetters('game', ['startSecondHalf']),
-  },
-}
-</script>
 
 <style scoped>
 .image {

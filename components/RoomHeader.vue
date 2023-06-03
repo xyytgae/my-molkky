@@ -1,36 +1,36 @@
-<template>
-  <v-app-bar app color="primary" dark>
-    <v-avatar v-if="roomData">
-      <img :src="roomData.topImageUrl" />
-    </v-avatar>
+<script setup lang="ts">
+import { Room } from '../types/api'
 
-    <v-toolbar-title v-if="roomData" class="name">
-      {{ roomData.name }}
-    </v-toolbar-title>
-    <v-spacer></v-spacer>
+interface Props {
+  room: Room | null
+}
+
+withDefaults(defineProps<Props>(), {
+  room: () => null,
+})
+
+/**
+ * init
+ */
+</script>
+
+<template>
+  <v-app-bar color="primary" class="px-4">
+    <v-avatar v-if="room" :image="room.topImageUrl" />
+
+    <v-app-bar-title v-if="room" class="name">
+      {{ room.name }}
+    </v-app-bar-title>
+    <v-spacer />
     <slot />
-    <!-- 
+    <!--
     <v-toolbar-items class="align-center">
       パスワード：
-      <span v-if="roomData.password">{{ roomData.password }}</span>
+      <span v-if="room.password">{{ room.password }}</span>
       <span v-else>×</span>
     </v-toolbar-items> -->
   </v-app-bar>
 </template>
-
-<script>
-import { mapGetters } from 'vuex'
-
-export default {
-  async created() {
-    const roomId = this.$route.params.id
-    await this.$store.dispatch('header/getRoom', { roomId })
-  },
-  computed: {
-    ...mapGetters('header', ['roomData']),
-  },
-}
-</script>
 
 <style scoped>
 .name {

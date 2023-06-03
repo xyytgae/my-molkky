@@ -1,36 +1,58 @@
+<script setup lang="ts">
+import { mdiMedal } from '@mdi/js'
+import { GameHistory } from '~/types/api'
+import { definePageMeta, useUser, ref } from '#imports'
+import { gameHistoryRepository } from '~/apis/gameHistory'
+
+definePageMeta({
+  middleware: ['check-auth'],
+})
+
+const { loginedUser } = useUser()
+
+const gameHistories = ref<GameHistory[]>([])
+
+/**
+ * init
+ */
+const userId = loginedUser.value!.uid
+const { data, success } = await gameHistoryRepository.get(userId)
+if (success) {
+  gameHistories.value = data
+}
+</script>
+
 <template>
   <div>
     <v-app>
-      <UserHeader></UserHeader>
+      <UserHeader />
       <v-main>
         <v-container>
           <h3>最大15件まで表示されます</h3>
           <v-row>
             <v-col
-              cols="12"
-              v-for="(createdAt, index) in gameHistoryCreatedAt"
+              v-for="(history, index) in gameHistories"
               :key="index"
-              class="card bg-blue"
+              cols="12"
+              class="card"
             >
-              <v-card :dark="index % 2 !== 0">
-                <v-card-title>
+              <v-card :theme="index % 2 !== 0 ? 'dark' : ''">
+                <v-card-title class="text-subtitle-1">
                   <span>
-                    {{ createdAt.createdAt.toDate().getFullYear() }}年
+                    {{ history.createdAt.toDate().getFullYear() }}年
                   </span>
                   <span>
-                    {{ createdAt.createdAt.toDate().getMonth() + 1 }}月
+                    {{ history.createdAt.toDate().getMonth() + 1 }}月
                   </span>
                   <span>
-                    {{ createdAt.createdAt.toDate().getDate() }}日&ensp;
+                    {{ history.createdAt.toDate().getDate() }}日&ensp;
                   </span>
-                  <span> {{ createdAt.createdAt.toDate().getHours() }}時</span>
-                  <span>
-                    {{ createdAt.createdAt.toDate().getMinutes() }}分</span
-                  >
+                  <span> {{ history.createdAt.toDate().getHours() }}時</span>
+                  <span> {{ history.createdAt.toDate().getMinutes() }}分</span>
                 </v-card-title>
 
                 <v-card-text>
-                  <v-simple-table>
+                  <v-table>
                     <thead>
                       <tr>
                         <th>名前</th>
@@ -42,15 +64,15 @@
 
                     <tbody>
                       <tr
-                        v-for="user in gameHistoryUsers[index]"
+                        v-for="user in history.users"
                         :key="`${index}-${user.id}`"
                       >
                         <th>
                           <v-icon
-                            v-if="gameHistoryUsers[index][0].sum === user.sum"
+                            v-if="history.users[0].sum === user.sum"
                             color="orange"
-                            >mdi-medal</v-icon
-                          >
+                            :icon="mdiMedal"
+                          />
                           {{ user.name }}
                         </th>
 
@@ -66,7 +88,7 @@
                         </td>
                       </tr>
                     </tbody>
-                  </v-simple-table>
+                  </v-table>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -76,30 +98,3 @@
     </v-app>
   </div>
 </template>
-
-<script>
-import { mapGetters, mapMutations, mapActions } from 'vuex'
-import UserHeader from '~/components/UserHeader'
-
-export default {
-  methods: {
-    ...mapMutations('main', ['clearGameHistory']),
-    ...mapActions('main', ['getGameHistory']),
-  },
-  async created() {
-    const user = await this.$user()
-    const userId = user.uid
-
-    await this.getGameHistory({ userId })
-  },
-  destroyed() {
-    this.clearGameHistory()
-  },
-  components: {
-    UserHeader,
-  },
-  computed: {
-    ...mapGetters('main', ['gameHistoryCreatedAt', 'gameHistoryUsers']),
-  },
-}
-</script>
