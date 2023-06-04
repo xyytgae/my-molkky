@@ -81,55 +81,61 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
 </script>
 
 <template>
-  <v-app>
+  <div>
     <v-app-bar app color="primary">
       <v-app-bar-title>アカウント登録</v-app-bar-title>
     </v-app-bar>
 
-    <form class="v-form" @submit.prevent="onSubmit">
-      <div class="form">
-        <template v-if="form.image.value">
-          <!-- <img
+    <v-main>
+      <v-container class="d-flex justify-center align-center py-12">
+        <v-card elevation="0">
+          <form class="v-form" @submit.prevent="onSubmit">
+            <div class="form">
+              <template v-if="form.image.value">
+                <!-- <img
             class="w-32 h-32 object-cover border rounded-full"
             :src="form.image.value"
             @click="selectImage"
           /> -->
-          <!-- <img :src="form.image.value" @click="selectImage" /> -->
+                <!-- <img :src="form.image.value" @click="selectImage" /> -->
 
-          <v-avatar size="200">
-            <img :src="form.image.value" @click="selectImage" />
-          </v-avatar>
-        </template>
-        <template v-else>
-          <v-icon
-            color="grey"
-            size="200"
-            :icon="mdiAccountCircle"
-            @click="selectImage"
-          />
-        </template>
-        <input
-          ref="image"
-          type="file"
-          style="display: none"
-          accept="image/*"
-          @change="onSelectFile"
-        />
-      </div>
-      <div>
-        <v-text-field
-          v-model="form.name.value"
-          label="プレイヤー名"
-          counter="8"
-          hide-details="auto"
-        />
-      </div>
+                <v-avatar size="200">
+                  <img :src="form.image.value" @click="selectImage" />
+                </v-avatar>
+              </template>
+              <template v-else>
+                <v-icon
+                  color="grey"
+                  size="200"
+                  :icon="mdiAccountCircle"
+                  @click="selectImage"
+                />
+              </template>
+              <input
+                ref="image"
+                type="file"
+                style="display: none"
+                accept="image/*"
+                @change="onSelectFile"
+              />
+            </div>
+            <div>
+              <v-text-field
+                v-model="form.name.value"
+                label="プレイヤー名"
+                counter="8"
+                hide-details="auto"
+              />
+            </div>
 
-      <div class="button">
-        <v-btn color="primary" @click="onSubmit">登録</v-btn>
-      </div>
-    </form>
-  </v-app>
+            <div class="button">
+              <v-btn color="primary" @click="onSubmit">登録</v-btn>
+            </div>
+          </form>
+        </v-card>
+      </v-container>
+    </v-main>
+  </div>
 </template>
 
 <style scoped>

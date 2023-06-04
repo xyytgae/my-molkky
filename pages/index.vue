@@ -5,21 +5,23 @@ const router = useRouter()
 </script>
 
 <template>
-  <v-app>
+  <div>
     <UserHeader />
-    <div class="class">
-      <h1>Molkky</h1>
-      <!-- <v-btn color="primary" @click="changeName"><span>名前変更</span></v-btn> -->
-      <v-btn color="primary" @click="router.push('/rooms')"
-        ><span>START</span></v-btn
-      >
-    </div>
-  </v-app>
+    <v-main>
+      <div class="class">
+        <h1>Molkky</h1>
+        <!-- <v-btn color="primary" @click="changeName"><span>名前変更</span></v-btn> -->
+        <v-btn color="primary" @click="router.push('/rooms')"
+          ><span>START</span></v-btn
+        >
+      </div>
+    </v-main>
+  </div>
 </template>
 
 <style scoped>
 .class {
-  margin: auto auto auto;
+  margin: 240px 0px auto;
   text-align: center;
 }
 </style>

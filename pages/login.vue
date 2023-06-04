@@ -28,57 +28,59 @@ const handleGoogleLogin = async () => {
 </script>
 
 <template>
-  <v-app>
-    <v-card class="mx-auto mt-5" width="350">
-      <!-- <v-container> -->
-      <v-card-title class="text-center my-3"> ログイン </v-card-title>
+  <v-main>
+    <v-container class="d-flex justify-center align-center py-12">
+      <v-card class="mx-auto mt-5" width="350">
+        <!-- <v-container> -->
+        <v-card-title class="text-center my-3"> ログイン </v-card-title>
 
-      <v-divider class="mx-7" />
+        <v-divider class="mx-7" />
 
-      <v-card-actions>
-        <v-row class="mx-6">
-          <v-col class="text-center">
-            <v-btn
-              color="info"
-              variant="elevated"
-              size="large"
-              block
-              @click="handleGoogleLogin"
-              >Googleでログイン</v-btn
-            >
-          </v-col>
-          <v-col class="text-center">
-            <v-btn
-              color="primary"
-              variant="elevated"
-              size="large"
-              block
-              @click="handleGuestLogin('test1@example.com', '123456')"
-              >デモアカウント1でログイン</v-btn
-            >
-          </v-col>
-          <v-col class="text-center">
-            <v-btn
-              color="primary"
-              variant="elevated"
-              size="large"
-              block
-              @click="handleGuestLogin('test2@example.com', '123456')"
-              >デモアカウント2でログイン</v-btn
-            >
-          </v-col>
-        </v-row>
-      </v-card-actions>
-      <!-- </v-container> -->
-    </v-card>
+        <v-card-actions>
+          <v-row class="mx-6">
+            <v-col class="text-center">
+              <v-btn
+                color="info"
+                variant="elevated"
+                size="large"
+                block
+                @click="handleGoogleLogin"
+                >Googleでログイン</v-btn
+              >
+            </v-col>
+            <v-col class="text-center">
+              <v-btn
+                color="primary"
+                variant="elevated"
+                size="large"
+                block
+                @click="handleGuestLogin('test1@example.com', '123456')"
+                >デモアカウント1でログイン</v-btn
+              >
+            </v-col>
+            <v-col class="text-center">
+              <v-btn
+                color="primary"
+                variant="elevated"
+                size="large"
+                block
+                @click="handleGuestLogin('test2@example.com', '123456')"
+                >デモアカウント2でログイン</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-card-actions>
+        <!-- </v-container> -->
+      </v-card>
 
-    <v-overlay
-      :model-value="isOpenedOverlay"
-      class="align-center justify-center"
-    >
-      <v-progress-circular color="primary" indeterminate size="128"
-        >ログイン中...</v-progress-circular
+      <v-overlay
+        :model-value="isOpenedOverlay"
+        class="align-center justify-center"
       >
-    </v-overlay>
-  </v-app>
+        <v-progress-circular color="primary" indeterminate size="128"
+          >ログイン中...</v-progress-circular
+        >
+      </v-overlay>
+    </v-container>
+  </v-main>
 </template>
