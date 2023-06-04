@@ -76,16 +76,16 @@ export const waitingUsersRepo = {
     }
   },
 
-  updateOrder: async (userIds: string[], roomId: string) => {
+  updateOrder: async (playerIds: string[], roomId: string) => {
     const { $firestore } = useNuxtApp()
 
     try {
-      const promises = userIds.map(async (userId, index) => {
+      const promises = playerIds.map(async (playerId, index) => {
         await $firestore
           .collection('rooms')
           .doc(roomId)
           .collection('room')
-          .doc(userId)
+          .doc(playerId)
           .update({
             order: index,
           })
@@ -93,11 +93,11 @@ export const waitingUsersRepo = {
 
       await Promise.all(promises)
       await $firestore.collection('rooms').doc(roomId).update({
-        users: userIds,
+        playerIds,
       })
 
       return {
-        data: userIds,
+        data: playerIds,
         success: true,
         error: null,
       }
@@ -112,7 +112,7 @@ export const waitingUsersRepo = {
 
   eliminateUser: async (roomId: string, userId: string) => {
     const { $firestore } = useNuxtApp()
-    await waitingRoomRepo.shiftUser(roomId)
+    await waitingRoomRepo.shiftPlayerId(roomId)
 
     try {
       const userDoc = await $firestore
@@ -143,7 +143,7 @@ export const waitingUsersRepo = {
           })
       } else {
         // 失格ではない場合にusersに追加し、ゲームを続行させる
-        await waitingRoomRepo.pushUser(userId, roomId)
+        await waitingRoomRepo.pushPlayerId(userId, roomId)
       }
 
       // 1人を除き、失格になればゲームを終了させる
@@ -158,7 +158,7 @@ export const waitingUsersRepo = {
             $firestore.collection('rooms').doc(roomId).update({
               finishFirstHalf: true,
               finishSecondHalf: true,
-              users: [],
+              playerIds: [],
             })
           }
         })

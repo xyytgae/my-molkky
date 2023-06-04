@@ -31,7 +31,7 @@ export type Room = {
   finishFirstHalf: boolean
   finishSecondHalf: boolean
   delete: boolean
-  users: Array<string>
+  playerIds: Array<string>
 }
 
 export type PlayingUser = {

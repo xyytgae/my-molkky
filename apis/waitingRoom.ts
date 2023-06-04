@@ -27,14 +27,14 @@ export const waitingRoomRepo = {
   },
   updateToStartSecondHalf: async (
     roomId: string,
-    userIds: string[]
+    playerIds: string[]
   ): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
       await $firestore.collection('rooms').doc(roomId).update({
         startSecondHalf: true,
         finishSecondHalf: false,
-        users: userIds,
+        playerIds,
         // finishFirstHalf: false,
       })
 
@@ -80,13 +80,15 @@ export const waitingRoomRepo = {
    * @param roomId
    * @returns
    */
-  // resetUserIds: async (roomId: string): Promise<ApiResponse<string | null>> => {
-  clearUsers: async (roomId: string): Promise<ApiResponse<string | null>> => {
+  // resetPlayerIds: async (roomId: string): Promise<ApiResponse<string | null>> => {
+  clearPlayerIds: async (
+    roomId: string
+  ): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
 
     try {
       await $firestore.collection('rooms').doc(roomId).update({
-        users: [],
+        playerIds: [],
       })
 
       return {
@@ -104,29 +106,29 @@ export const waitingRoomRepo = {
   },
 
   /**
-   * 自分のidをusersにpushし、自分の順番が再度戻ってくるようにする
+   * 自分のidをplayerIdsにpushし、自分の順番が再度戻ってくるようにする
    * 失格している場合は実行されない
-   * @param userId
+   * @param playerId
    * @param roomId
    * @returns
    */
-  // addUserId: async (
-  pushUser: async (
-    userId: string,
+  // addPlayerIdId: async (
+  pushPlayerId: async (
+    playerId: string,
     roomId: string
-  ): Promise<ApiResponse<Room['users']>> => {
+  ): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
       const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
-      const { users } = roomDoc.data() as Room
-      const newUsers = [...users, userId]
+      const { playerIds } = roomDoc.data() as Room
+      const newPlayerIds = [...playerIds, playerId]
 
       await $firestore.collection('rooms').doc(roomId).update({
-        users: newUsers,
+        playerIds: newPlayerIds,
       })
 
       return {
-        data: newUsers,
+        data: newPlayerIds,
         success: true,
         error: null,
       }
@@ -141,23 +143,24 @@ export const waitingRoomRepo = {
   /**
    * users配列の先頭を消去し、次のユーザーに順番が回ってくるようにする
    * @param roomId
-   * @param userIds
    * @returns
    */
-  // removeFirstUserId: async (
-  shiftUser: async (roomId: string): Promise<ApiResponse<Room['users']>> => {
+  // removeFirstPlayerIdId: async (
+  shiftPlayerId: async (
+    roomId: string
+  ): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
       const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
-      const { users } = roomDoc.data() as Room
-      const newUserIds = [...users]
-      newUserIds.shift()
+      const { playerIds } = roomDoc.data() as Room
+      const newPlayerIds = [...playerIds]
+      newPlayerIds.shift()
       await $firestore.collection('rooms').doc(roomId).update({
-        users: newUserIds,
+        playerIds: newPlayerIds,
       })
 
       return {
-        data: newUserIds,
+        data: newPlayerIds,
         success: true,
         error: null,
       }
@@ -176,7 +179,7 @@ export const waitingRoomRepo = {
       await $firestore.collection('rooms').doc(roomId).update({
         finishFirstHalf: true,
         finishSecondHalf: true,
-        users: [],
+        playerIds: [],
       })
 
       return {
@@ -201,7 +204,7 @@ export const waitingRoomRepo = {
         startSecondHalf: false,
         finishFirstHalf: false,
         finishSecondHalf: false,
-        users: [],
+        playerIds: [],
       })
 
       return {

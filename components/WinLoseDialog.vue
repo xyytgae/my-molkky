@@ -33,12 +33,12 @@ const startSecond = async () => {
 
   // props.usersをtotalScoreを元にソートして、userIdの配列を作る
   const copiedUsers = [...props.users]
-  const userIds = copiedUsers
+  const playerIds = copiedUsers
     .sort((a, b) => {
       return b.totalScore - a.totalScore
     })
     .map((user) => user.id)
-  await updateToStartSecondHalf(roomId.value!, userIds)
+  await updateToStartSecondHalf(roomId.value!, playerIds)
 }
 
 const finish = async () => {
