@@ -33,9 +33,9 @@ definePageMeta({
 const route = useRoute()
 const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
-const { room, subscribeRoomStatusAndUserIds } = useWaitingRoom()
+const { room, subscribeRoomStatusAndPlayerIds } = useWaitingRoom()
 const { setScore, eliminateUser, updateTotalScore } = waitingUsersRepo
-const { clearUsers } = waitingRoomRepo
+const { clearPlayerIds } = waitingRoomRepo
 
 const userId = ref<string>('')
 const roomId = ref<string>('')
@@ -170,7 +170,7 @@ roomId.value = route.params.id as string
 subscribeUsers(roomId.value).then(({ data }) => {
   unsubscribeUsers.value = data
 })
-subscribeRoomStatusAndUserIds(roomId.value).then(({ data }) => {
+subscribeRoomStatusAndPlayerIds(roomId.value).then(({ data }) => {
   unsubscribeRoom.value = data
 })
 
@@ -198,7 +198,7 @@ watch(
   async (newValue) => {
     if (newValue) {
       isShowWinLoseDialog.value = true
-      await clearUsers(roomId.value)
+      await clearPlayerIds(roomId.value)
     }
   }
 )
@@ -240,11 +240,11 @@ watch(
             <tr v-for="user in users" :key="user.id">
               <th
                 class="name"
-                :class="[user.id === room.users[0] ? 'order' : '']"
+                :class="[user.id === room.playerIds[0] ? 'order' : '']"
               >
                 <span class="icon">
                   <v-icon
-                    v-show="user.id === room.users[0]"
+                    v-show="user.id === room.playerIds[0]"
                     color="red"
                     class="my-auto"
                     :icon="mdiArrowRightBoldCircle"
@@ -428,12 +428,12 @@ watch(
     </v-main>
 
     <GameFooter>
-      <OthersTurnDialog v-show="userId !== room.users[0]" />
-      <YourTurnDialog v-show="userId === room.users[0]" />
+      <OthersTurnDialog v-show="userId !== room.playerIds[0]" />
+      <YourTurnDialog v-show="userId === room.playerIds[0]" />
       <v-spacer />
       <v-btn
         variant="flat"
-        :disabled="userId !== room.users[0]"
+        :disabled="userId !== room.playerIds[0]"
         icon
         @click="switchDialog"
       >

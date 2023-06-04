@@ -15,13 +15,12 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   finishFirstHalf: false,
   finishSecondHalf: false,
   delete: false,
-  users: [],
+  playerIds: [],
 })
 
 export const useWaitingRoom = () => {
   const { $firestore, $firebase } = useNuxtApp()
   const router = useRouter()
-  const userIds = useState<string[]>('userIds', () => [])
   const room = useState<Room>('room', () =>
     createDefaultRoom($firebase.firestore.FieldValue.serverTimestamp())
   )
@@ -65,7 +64,7 @@ export const useWaitingRoom = () => {
     }
   }
 
-  const subscribeRoomStatusAndUserIds = async (
+  const subscribeRoomStatusAndPlayerIds = async (
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
@@ -79,7 +78,6 @@ export const useWaitingRoom = () => {
           (doc) => {
             const docData = doc.data() as Room
             room.value = docData
-            userIds.value = docData.users
           }
         )
 
@@ -100,6 +98,6 @@ export const useWaitingRoom = () => {
   return {
     room,
     subscribeRoomDeletion,
-    subscribeRoomStatusAndUserIds,
+    subscribeRoomStatusAndPlayerIds,
   }
 }

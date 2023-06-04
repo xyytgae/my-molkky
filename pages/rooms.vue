@@ -134,7 +134,7 @@ const createRoom = async () => {
     startSecondHalf: false,
     finishSecondHalf: false,
     delete: false,
-    users: [],
+    playerIds: [],
   }
 
   try {
