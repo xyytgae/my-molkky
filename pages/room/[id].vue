@@ -133,115 +133,109 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 
 <template>
   <div>
-    <v-app>
-      <RoomHeader :room="room" />
-      <v-main class="mb-15">
-        <v-container>
-          <v-row class="pb-3" justify="center" align-content="center">
-            <v-col v-if="isHost" cols="12" sm="8">
-              <v-carousel
-                v-model="stepper"
-                height="auto"
-                :show-arrows="false"
-                hide-delimiters
-                progress="primary"
-              >
-                <v-carousel-item
-                  v-for="(slide, i) in slides"
-                  :key="i"
-                  :value="i"
-                >
-                  <v-sheet height="100%">
-                    <div class="d-flex fill-height justify-center align-center">
-                      <div class="text-h6 pa-6" v-text="slide" />
-                    </div>
-                  </v-sheet>
-                </v-carousel-item>
-              </v-carousel>
-            </v-col>
+    <RoomHeader :room="room" />
+    <v-main class="mb-15">
+      <v-container>
+        <v-row class="pb-3" justify="center" align-content="center">
+          <v-col v-if="isHost" cols="12" sm="8">
+            <v-carousel
+              v-model="stepper"
+              height="auto"
+              :show-arrows="false"
+              hide-delimiters
+              progress="primary"
+            >
+              <v-carousel-item v-for="(slide, i) in slides" :key="i" :value="i">
+                <v-sheet height="100%">
+                  <div class="d-flex fill-height justify-center align-center">
+                    <div class="text-h6 pa-6" v-text="slide" />
+                  </div>
+                </v-sheet>
+              </v-carousel-item>
+            </v-carousel>
+          </v-col>
 
-            <v-col v-else cols="12" sm="8">
-              <v-card color="primary">
-                <v-card-text>
-                  ホストがスタートするまでお待ちください
-                  <v-progress-linear indeterminate color="white" class="mb-0" />
-                </v-card-text>
+          <v-col v-else cols="12" sm="8">
+            <v-card color="primary">
+              <v-card-text>
+                ホストがスタートするまでお待ちください
+                <v-progress-linear indeterminate color="white" class="mb-0" />
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <v-card class="cards mb-10">
+          <v-row>
+            <v-col v-for="(user, index) in users" :key="user.id" cols="12">
+              <v-card @click="chooseOrder(index)">
+                <input
+                  ref="orderRefs"
+                  v-model="orderedUsers"
+                  type="checkbox"
+                  style="display: none"
+                  :value="user.id"
+                  :disabled="disabledOrder"
+                />
+                <div class="d-flex flex-no-wrap">
+                  <v-card-title
+                    class="my-auto mx-2 pa-3 circle text-grey-darken-1"
+                  >
+                    {{ user.order + 1 }}
+                  </v-card-title>
+
+                  <img :src="user.iconImageUrl" class="icon" />
+                  <v-card-title class="text-h6">
+                    <span>{{ user.name }}</span>
+
+                    <div>
+                      <span style="color: #ffa000">★</span>×{{ user.stars }}
+                    </div>
+                  </v-card-title>
+                </div>
               </v-card>
             </v-col>
           </v-row>
 
-          <v-card class="cards mb-10">
-            <v-row>
-              <v-col v-for="(user, index) in users" :key="user.id" cols="12">
-                <v-card @click="chooseOrder(index)">
-                  <input
-                    ref="orderRefs"
-                    v-model="orderedUsers"
-                    type="checkbox"
-                    style="display: none"
-                    :value="user.id"
-                    :disabled="disabledOrder"
-                  />
-                  <div class="d-flex flex-no-wrap">
-                    <v-card-title
-                      class="my-auto mx-2 pa-3 circle text-grey-darken-1"
-                    >
-                      {{ user.order + 1 }}
-                    </v-card-title>
+          <h1>{{ users.length }}/4</h1>
+        </v-card>
+      </v-container>
 
-                    <img :src="user.iconImageUrl" class="icon" />
-                    <v-card-title class="text-h6">
-                      <span>{{ user.name }}</span>
+      <DeleteRoomDialog
+        v-if="dialog && isHost"
+        @close-dialog="dialog = false"
+        @delete-room="exit()"
+      />
+    </v-main>
+    <RoomFooter v-if="isHost" @exit-room="exit()">
+      <v-btn
+        v-show="order"
+        variant="outlined"
+        color="white"
+        @click="changeOrder"
+        >順番を選択</v-btn
+      >
+      <v-btn
+        v-show="!order"
+        variant="outlined"
+        color="white"
+        :disabled="orderedUsers.length !== users.length"
+        @click="decideOrder"
+        >順番を決定</v-btn
+      >
+      <v-spacer />
+      <v-btn
+        v-show="!startButton"
+        variant="elevated"
+        color="white"
+        @click="startGame"
+        >START</v-btn
+      >
+    </RoomFooter>
 
-                      <div>
-                        <span style="color: #ffa000">★</span>×{{ user.stars }}
-                      </div>
-                    </v-card-title>
-                  </div>
-                </v-card>
-              </v-col>
-            </v-row>
+    <RoomFooter v-else @exit-room="exit()" />
 
-            <h1>{{ users.length }}/4</h1>
-          </v-card>
-        </v-container>
-
-        <DeleteRoomDialog
-          v-if="dialog && isHost"
-          @close-dialog="dialog = false"
-          @delete-room="exit()"
-        />
-      </v-main>
-      <RoomFooter v-if="isHost" @exit-room="exit()">
-        <v-btn
-          v-show="order"
-          variant="outlined"
-          color="white"
-          @click="changeOrder"
-          >順番を選択</v-btn
-        >
-        <v-btn
-          v-show="!order"
-          variant="outlined"
-          color="white"
-          :disabled="orderedUsers.length !== users.length"
-          @click="decideOrder"
-          >順番を決定</v-btn
-        >
-        <v-spacer />
-        <v-btn
-          v-show="!startButton"
-          variant="elevated"
-          color="white"
-          @click="startGame"
-          >START</v-btn
-        >
-      </RoomFooter>
-
-      <RoomFooter v-else @exit-room="exit()" />
-
-      <!-- <DeleteRoomDialog v-if="isHost"></DeleteRoomDialog> -->
-    </v-app>
+    <!-- <DeleteRoomDialog v-if="isHost"></DeleteRoomDialog> -->
   </div>
 </template>
 

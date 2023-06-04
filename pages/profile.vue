@@ -95,57 +95,61 @@ form.stars.value = loginedUser.value!.stars
 </script>
 
 <template>
-  <v-app>
+  <div>
     <v-app-bar app color="primary" dark>
       <v-toolbar-title>プロフィール編集</v-toolbar-title>
     </v-app-bar>
 
-    <form class="form" @submit.prevent="onSubmit">
-      <div class="image">
-        <template v-if="form.image.value">
-          <img class="icon" :src="form.image.value" @click="selectImage" />
+    <v-main>
+      <v-container class="d-flex justify-center align-center">
+        <form class="form" @submit.prevent="onSubmit">
+          <div class="image">
+            <template v-if="form.image.value">
+              <img class="icon" :src="form.image.value" @click="selectImage" />
 
-          <!-- <v-avatar size="150" class="image">
+              <!-- <v-avatar size="150" class="image">
             <img :src="form.image.value" @click="selectImage" />
           </v-avatar> -->
-        </template>
-        <template v-else>
-          <!-- <v-avatar class="image" size="180">
+            </template>
+            <template v-else>
+              <!-- <v-avatar class="image" size="180">
             <img :src="getterLogin_user.photoURL" />
           </v-avatar>-->
-          <v-icon color="gray" size="150" @click="selectImage"
-            >mdi-account-circle</v-icon
-          >
-        </template>
-        <input
-          ref="image"
-          type="file"
-          style="display: none"
-          accept="image/*"
-          @change="onSelectFile"
-        />
-      </div>
-      <div>
-        <v-text-field
-          v-model="form.name.value"
-          label="プレイヤー名"
-          class="mt-2"
-          counter="8"
-          variant="underlined"
-          :persistent-counter="true"
-        />
-      </div>
+              <v-icon color="gray" size="150" @click="selectImage"
+                >mdi-account-circle</v-icon
+              >
+            </template>
+            <input
+              ref="image"
+              type="file"
+              style="display: none"
+              accept="image/*"
+              @change="onSelectFile"
+            />
+          </div>
+          <div>
+            <v-text-field
+              v-model="form.name.value"
+              label="プレイヤー名"
+              class="mt-2"
+              counter="8"
+              variant="underlined"
+              :persistent-counter="true"
+            />
+          </div>
 
-      <div class="star">
-        <span style="color: #ffa000"> ★ </span>
-        ×{{ form.stars.value }}
-      </div>
+          <div class="star">
+            <span style="color: #ffa000"> ★ </span>
+            ×{{ form.stars.value }}
+          </div>
 
-      <div class="button">
-        <v-btn color="primary" @click="onSubmit">保存</v-btn>
-      </div>
-    </form>
-  </v-app>
+          <div class="button">
+            <v-btn color="primary" @click="onSubmit">保存</v-btn>
+          </div>
+        </form>
+      </v-container>
+    </v-main>
+  </div>
 </template>
 
 <style scoped>

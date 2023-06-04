@@ -205,22 +205,22 @@ watch(
 </script>
 
 <template>
-  <div class="bg-red">
-    <v-app>
-      <RoomHeader :room="room">
-        <h1 v-if="isStartedSecondHalf" style="border: 1px solid white">後半</h1>
-        <h1 v-else style="border: 1px solid white">前半</h1>
-      </RoomHeader>
+  <div>
+    <RoomHeader :room="room">
+      <h1 v-if="isStartedSecondHalf" style="border: 1px solid white">後半</h1>
+      <h1 v-else style="border: 1px solid white">前半</h1>
+    </RoomHeader>
 
-      <WinLoseDialog
-        v-if="isShowWinLoseDialog"
-        :users="users"
-        :is-started-second-half="isStartedSecondHalf"
-        @close-dialog="closeDialog"
-      />
+    <!-- <WinnerDialog></WinnerDialog> -->
+    <v-main>
+      <v-container fluid>
+        <WinLoseDialog
+          v-if="isShowWinLoseDialog"
+          :users="users"
+          :is-started-second-half="isStartedSecondHalf"
+          @close-dialog="closeDialog"
+        />
 
-      <!-- <WinnerDialog></WinnerDialog> -->
-      <v-main>
         <v-table class="table">
           <thead>
             <tr>
@@ -304,142 +304,142 @@ watch(
             </tr>
           </tbody>
         </v-table>
-      </v-main>
 
-      <v-dialog v-model="dialog" max-width="600px">
-        <v-card color="#387d39" dark>
-          <v-card-actions>
-            <v-btn icon @click="switchDialog">
-              <v-icon color="white" :icon="mdiWindowClose" />
-            </v-btn>
+        <v-dialog v-model="dialog" max-width="600px">
+          <v-card color="#387d39" dark>
+            <v-card-actions>
+              <v-btn icon @click="switchDialog">
+                <v-icon color="white" :icon="mdiWindowClose" />
+              </v-btn>
 
-            <v-spacer />
-            <v-btn
-              color="orange"
-              rounded
-              variant="flat"
-              class="text-white"
-              @click="clickOK"
-              >OK</v-btn
-            >
-          </v-card-actions>
+              <v-spacer />
+              <v-btn
+                color="orange"
+                rounded
+                variant="flat"
+                class="text-white"
+                @click="clickOK"
+                >OK</v-btn
+              >
+            </v-card-actions>
 
-          <v-container class="container">
-            <v-col cols="12" class="input">
-              <div class="skittles">
-                <div
-                  v-for="(firstScore, index) in allScores[0]"
-                  :key="index"
-                  class="skittle"
-                  @click="selectFirstScores(index)"
-                >
-                  <input
-                    ref="firstScores"
-                    v-model="selectScore"
-                    style="display: none"
-                    type="checkbox"
-                    :value="firstScore"
-                  />
-                  <div class="score">{{ firstScore }}</div>
+            <v-container class="container">
+              <v-col cols="12" class="input">
+                <div class="skittles">
+                  <div
+                    v-for="(firstScore, index) in allScores[0]"
+                    :key="index"
+                    class="skittle"
+                    @click="selectFirstScores(index)"
+                  >
+                    <input
+                      ref="firstScores"
+                      v-model="selectScore"
+                      style="display: none"
+                      type="checkbox"
+                      :value="firstScore"
+                    />
+                    <div class="score">{{ firstScore }}</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="skittles">
-                <div
-                  v-for="(secondScore, index) in allScores[1]"
-                  :key="index"
-                  class="skittle"
-                  @click="selectSecondScores(index)"
-                >
-                  <input
-                    ref="secondScores"
-                    v-model="selectScore"
-                    style="display: none"
-                    type="checkbox"
-                    :value="secondScore"
-                  />
-                  <div class="score">{{ secondScore }}</div>
+                <div class="skittles">
+                  <div
+                    v-for="(secondScore, index) in allScores[1]"
+                    :key="index"
+                    class="skittle"
+                    @click="selectSecondScores(index)"
+                  >
+                    <input
+                      ref="secondScores"
+                      v-model="selectScore"
+                      style="display: none"
+                      type="checkbox"
+                      :value="secondScore"
+                    />
+                    <div class="score">{{ secondScore }}</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="skittles">
-                <div
-                  v-for="(thirdScore, index) in allScores[2]"
-                  :key="index"
-                  class="skittle"
-                  @click="selectThirdScores(index)"
-                >
-                  <input
-                    ref="thirdScores"
-                    v-model="selectScore"
-                    style="display: none"
-                    type="checkbox"
-                    :value="thirdScore"
-                  />
-                  <div class="score">{{ thirdScore }}</div>
+                <div class="skittles">
+                  <div
+                    v-for="(thirdScore, index) in allScores[2]"
+                    :key="index"
+                    class="skittle"
+                    @click="selectThirdScores(index)"
+                  >
+                    <input
+                      ref="thirdScores"
+                      v-model="selectScore"
+                      style="display: none"
+                      type="checkbox"
+                      :value="thirdScore"
+                    />
+                    <div class="score">{{ thirdScore }}</div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="skittles">
-                <div
-                  v-for="(fourthScore, index) in allScores[3]"
-                  :key="index"
-                  class="skittle"
-                  @click="selectFourthScores(index)"
-                >
-                  <input
-                    ref="fourthScores"
-                    v-model="selectScore"
-                    style="display: none"
-                    type="checkbox"
-                    :value="fourthScore"
-                  />
-                  <div class="score">{{ fourthScore }}</div>
+                <div class="skittles">
+                  <div
+                    v-for="(fourthScore, index) in allScores[3]"
+                    :key="index"
+                    class="skittle"
+                    @click="selectFourthScores(index)"
+                  >
+                    <input
+                      ref="fourthScores"
+                      v-model="selectScore"
+                      style="display: none"
+                      type="checkbox"
+                      :value="fourthScore"
+                    />
+                    <div class="score">{{ fourthScore }}</div>
+                  </div>
                 </div>
+              </v-col>
+            </v-container>
+            <v-card-title class="text-h6 text-white">
+              点数：{{ score }}
+            </v-card-title>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn icon @click="howToUse = !howToUse">
+                <v-icon
+                  color="white"
+                  :icon="howToUse ? mdiChevronUp : mdiChevronDown"
+                />
+              </v-btn>
+            </v-card-actions>
+
+            <v-expand-transition>
+              <div v-show="howToUse">
+                <v-divider />
+                <v-card-text class="how-to-use">
+                  <h3>＜使い方＞</h3>
+                  <li>0本選択・・・0点</li>
+                  <li>1本選択・・・選択された数字が点数</li>
+                  <li>複数本選択・・・選択された本数が点数</li>
+                </v-card-text>
               </div>
-            </v-col>
-          </v-container>
-          <v-card-title class="text-h6 text-white">
-            点数：{{ score }}
-          </v-card-title>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn icon @click="howToUse = !howToUse">
-              <v-icon
-                color="white"
-                :icon="howToUse ? mdiChevronUp : mdiChevronDown"
-              />
-            </v-btn>
-          </v-card-actions>
+            </v-expand-transition>
+          </v-card>
+        </v-dialog>
+      </v-container>
+    </v-main>
 
-          <v-expand-transition>
-            <div v-show="howToUse">
-              <v-divider />
-              <v-card-text class="how-to-use">
-                <h3>＜使い方＞</h3>
-                <li>0本選択・・・0点</li>
-                <li>1本選択・・・選択された数字が点数</li>
-                <li>複数本選択・・・選択された本数が点数</li>
-              </v-card-text>
-            </div>
-          </v-expand-transition>
-        </v-card>
-      </v-dialog>
-
-      <GameFooter>
-        <OthersTurnDialog v-show="userId !== room.users[0]" />
-        <YourTurnDialog v-show="userId === room.users[0]" />
-        <v-spacer />
-        <v-btn
-          variant="flat"
-          :disabled="userId !== room.users[0]"
-          icon
-          @click="switchDialog"
-        >
-          <v-icon :icon="mdiPencil" color="primary" />
-        </v-btn>
-      </GameFooter>
-    </v-app>
+    <GameFooter>
+      <OthersTurnDialog v-show="userId !== room.users[0]" />
+      <YourTurnDialog v-show="userId === room.users[0]" />
+      <v-spacer />
+      <v-btn
+        variant="flat"
+        :disabled="userId !== room.users[0]"
+        icon
+        @click="switchDialog"
+      >
+        <v-icon :icon="mdiPencil" color="primary" />
+      </v-btn>
+    </GameFooter>
   </div>
 </template>
 
