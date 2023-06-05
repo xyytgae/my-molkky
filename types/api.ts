@@ -19,7 +19,7 @@ export type GameHistory = {
   users: Array<any>
 }
 
-type RoomStatus =
+export type RoomStatus =
   | 'NOT_STARTED'
   | 'FIRST_HALF_STARTED'
   | 'FIRST_HALF_FINISHED'
@@ -33,10 +33,6 @@ export type Room = {
   password: string
   topImageUrl: string
   createdAt: firestore.Timestamp | firestore.FieldValue
-  startSecondHalf: boolean
-  startFirstHalf: boolean
-  finishFirstHalf: boolean
-  finishSecondHalf: boolean
   delete: boolean
   playerIds: Array<string>
   status: RoomStatus
