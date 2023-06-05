@@ -35,7 +35,11 @@ service cloud.firestore {
     }
 
     match /rooms/{roomId} {
-      allow get, read, create, update, delete: if isAuth();
+      function validStatus() {
+        return request.resource.data.status.matches("^(NOT_STARTED|FIRST_HALF_STARTED|FIRST_HALF_FINISHED|SECOND_HALF_STARTED|SECOND_HALF_FINISHED)$")
+      }
+      allow get, read, delete: if isAuth();
+      allow create, update: if isAuth() && validStatus();
 
       match /room/{roomId} {
         allow get, read, create, update, delete: if isAuth();
