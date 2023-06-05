@@ -19,6 +19,13 @@ export type GameHistory = {
   users: Array<any>
 }
 
+type RoomStatus =
+  | 'NOT_STARTED'
+  | 'FIRST_HALF_STARTED'
+  | 'FIRST_HALF_FINISHED'
+  | 'SECOND_HALF_STARTED'
+  | 'SECOND_HALF_FINISHED'
+
 export type Room = {
   id: string
   hostId: string
@@ -32,6 +39,7 @@ export type Room = {
   finishSecondHalf: boolean
   delete: boolean
   playerIds: Array<string>
+  status: RoomStatus
 }
 
 export type PlayingUser = {

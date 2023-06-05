@@ -16,6 +16,7 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   finishSecondHalf: false,
   delete: false,
   playerIds: [],
+  status: 'NOT_STARTED',
 })
 
 export const useWaitingRoom = () => {
