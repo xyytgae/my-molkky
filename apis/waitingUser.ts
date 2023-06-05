@@ -14,7 +14,7 @@ const createDefaultUser = (
   elimination: false,
   order: 0,
   stars: user.stars,
-  id: user.uid,
+  id: user.id,
   name: user.name,
   iconImageUrl: user.iconImageUrl,
   createdAt,
@@ -35,7 +35,7 @@ export const waitingUsersRepo = {
         .collection('rooms')
         .doc(roomId)
         .collection('room')
-        .doc(user.uid)
+        .doc(user.id)
         .set(addedUser)
 
       return {

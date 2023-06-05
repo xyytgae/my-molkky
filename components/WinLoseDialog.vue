@@ -64,7 +64,7 @@ const getWinners = (users: PlayingUser[]): PlayingUser[] => {
 /**
  * init
  */
-userId.value = loginedUser.value!.uid
+userId.value = loginedUser.value!.id
 roomId.value = route.params.id as string
 result.value = [...props.users]
 

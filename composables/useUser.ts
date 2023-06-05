@@ -15,13 +15,13 @@ export const useUser = () => {
     try {
       const userSnapshot = await $firestore.collection('users').doc(uid).get()
       if (userSnapshot.exists) {
-        loginedUser.value = { ...userSnapshot.data(), uid } as User
+        loginedUser.value = { ...userSnapshot.data(), id: uid } as User
       } else {
         loginedUser.value = {
           name: '',
           iconImageUrl: '',
           stars: 0,
-          uid,
+          id: uid,
         }
       }
 

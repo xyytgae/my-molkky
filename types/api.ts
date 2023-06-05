@@ -11,7 +11,7 @@ export type User = {
   name: string
   iconImageUrl: string
   stars: number
-  uid: string
+  id: string
 }
 
 export type GameHistory = {

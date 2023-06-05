@@ -63,7 +63,7 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
-    `images/${loginedUser.value!.uid}/rooms/${localImageFile.name}`
+    `images/${loginedUser.value!.id}/rooms/${localImageFile.name}`
   )
 
   const snapShot = await imageRef.put(localImageFile)

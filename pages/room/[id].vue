@@ -114,7 +114,7 @@ onUnmounted(() => {
  * init
  */
 
-userId.value = loginedUser.value!.uid
+userId.value = loginedUser.value!.id
 roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 

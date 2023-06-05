@@ -164,7 +164,7 @@ onUnmounted(() => {
 /**
  * init
  */
-userId.value = loginedUser.value!.uid
+userId.value = loginedUser.value!.id
 roomId.value = route.params.id as string
 
 subscribeUsers(roomId.value).then(({ data }) => {

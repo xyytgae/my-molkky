@@ -5,7 +5,7 @@ export default defineNuxtRouteMiddleware(async () => {
   await checkAuthState()
   const isNotRegistered =
     loginedUser.value !== null &&
-    loginedUser.value.uid !== '' &&
+    loginedUser.value.id !== '' &&
     loginedUser.value.name === ''
 
   if (isNotRegistered) {
