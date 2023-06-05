@@ -63,7 +63,7 @@ const correctPassword = (roomId: string) => {
 }
 
 const moveToRoomPage = (roomId: string) => {
-  const userId = loginedUser.value!.uid
+  const userId = loginedUser.value!.id
   const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
   if (isPasswordEdited && userId === isPasswordEdited.hostId) {
     password.value = isPasswordEdited.password
@@ -105,7 +105,7 @@ const onSelectFile = (e: Event) => {
 }
 
 const upload = async ({ localImageFile }: { localImageFile: File }) => {
-  const userId = loginedUser.value!.uid
+  const userId = loginedUser.value!.id
 
   const storageRef = $fireStorage.ref()
 
@@ -121,7 +121,7 @@ const createRoom = async () => {
   // ダイアログを閉じる
   dialog.value = false
 
-  const userId = loginedUser.value!.uid
+  const userId = loginedUser.value!.id
 
   const params = {
     name: form.name.value,

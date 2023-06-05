@@ -40,7 +40,7 @@ const form = reactive<{
 
 const onSubmit = async () => {
   try {
-    await $firestore.collection('users').doc(loginedUser.value!.uid).update({
+    await $firestore.collection('users').doc(loginedUser.value!.id).update({
       name: form.name.value,
       iconImageUrl: form.image.value,
       // stars: form.stars.value,
@@ -79,7 +79,7 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
   const storageRef = $fireStorage.ref()
 
   const imageRef = storageRef.child(
-    `images/${loginedUser.value!.uid}/${localImageFile.name}`
+    `images/${loginedUser.value!.id}/${localImageFile.name}`
   )
 
   const snapShot = await imageRef.put(localImageFile)

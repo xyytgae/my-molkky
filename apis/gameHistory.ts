@@ -2,13 +2,13 @@ import { useNuxtApp } from '#app'
 import { ApiResponse, GameHistory, PlayingUser } from '../types/api'
 
 export const gameHistoryRepository = {
-  get: async (uid: string): Promise<ApiResponse<GameHistory[]>> => {
+  get: async (userId: string): Promise<ApiResponse<GameHistory[]>> => {
     const { $firestore } = useNuxtApp()
     const data: GameHistory[] = []
     try {
       const gamesSnapshot = await $firestore
         .collection('users')
-        .doc(uid)
+        .doc(userId)
         .collection('games')
         .orderBy('createdAt', 'desc')
         .limit(15)

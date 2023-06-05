@@ -15,7 +15,7 @@ const gameHistories = ref<GameHistory[]>([])
 /**
  * init
  */
-const userId = loginedUser.value!.uid
+const userId = loginedUser.value!.id
 const { data, success } = await gameHistoryRepository.get(userId)
 if (success) {
   gameHistories.value = data
