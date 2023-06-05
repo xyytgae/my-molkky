@@ -10,12 +10,9 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   password: '',
   topImageUrl: '',
   createdAt,
-  startSecondHalf: false,
-  startFirstHalf: false,
-  finishFirstHalf: false,
-  finishSecondHalf: false,
   delete: false,
   playerIds: [],
+  status: 'NOT_STARTED',
 })
 
 export const useWaitingRoom = () => {
@@ -43,7 +40,7 @@ export const useWaitingRoom = () => {
               waitingUsersRepo.deleteUser(userId, roomId)
               router.push('/rooms')
             }
-            if (docData.startFirstHalf) {
+            if (docData.status !== 'NOT_STARTED') {
               router.push(`/game/${roomId}`)
             }
             room.value = docData

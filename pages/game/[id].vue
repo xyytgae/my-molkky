@@ -175,30 +175,25 @@ subscribeRoomStatusAndPlayerIds(roomId.value).then(({ data }) => {
 })
 
 watch(
-  () => room.value.finishSecondHalf,
-  (newValue) => {
-    if (newValue) {
-      isShowWinLoseDialog.value = true
-    }
-  }
-)
+  () => room.value.status,
+  async (newStatus) => {
+    switch (newStatus) {
+      // 後半終了
+      case 'SECOND_HALF_FINISHED':
+        isShowWinLoseDialog.value = true
+        break
 
-watch(
-  () => room.value.startSecondHalf,
-  (newValue) => {
-    if (newValue) {
-      isShowWinLoseDialog.value = false
-      isStartedSecondHalf.value = true
-    }
-  }
-)
+      // 後半開始
+      case 'SECOND_HALF_STARTED':
+        isShowWinLoseDialog.value = false
+        isStartedSecondHalf.value = true
+        break
 
-watch(
-  () => room.value.finishFirstHalf,
-  async (newValue) => {
-    if (newValue) {
-      isShowWinLoseDialog.value = true
-      await clearPlayerIds(roomId.value)
+      // 前半終了
+      case 'FIRST_HALF_FINISHED':
+        isShowWinLoseDialog.value = true
+        await clearPlayerIds(roomId.value)
+        break
     }
   }
 )
