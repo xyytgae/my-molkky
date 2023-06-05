@@ -1,5 +1,5 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, User, PlayingUser } from '../types/api'
+import { ApiResponse, User, PlayingUser, RoomStatus } from '../types/api'
 import { waitingRoomRepo } from '../apis/waitingRoom'
 import { calculateScore } from '../modules/calculateScore'
 import { firestore } from 'firebase'
@@ -146,6 +146,8 @@ export const waitingUsersRepo = {
         await waitingRoomRepo.pushPlayerId(userId, roomId)
       }
 
+      const status: RoomStatus = 'SECOND_HALF_FINISHED'
+
       // 1人を除き、失格になればゲームを終了させる
       await $firestore
         .collection('rooms')
@@ -156,8 +158,7 @@ export const waitingUsersRepo = {
         .then((snapshot) => {
           if (snapshot.size === 1) {
             $firestore.collection('rooms').doc(roomId).update({
-              finishFirstHalf: true,
-              finishSecondHalf: true,
+              status,
               playerIds: [],
             })
           }

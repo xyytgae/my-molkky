@@ -1,15 +1,15 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, Room } from '../types/api'
+import { ApiResponse, Room, RoomStatus } from '../types/api'
 
 export const waitingRoomRepo = {
   updateToStartFirstHalf: async (
     roomId: string
   ): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
+    const status: RoomStatus = 'FIRST_HALF_STARTED'
     try {
       await $firestore.collection('rooms').doc(roomId).update({
-        // gameStart: true,
-        startFirstHalf: true,
+        status,
       })
 
       return {
@@ -30,12 +30,11 @@ export const waitingRoomRepo = {
     playerIds: string[]
   ): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
+    const status: RoomStatus = 'SECOND_HALF_STARTED'
     try {
       await $firestore.collection('rooms').doc(roomId).update({
-        startSecondHalf: true,
-        finishSecondHalf: false,
+        status,
         playerIds,
-        // finishFirstHalf: false,
       })
 
       return {
@@ -175,10 +174,10 @@ export const waitingRoomRepo = {
   // ゲームを終了させる
   finishGame: async (roomId: string): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
+    const status: RoomStatus = 'SECOND_HALF_FINISHED'
     try {
       await $firestore.collection('rooms').doc(roomId).update({
-        finishFirstHalf: true,
-        finishSecondHalf: true,
+        status,
         playerIds: [],
       })
 
@@ -198,12 +197,10 @@ export const waitingRoomRepo = {
 
   resetRoom: async (roomId: string): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
+    const status: RoomStatus = 'NOT_STARTED'
     try {
       await $firestore.collection('rooms').doc(roomId).update({
-        startFirstHalf: false,
-        startSecondHalf: false,
-        finishFirstHalf: false,
-        finishSecondHalf: false,
+        status,
         playerIds: [],
       })
 

@@ -9,6 +9,7 @@ import {
   definePageMeta,
   useRooms,
 } from '#imports'
+import { RoomStatus } from '~~/types/api'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -123,18 +124,16 @@ const createRoom = async () => {
 
   const userId = loginedUser.value!.id
 
+  const status: RoomStatus = 'NOT_STARTED'
   const params = {
     name: form.name.value,
     topImageUrl: form.image.value,
     createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
     password: form.password.value,
     hostId: userId,
-    startFirstHalf: false,
-    finishFirstHalf: false,
-    startSecondHalf: false,
-    finishSecondHalf: false,
     delete: false,
     playerIds: [],
+    status,
   }
 
   try {
