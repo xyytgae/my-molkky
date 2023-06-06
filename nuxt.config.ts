@@ -25,7 +25,7 @@ export default defineNuxtConfig({
   plugins: [],
 
   // Auto import components (https://go.nuxtjs.dev/config-components)
-  components: true,
+  components: ['~/components', '~/fragments'],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
   modules: ['@pinia/nuxt'],
