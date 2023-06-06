@@ -72,7 +72,7 @@ export const useRooms = () => {
   }
 
   return {
-    rooms: readonly(rooms),
+    rooms,
     subscribe,
   }
 }

@@ -1,5 +1,5 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, Room, RoomStatus } from '../types/api'
+import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
 
 export const waitingRoomRepo = {
   updateToStartFirstHalf: async (
@@ -39,6 +39,31 @@ export const waitingRoomRepo = {
 
       return {
         data: roomId,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  /**
+   * ルームを作成する
+   * @param input
+   * @returns
+   */
+  createRoom: async (
+    input: CreateRoomInput
+  ): Promise<ApiResponse<string | null>> => {
+    const { $firestore } = useNuxtApp()
+    try {
+      await $firestore.collection('rooms').doc(input.hostId).set(input)
+
+      return {
+        data: input.hostId,
         success: true,
         error: null,
       }
