@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { mdiMedal } from '@mdi/js'
 import { GameHistory } from '~/types/api'
-import { definePageMeta, useUser, ref } from '#imports'
+import { definePageMeta, useUser, ref, useNuxtApp } from '#imports'
 import { gameHistoryRepository } from '~/apis/gameHistory'
+import { DATE_FORMAT } from '~/constants/dayjs'
 
 definePageMeta({
   middleware: ['check-auth'],
 })
 
+const { $dayjs } = useNuxtApp()
 const { loginedUser } = useUser()
 
 const gameHistories = ref<GameHistory[]>([])
@@ -37,13 +39,9 @@ if (success) {
           >
             <v-card :theme="index % 2 !== 0 ? 'dark' : ''">
               <v-card-title class="text-subtitle-1">
-                <span> {{ history.createdAt.toDate().getFullYear() }}年 </span>
-                <span> {{ history.createdAt.toDate().getMonth() + 1 }}月 </span>
                 <span>
-                  {{ history.createdAt.toDate().getDate() }}日&ensp;
+                  {{ $dayjs(history.createdAt.toDate()).format(DATE_FORMAT) }}
                 </span>
-                <span> {{ history.createdAt.toDate().getHours() }}時</span>
-                <span> {{ history.createdAt.toDate().getMinutes() }}分</span>
               </v-card-title>
 
               <v-card-text>
