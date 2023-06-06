@@ -9,7 +9,15 @@ import {
   definePageMeta,
   useRooms,
 } from '#imports'
-import { RoomStatus } from '~~/types/api'
+import { RoomStatus, Room } from '~~/types/api'
+import { waitingRoomRepo } from '~~/apis/waitingRoom'
+
+type RoomCreationInputs = {
+  name: string
+  image: string
+  password: string
+  isPasswordSet: boolean
+}
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -18,72 +26,56 @@ definePageMeta({
 const router = useRouter()
 const { loginedUser } = useUser()
 const { rooms, subscribe } = useRooms()
-const { $firestore, $fireStorage, $firebase } = useNuxtApp()
+const { $fireStorage, $firebase } = useNuxtApp()
 
 const errorMessages = ref<string>('')
-const tryToMoveRoom = reactive<{
-  name: string
-  password: string
-  id: string
-}>({
-  name: '',
-  password: '',
-  id: '',
-})
-const dialog = ref<boolean>(false)
-const passwordDialog = ref<boolean>(false)
-const failDialog = ref<boolean>(false)
-const isPassword = ref<boolean>(false)
-const password = ref<string>('')
-const form = reactive<{
-  name: { label: string; value: string | null }
-  image: { label: string; value: string | null }
-  password: { label: string; value: string | null }
-}>({
-  name: {
-    label: '名前',
-    value: null,
-  },
-  image: {
-    label: '画像',
-    value: null,
-  },
-  password: {
-    label: 'パスワード',
-    value: null,
-  },
-})
-const image = ref<HTMLInputElement | null>(null)
 
-const correctPassword = (roomId: string) => {
-  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
-  if (isPasswordEdited && password.value === isPasswordEdited.password) {
-    router.push(`/room/${roomId}`)
-  }
-  errorMessages.value = 'パスワードが違います'
+const isCreateRoomDialogOpen = ref<boolean>(false)
+const isPasswordInputDialogOpen = ref<boolean>(false)
+const isErrorDialogOpen = ref<boolean>(false)
+
+const roomEntryPasswordInput = ref<string>('')
+const roomCreationInputs = reactive<RoomCreationInputs>({
+  name: '',
+  image: '',
+  password: '',
+  isPasswordSet: false,
+})
+const inputRef = ref<HTMLInputElement | null>(null)
+const selectedRoom = ref<Room | null>(null)
+
+const closePasswordInputDialog = () => {
+  isPasswordInputDialogOpen.value = false
+  roomEntryPasswordInput.value = ''
 }
 
-const moveToRoomPage = (roomId: string) => {
+const verifyPassword = () => {
+  if (
+    selectedRoom.value &&
+    roomEntryPasswordInput.value === selectedRoom.value.password
+  ) {
+    router.push(`/room/${selectedRoom.value.id}`)
+  } else {
+    errorMessages.value = 'パスワードが違います'
+  }
+}
+
+const moveToRoomPage = (room: Room) => {
   const userId = loginedUser.value!.id
-  const isPasswordEdited = rooms.value.find((r) => r.id === roomId)
-  if (isPasswordEdited && userId === isPasswordEdited.hostId) {
-    password.value = isPasswordEdited.password
-  } else if (isPasswordEdited && isPasswordEdited.password !== null) {
+  selectedRoom.value = { ...room }
+  if (selectedRoom.value && userId === selectedRoom.value.hostId) {
+    roomEntryPasswordInput.value = selectedRoom.value.password
+  } else if (selectedRoom.value && selectedRoom.value.password !== '') {
     errorMessages.value = ''
-    passwordDialog.value = true
-    Object.assign(tryToMoveRoom, {
-      name: isPasswordEdited.name,
-      password: isPasswordEdited.password,
-      id: isPasswordEdited.id,
-    })
+    isPasswordInputDialogOpen.value = true
     return
   }
-  router.push(`/room/${roomId}`)
+  router.push(`/room/${selectedRoom.value.id}`)
 }
 
 const selectImage = () => {
-  if (image.value) {
-    image.value.click()
+  if (inputRef.value) {
+    inputRef.value.click()
   }
 }
 
@@ -115,31 +107,30 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
   )
 
   const snapShot = await imageRef.put(localImageFile)
-  form.image.value = await snapShot.ref.getDownloadURL()
+  roomCreationInputs.image = await snapShot.ref.getDownloadURL()
 }
 
 const createRoom = async () => {
   // ダイアログを閉じる
-  dialog.value = false
+  isCreateRoomDialogOpen.value = false
 
   const userId = loginedUser.value!.id
 
   const status: RoomStatus = 'NOT_STARTED'
-  const params = {
-    name: form.name.value,
-    topImageUrl: form.image.value,
+  const input = {
+    name: roomCreationInputs.name,
+    topImageUrl: roomCreationInputs.image,
     createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
-    password: form.password.value,
+    password: roomCreationInputs.password,
     hostId: userId,
     delete: false,
     playerIds: [],
     status,
   }
 
-  try {
-    await $firestore.collection('rooms').doc(userId).set(params)
-  } catch (e) {
-    failDialog.value = true
+  const { success } = await waitingRoomRepo.createRoom(input)
+  if (!success) {
+    isErrorDialogOpen.value = true
   }
 }
 /**
@@ -175,7 +166,7 @@ onUnmounted(() => {
                   <v-btn
                     color="primary"
                     variant="elevated"
-                    @click="moveToRoomPage(room.id)"
+                    @click="moveToRoomPage(room)"
                     >入室</v-btn
                   >
                 </v-card-actions>
@@ -186,7 +177,7 @@ onUnmounted(() => {
       </v-container>
 
       <v-row justify="center">
-        <v-dialog v-model="dialog" max-width="600px">
+        <v-dialog v-model="isCreateRoomDialogOpen" max-width="600px">
           <v-card>
             <v-card-title class="py-4 px-6">
               <span class="text-h5">部屋を立てる</span>
@@ -196,16 +187,16 @@ onUnmounted(() => {
                 <v-row>
                   <div class="image">
                     <v-icon
-                      v-if="form.image.value"
+                      v-if="roomCreationInputs.image"
                       size="30"
                       class="close"
                       :icon="mdiCloseCircle"
-                      @click="form.image.value = null"
+                      @click="roomCreationInputs.image = ''"
                     />
-                    <template v-if="form.image.value">
+                    <template v-if="roomCreationInputs.image">
                       <img
                         class="icon"
-                        :src="form.image.value"
+                        :src="roomCreationInputs.image"
                         @click="selectImage"
                       />
                     </template>
@@ -218,7 +209,7 @@ onUnmounted(() => {
                       />
                     </template>
                     <input
-                      ref="image"
+                      ref="inputRef"
                       type="file"
                       style="display: none"
                       accept="image/*"
@@ -227,7 +218,7 @@ onUnmounted(() => {
                   </div>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="form.name.value"
+                      v-model="roomCreationInputs.name"
                       label="部屋の名前"
                       variant="underlined"
                     />
@@ -235,19 +226,21 @@ onUnmounted(() => {
 
                   <v-col cols="12">
                     <v-switch
-                      v-model="isPassword"
+                      v-model="roomCreationInputs.isPasswordSet"
                       :label="`パスワードを${
-                        isPassword ? '設定する' : '設定しない'
+                        roomCreationInputs.isPasswordSet
+                          ? '設定する'
+                          : '設定しない'
                       }`"
                       color="primary"
                     />
                   </v-col>
                   <v-col cols="12">
                     <v-text-field
-                      v-model="form.password.value"
-                      :disabled="!isPassword"
+                      v-model="roomCreationInputs.password"
+                      :disabled="!roomCreationInputs.isPasswordSet"
                       label="Password"
-                      :required="isPassword"
+                      :required="roomCreationInputs.isPasswordSet"
                       variant="underlined"
                     />
                   </v-col>
@@ -255,7 +248,10 @@ onUnmounted(() => {
               </v-container>
             </v-card-text>
             <v-card-actions>
-              <v-btn color="blue darken-1" text @click="dialog = false"
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="isCreateRoomDialogOpen = false"
                 >閉じる</v-btn
               >
               <v-spacer />
@@ -265,7 +261,7 @@ onUnmounted(() => {
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <v-dialog v-model="failDialog" max-width="600px">
+        <v-dialog v-model="isErrorDialogOpen" max-width="600px">
           <v-card>
             <v-card-title>
               <v-alert type="error">
@@ -274,7 +270,10 @@ onUnmounted(() => {
             </v-card-title>
             <v-card-actions>
               <v-spacer />
-              <v-btn color="blue darken-1" text @click="failDialog = false"
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="isErrorDialogOpen = false"
                 >閉じる</v-btn
               >
             </v-card-actions>
@@ -282,17 +281,21 @@ onUnmounted(() => {
         </v-dialog>
       </v-row>
 
-      <v-dialog v-model="passwordDialog" max-width="450px">
+      <v-dialog
+        v-if="selectedRoom"
+        v-model="isPasswordInputDialogOpen"
+        max-width="450px"
+      >
         <v-card>
           <v-card-title class="py-4 px-6 text-wrap">
             <span class="text-h6"
-              >「{{ tryToMoveRoom.name }}」のパスワードを入力してください</span
+              >「{{ selectedRoom.name }}」のパスワードを入力してください</span
             >
           </v-card-title>
           <v-card-text>
             <v-container>
               <v-text-field
-                v-model="password"
+                v-model="roomEntryPasswordInput"
                 label="パスワード"
                 :error-messages="errorMessages"
                 variant="underlined"
@@ -301,24 +304,18 @@ onUnmounted(() => {
           </v-card-text>
 
           <v-card-actions>
-            <v-btn
-              color="blue darken-1"
-              text
-              @click=";(passwordDialog = false), (password = '')"
+            <v-btn color="blue darken-1" text @click="closePasswordInputDialog"
               >閉じる</v-btn
             >
             <v-spacer />
-            <v-btn
-              color="blue darken-1"
-              text
-              @click="correctPassword(tryToMoveRoom.id)"
+            <v-btn color="blue darken-1" text @click="verifyPassword"
               >入室</v-btn
             >
           </v-card-actions>
         </v-card>
       </v-dialog>
     </v-main>
-    <RoomsFooter @open-dialog="dialog = true" />
+    <RoomsFooter @open-dialog="isCreateRoomDialogOpen = true" />
   </div>
 </template>
 

@@ -26,8 +26,7 @@ export type RoomStatus =
   | 'SECOND_HALF_STARTED'
   | 'SECOND_HALF_FINISHED'
 
-export type Room = {
-  id: string
+export type CreateRoomInput = {
   hostId: string
   name: string
   password: string
@@ -37,6 +36,10 @@ export type Room = {
   playerIds: Array<string>
   status: RoomStatus
 }
+
+export type Room = {
+  id: string
+} & CreateRoomInput
 
 export type PlayingUser = {
   id: string
