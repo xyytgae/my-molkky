@@ -1,7 +1,7 @@
 ---
 name: 'Issue: リファクタ'
 about: リファクタ
-title: "[Refactor]"
+title: "[Refactor] "
 labels: refactor
 assignees: xyytgae
 
