@@ -10,6 +10,7 @@ import {
 } from '#imports'
 import { waitingUsersRepo } from '~/apis/waitingUser'
 import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { isDeleteRoomDialogOpen } from '~/components/DeleteRoomDialog.vue'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -24,55 +25,51 @@ const router = useRouter()
 const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
 const { room, subscribeRoomDeletion } = useWaitingRoom()
-const { updateOrder, createUser, deleteUser } = waitingUsersRepo
-const { updateToStartFirstHalf, deleteRoom } = waitingRoomRepo
 
-const userId = ref<string>('')
-const unsubscribeUsers = ref<Function | null>(null)
-const unsubscribeRoomDeletion = ref<Function | null>(null)
-// const user = ref(null)
-const roomId = ref<string>('')
-const orderedUsers = ref<string[]>([])
-const order = ref<boolean>(true)
-const disabledOrder = ref<boolean>(true)
-const isHost = ref<boolean>(false)
-const dialog = ref<boolean>(false)
-const startButton = ref<boolean>(true)
-const stepper = ref<number>(0)
-const orderRefs = ref<HTMLInputElement[] | null>(null)
-
-const slides: string[] = [
+const SLIDES: string[] = [
   '「順番を選択」を押してください',
   '投げる順番にユーザーを選択してから「順番を決定」を押してください',
   '「START」を押すとゲームが始まります選び直す場合、「順番を選択」を押してください',
 ]
 
-const exit = async () => {
-  unsubscribeAll()
-  if (isHost.value && dialog.value) {
-    await deleteUser(userId.value, roomId.value)
-    await deleteRoom(roomId.value)
-    router.push('/rooms')
-  } else if (isHost.value) {
-    dialog.value = true
+const userId = ref<string>('')
+const roomId = ref<string>('')
+const unsubscribeUsers = ref<Function | null>(null)
+const unsubscribeRoomDeletion = ref<Function | null>(null)
+const orderedPlayerIds = ref<string[]>([])
+const isOrderMode = ref<boolean>(false)
+const isHost = ref<boolean>(false)
+const isShowStartButton = ref<boolean>(true)
+const stepper = ref<number>(0)
+const orderInputRefs = ref<HTMLInputElement[] | null>(null)
+
+const exitRoom = async () => {
+  if (isHost.value) {
+    isDeleteRoomDialogOpen.value = true
   } else {
+    unsubscribeAll()
     router.push('/rooms')
-    await deleteUser(userId.value, roomId.value)
+    await waitingUsersRepo.deleteUser(userId.value, roomId.value)
   }
+}
+
+const deleteRoomAndExit = async () => {
+  unsubscribeAll()
+  await waitingUsersRepo.deleteUser(userId.value, roomId.value)
+  await waitingRoomRepo.deleteRoom(roomId.value)
+  router.push('/rooms')
 }
 
 const chooseOrder = (index: number) => {
-  if (orderRefs.value) {
-    orderRefs.value[index].click()
+  if (orderInputRefs.value) {
+    orderInputRefs.value[index].click()
   }
 }
 
-const changeOrder = () => {
-  order.value = !order.value
-  disabledOrder.value = !disabledOrder.value
-  orderedUsers.value = []
-
-  startButton.value = true
+const changeOrderMode = () => {
+  isOrderMode.value = true
+  orderedPlayerIds.value = []
+  isShowStartButton.value = true
 
   // v-carouselを進める
   stepper.value = 1
@@ -80,21 +77,17 @@ const changeOrder = () => {
 
 const decideOrder = async () => {
   // 全員を選んでいない場合return
-  if (orderedUsers.value.length !== users.value.length) return
-
-  order.value = !order.value
-  disabledOrder.value = !disabledOrder.value
-
-  await updateOrder(orderedUsers.value, roomId.value)
-
-  startButton.value = false
+  if (orderedPlayerIds.value.length !== users.value.length) return
+  isOrderMode.value = false
+  await waitingUsersRepo.updateOrder(orderedPlayerIds.value, roomId.value)
+  isShowStartButton.value = false
 
   // v-carouselを進める
   stepper.value = 2
 }
 
 const startGame = async () => {
-  await updateToStartFirstHalf(roomId.value)
+  await waitingRoomRepo.updateToStartFirstHalf(roomId.value)
 }
 
 const unsubscribeAll = () => {
@@ -119,7 +112,7 @@ roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 
 if (loginedUser.value && roomId.value) {
-  await createUser(loginedUser.value, roomId.value)
+  await waitingUsersRepo.createUser(loginedUser.value, roomId.value)
 }
 
 subscribeUsers(roomId.value).then(({ data }) => {
@@ -145,7 +138,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
               hide-delimiters
               progress="primary"
             >
-              <v-carousel-item v-for="(slide, i) in slides" :key="i" :value="i">
+              <v-carousel-item v-for="(slide, i) in SLIDES" :key="i" :value="i">
                 <v-sheet height="100%">
                   <div class="d-flex fill-height justify-center align-center">
                     <div class="text-h6 pa-6" v-text="slide" />
@@ -170,12 +163,12 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
             <v-col v-for="(user, index) in users" :key="user.id" cols="12">
               <v-card @click="chooseOrder(index)">
                 <input
-                  ref="orderRefs"
-                  v-model="orderedUsers"
+                  ref="orderInputRefs"
+                  v-model="orderedPlayerIds"
                   type="checkbox"
-                  style="display: none"
+                  class="d-none"
                   :value="user.id"
-                  :disabled="disabledOrder"
+                  :disabled="!isOrderMode"
                 />
                 <div class="d-flex flex-no-wrap">
                   <v-card-title
@@ -198,44 +191,43 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
           </v-row>
 
           <h1>{{ users.length }}/4</h1>
+          {{ orderedPlayerIds }}
         </v-card>
       </v-container>
 
-      <DeleteRoomDialog
-        v-if="dialog && isHost"
-        @close-dialog="dialog = false"
-        @delete-room="exit()"
+      <LazyDeleteRoomDialog
+        v-model="isDeleteRoomDialogOpen"
+        @delete-room="deleteRoomAndExit"
       />
     </v-main>
-    <RoomFooter v-if="isHost" @exit-room="exit()">
-      <v-btn
-        v-show="order"
-        variant="outlined"
-        color="white"
-        @click="changeOrder"
-        >順番を選択</v-btn
-      >
-      <v-btn
-        v-show="!order"
-        variant="outlined"
-        color="white"
-        :disabled="orderedUsers.length !== users.length"
-        @click="decideOrder"
-        >順番を決定</v-btn
-      >
-      <v-spacer />
-      <v-btn
-        v-show="!startButton"
-        variant="elevated"
-        color="white"
-        @click="startGame"
-        >START</v-btn
-      >
+    <RoomFooter @exit-room="exitRoom">
+      <template v-if="isHost">
+        <v-btn
+          v-show="!isOrderMode"
+          variant="outlined"
+          color="white"
+          @click="changeOrderMode"
+          >順番を選択</v-btn
+        >
+        <v-btn
+          v-show="isOrderMode"
+          variant="outlined"
+          color="white"
+          :disabled="orderedPlayerIds.length !== users.length"
+          @click="decideOrder"
+          >順番を決定</v-btn
+        >
+        <v-spacer />
+
+        <v-btn
+          v-show="!isShowStartButton"
+          variant="elevated"
+          color="white"
+          @click="startGame"
+          >START</v-btn
+        >
+      </template>
     </RoomFooter>
-
-    <RoomFooter v-else @exit-room="exit()" />
-
-    <!-- <DeleteRoomDialog v-if="isHost"></DeleteRoomDialog> -->
   </div>
 </template>
 
