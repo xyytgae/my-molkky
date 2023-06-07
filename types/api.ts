@@ -12,6 +12,12 @@ export type CreateUserInput = {
   stars: number
 }
 
+export type UpdateUserInput = {
+  name: string
+  iconImageUrl: string
+  stars: number
+}
+
 export type User = {
   id: string
 } & CreateUserInput
