@@ -63,8 +63,7 @@ onUnmounted(() => {
         <v-row v-for="room in rooms" :key="room.id" dense>
           <v-col cols="12">
             <v-card>
-              <div class="d-flex flex-no-wrap">
-                <img :src="room.topImageUrl" class="room-icon" />
+              <div class="room-item d-flex flex-no-wrap">
                 <v-card-title class="text-h6 my-auto">
                   {{ room.name }}
                   <v-icon v-if="room.password" :icon="mdiLock" />
@@ -105,10 +104,7 @@ onUnmounted(() => {
   margin-bottom: 200px;
 }
 
-.room-icon {
-  width: 5rem;
+.room-item {
   height: 5rem;
-  border-radius: 40px;
-  object-fit: cover;
 }
 </style>

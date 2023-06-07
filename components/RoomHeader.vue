@@ -16,9 +16,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <v-app-bar color="primary" class="px-4">
-    <v-avatar v-if="room" :image="room.topImageUrl" />
-
-    <v-app-bar-title v-if="room" class="name">
+    <v-app-bar-title v-if="room">
       {{ room.name }}
     </v-app-bar-title>
     <v-spacer />
@@ -32,8 +30,4 @@ withDefaults(defineProps<Props>(), {
   </v-app-bar>
 </template>
 
-<style scoped>
-.name {
-  padding-left: 20px;
-}
-</style>
+<style scoped></style>
