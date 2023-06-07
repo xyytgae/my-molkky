@@ -30,7 +30,6 @@ export type CreateRoomInput = {
   hostId: string
   name: string
   password: string
-  topImageUrl: string
   createdAt: firestore.Timestamp | firestore.FieldValue
   delete: boolean
   playerIds: Array<string>

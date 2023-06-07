@@ -13,7 +13,6 @@ export const isCreateRoomDialogOpen = ref<boolean>(false)
 <script setup lang="ts">
 type FormInputs = {
   name: string
-  image: string
   password: string
   isPasswordSet: boolean
 }
@@ -36,51 +35,14 @@ const { isErrorDialogOpen, errorMessage } = inject(
   ErrorDialogKey
 ) as ErrorDialogStore
 
-const { $fireStorage, $firebase } = useNuxtApp()
+const { $firebase } = useNuxtApp()
 const createDefaultFormInputs = (): FormInputs => ({
   name: '',
-  image: '',
   password: '',
   isPasswordSet: false,
 })
 
 const formInputs = reactive<FormInputs>(createDefaultFormInputs())
-const inputRef = ref<HTMLInputElement | null>(null)
-
-const selectImage = () => {
-  if (inputRef.value) {
-    inputRef.value.click()
-  }
-}
-
-const onSelectFile = (e: Event) => {
-  if (!(e.target instanceof HTMLInputElement)) {
-    return
-  }
-
-  const files = e.target.files
-  if (files === null || files.length === 0) return
-
-  const reader = new FileReader()
-  reader.readAsDataURL(files[0])
-
-  reader.addEventListener('load', () => {
-    upload({
-      localImageFile: files[0],
-    })
-  })
-}
-
-const upload = async ({ localImageFile }: { localImageFile: File }) => {
-  const storageRef = $fireStorage.ref()
-
-  const imageRef = storageRef.child(
-    `images/${props.userId}/rooms/${localImageFile.name}`
-  )
-
-  const snapShot = await imageRef.put(localImageFile)
-  formInputs.image = await snapShot.ref.getDownloadURL()
-}
 
 const createRoom = async () => {
   // ダイアログを閉じる
@@ -89,7 +51,6 @@ const createRoom = async () => {
   const status: RoomStatus = 'NOT_STARTED'
   const input = {
     name: formInputs.name,
-    topImageUrl: formInputs.image,
     createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
     password: formInputs.password,
     hostId: props.userId,
@@ -131,37 +92,6 @@ watch(
       <v-card-text>
         <v-container>
           <v-row>
-            <div class="image">
-              <v-icon
-                v-if="formInputs.image"
-                size="30"
-                class="close"
-                :icon="mdiCloseCircle"
-                @click="formInputs.image = ''"
-              />
-              <template v-if="formInputs.image">
-                <img
-                  class="icon"
-                  :src="formInputs.image"
-                  @click="selectImage"
-                />
-              </template>
-              <template v-else>
-                <v-icon
-                  size="80"
-                  :icon="mdiImage"
-                  color="grey lighten-1"
-                  @click="selectImage"
-                />
-              </template>
-              <input
-                ref="inputRef"
-                type="file"
-                style="display: none"
-                accept="image/*"
-                @change="onSelectFile"
-              />
-            </div>
             <v-col cols="12">
               <v-text-field
                 v-model="formInputs.name"
@@ -207,39 +137,4 @@ watch(
   </v-dialog>
 </template>
 
-<style scoped>
-.image {
-  position: relative;
-  width: 10rem;
-  height: 10rem;
-  margin-left: auto;
-  margin-right: auto;
-  background: rgba(237, 242, 247, 1);
-  border-radius: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.close {
-  position: absolute;
-  top: -10px;
-  right: -10px;
-  /* top: -75px;
-  right: -340px; */
-  /* z-index: 100; */
-  /* width: ; */
-}
-
-.icon {
-  width: 10rem;
-  height: 10rem;
-  /* max-width: 100%; */
-  /* height: 12rem; */
-  /* max-height: 100%; */
-  /* width: 200px; */
-  /* height: 200px; */
-  border-radius: 30px;
-  object-fit: cover;
-}
-</style>
+<style scoped></style>

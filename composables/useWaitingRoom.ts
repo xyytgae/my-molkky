@@ -8,7 +8,6 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   hostId: '',
   name: '',
   password: '',
-  topImageUrl: '',
   createdAt,
   delete: false,
   playerIds: [],
