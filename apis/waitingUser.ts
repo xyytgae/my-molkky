@@ -8,7 +8,7 @@ const createDefaultUser = (
   user: User,
   createdAt: firestore.FieldValue
 ): PlayingUser => ({
-  score: [],
+  scores: [],
   firstHalfScore: 0,
   totalScore: 0,
   elimination: false,
@@ -123,7 +123,7 @@ export const waitingUsersRepo = {
         .get()
 
       const docData = userDoc.data() as PlayingUser
-      const userScores = docData.score
+      const userScores = docData.scores
       const lastZeroIndex = userScores.lastIndexOf(0)
 
       const isToBeEliminated =
@@ -202,7 +202,7 @@ export const waitingUsersRepo = {
           .doc(user.id)
           .update({
             firstHalfScore: user.totalScore,
-            score: [],
+            scores: [],
             totalScore: 0,
             elimination: false,
           })
@@ -234,7 +234,7 @@ export const waitingUsersRepo = {
         .collection('room')
         .doc(userId)
         .update({
-          score: newScores,
+          scores: newScores,
         })
 
       return {
@@ -257,11 +257,11 @@ export const waitingUsersRepo = {
     user: PlayingUser
   ) => {
     const { $firestore } = useNuxtApp()
-    const { score, firstHalfScore, elimination } = user
+    const { scores, firstHalfScore, elimination } = user
     user.elimination = false
     try {
       // score配列を元にtotalScoresを計算
-      const newTotalScore = elimination ? 0 : calculateScore(score)
+      const newTotalScore = elimination ? 0 : calculateScore(scores)
       await $firestore
         .collection('rooms')
         .doc(roomId)

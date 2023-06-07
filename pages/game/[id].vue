@@ -74,7 +74,7 @@ const maxLength = computed<number>(() => {
   if (!users.value || users.value.length < 1) return 1
   const array = []
   for (let index = 0; index < users.value.length; index++) {
-    array.push(users.value[index].score.length)
+    array.push(users.value[index].scores.length)
   }
   return Math.max.apply(null, array)
 })
@@ -124,7 +124,7 @@ const selectFourthScores = (index: number) => {
 
 const myScores = computed<number[]>(() => {
   if (!users) return []
-  const myScores = users.value.find((user) => user.id === userId.value)?.score
+  const myScores = users.value.find((user) => user.id === userId.value)?.scores
   if (!myScores) return []
   return myScores
 })
@@ -255,7 +255,7 @@ watch(
                 {{ user.name }}
               </th>
 
-              <td v-for="(userScore, index) in user.score" :key="index">
+              <td v-for="(userScore, index) in user.scores" :key="index">
                 <span v-show="userScore === 0">
                   <v-icon color="red" :icon="mdiCloseThick" />
                 </span>
@@ -265,8 +265,8 @@ watch(
               </td>
 
               <td
-                v-for="n in spaceNumber(user.score.length)"
-                v-show="user.score.length < scoreLength"
+                v-for="n in spaceNumber(user.scores.length)"
+                v-show="user.scores.length < scoreLength"
                 :key="`${user.id}-${n}`"
               >
                 &nbsp;

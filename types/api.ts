@@ -48,7 +48,7 @@ export type PlayingUser = {
   iconImageUrl: string
   firstHalfScore: number
   totalScore: number
-  score: Array<number>
+  scores: Array<number>
   createdAt: firestore.Timestamp | firestore.FieldValue
   name: string
   stars: number
