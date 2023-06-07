@@ -77,11 +77,11 @@ if (success) {
                         {{ user.firstHalfScore }}
                       </td>
                       <td>
-                        {{ user.totalScore }}
+                        {{ user.secondHalfScore }}
                       </td>
 
                       <td>
-                        {{ user.firstHalfScore + user.totalScore }}
+                        {{ user.firstHalfScore + user.secondHalfScore }}
                       </td>
                     </tr>
                   </tbody>

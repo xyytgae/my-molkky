@@ -278,29 +278,15 @@ watch(
                 &nbsp;
               </td>
 
-              <td v-if="isStartedSecondHalf" class="border">
+              <td class="border" :class="[{ isActive: !isStartedSecondHalf }]">
                 {{ user.firstHalfScore }}/50
               </td>
-              <td
-                v-if="isStartedSecondHalf"
-                class="border"
-                :class="[{ isActive: isStartedSecondHalf }]"
-              >
-                {{ user.totalScore }}/50
+              <td class="border" :class="[{ isActive: isStartedSecondHalf }]">
+                {{ user.secondHalfScore }}/50
               </td>
 
-              <td
-                v-if="!isStartedSecondHalf"
-                class="border"
-                :class="[{ isActive: !isStartedSecondHalf }]"
-              >
-                {{ user.totalScore }}/50
-              </td>
-              <td v-if="!isStartedSecondHalf" class="border">
-                {{ user.firstHalfScore }}/50
-              </td>
               <td class="border">
-                {{ user.firstHalfScore + user.totalScore }}
+                {{ user.firstHalfScore + user.secondHalfScore }}
               </td>
             </tr>
           </tbody>
