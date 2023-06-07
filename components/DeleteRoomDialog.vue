@@ -1,29 +1,44 @@
-<script setup lang="ts">
+<script lang="ts">
 import { ref } from '#imports'
 
-interface Emits {
-  (e: 'closeDialog'): void
+export const isDeleteRoomDialogOpen = ref<boolean>(false)
+</script>
+
+<script setup lang="ts">
+type Props = {
+  modelValue: boolean
+}
+type Emits = {
+  (e: 'update:modelValue', value: boolean): void
   (e: 'deleteRoom'): void
 }
 
-defineEmits<Emits>()
-
-const dialog = ref<boolean>(true)
+withDefaults(defineProps<Props>(), {
+  modelValue: false,
+})
+const emit = defineEmits<Emits>()
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="300px">
+  <v-dialog
+    :model-value="modelValue"
+    max-width="300px"
+    @click:outside="emit('update:modelValue', false)"
+  >
     <v-card>
       <v-card-item>
         <v-card-title> ゲームを終了 </v-card-title>
       </v-card-item>
       <v-card-text> ルームを退出しますか？ </v-card-text>
       <v-card-actions>
-        <v-btn variant="text" color="info" @click="$emit('closeDialog')"
+        <v-btn
+          variant="text"
+          color="info"
+          @click="emit('update:modelValue', false)"
           >キャンセル</v-btn
         >
         <v-spacer />
-        <v-btn variant="text" color="info" @click="$emit('deleteRoom')"
+        <v-btn variant="text" color="info" @click="emit('deleteRoom')"
           >OK</v-btn
         >
       </v-card-actions>
