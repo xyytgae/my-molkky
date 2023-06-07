@@ -36,7 +36,7 @@ export const useWaitingUsers = () => {
       const unsubscribe = await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .orderBy('order', 'asc')
         .onSnapshot((usersSnapShot) => {
           usersSnapShot.docChanges().forEach((snapshot) => {

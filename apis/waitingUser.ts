@@ -33,7 +33,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(user.id)
         .set(addedUser)
 
@@ -57,7 +57,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(userId)
         .delete()
 
@@ -83,7 +83,7 @@ export const waitingUsersRepo = {
         await $firestore
           .collection('rooms')
           .doc(roomId)
-          .collection('room')
+          .collection('players')
           .doc(playerId)
           .update({
             order: index,
@@ -117,7 +117,7 @@ export const waitingUsersRepo = {
       const userDoc = await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(userId)
         .get()
 
@@ -134,7 +134,7 @@ export const waitingUsersRepo = {
         await $firestore
           .collection('rooms')
           .doc(roomId)
-          .collection('room')
+          .collection('players')
           .doc(userId)
           .update({
             elimination: true,
@@ -150,7 +150,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .where('elimination', '==', false)
         .get()
         .then((snapshot) => {
@@ -181,7 +181,7 @@ export const waitingUsersRepo = {
       const users = await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .orderBy('firstHalfScore', 'desc')
         .get()
         .then((snapshot) => {
@@ -196,7 +196,7 @@ export const waitingUsersRepo = {
         await $firestore
           .collection('rooms')
           .doc(roomId)
-          .collection('room')
+          .collection('players')
           .doc(user.id)
           .update({
             scores: [],
@@ -227,7 +227,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(userId)
         .update({
           scores: newScores,
@@ -261,7 +261,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(userId)
         .update({
           firstHalfScore: newFirstScore,
@@ -300,7 +300,7 @@ export const waitingUsersRepo = {
       await $firestore
         .collection('rooms')
         .doc(roomId)
-        .collection('room')
+        .collection('players')
         .doc(userId)
         .update({
           secondHalfScore: newSecondScore,

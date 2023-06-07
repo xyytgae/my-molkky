@@ -41,7 +41,7 @@ service cloud.firestore {
       allow get, read, delete: if isAuth();
       allow create, update: if isAuth() && validStatus();
 
-      match /room/{roomId} {
+      match /players/{playerId} {
         allow get, read, create, update, delete: if isAuth();
       }
     }
