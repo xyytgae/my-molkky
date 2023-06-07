@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { useNuxtApp, useRouter } from '#app'
+import { useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
+import { onSelectFile } from '~/modules/onSelectFile'
+import { userRepository } from '~/apis/user'
+import { storageRepository } from '~/apis/storage'
+
+type FormInputs = {
+  name: string
+  image: string
+}
 
 definePageMeta({
   middleware: ['check-at-register'],
@@ -9,74 +17,43 @@ definePageMeta({
 
 const router = useRouter()
 const { loginedUser } = useUser()
-const { $firestore, $fireStorage } = useNuxtApp()
 
-const form = reactive<{
-  name: {
-    label: string
-    value: string | null
-  }
-  image: {
-    label: string
-    value: string | null
-  }
-}>({
-  name: {
-    label: 'プレイヤー名',
-    value: null,
-  },
-  image: {
-    label: 'アイコン画像',
-    value: null,
-  },
+const formInputs = reactive<FormInputs>({
+  name: '',
+  image: '',
 })
-const image = ref<HTMLInputElement | null>(null)
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const onSubmit = async () => {
-  try {
-    await $firestore.collection('users').doc(loginedUser.value!.id).set({
-      name: form.name.value,
-      iconImageUrl: form.image.value,
-      stars: 0,
-    })
-    router.push('/rooms')
-  } catch (e) {
-    console.log('失敗しました')
+  const input = {
+    name: formInputs.name,
+    iconImageUrl: formInputs.image,
+    stars: 0,
   }
+  await userRepository.create({
+    userId: loginedUser.value!.id,
+    input,
+  })
+
+  router.push('/rooms')
 }
 
 const selectImage = () => {
-  if (image.value) {
-    image.value.click()
+  if (inputRef.value) {
+    inputRef.value.click()
   }
 }
 
-const onSelectFile = (e: Event) => {
-  if (!(e.target instanceof HTMLInputElement)) {
-    return
-  }
-  const files = e.target.files
-  if (files === null || files.length === 0) return
-
-  const reader = new FileReader()
-  reader.readAsDataURL(files[0])
-
-  reader.addEventListener('load', () => {
-    upload({
-      localImageFile: files[0],
+const uploadImage = async (event: Event) => {
+  const localImageFile = await onSelectFile(event)
+  if (localImageFile) {
+    const path = `${loginedUser.value!.id}/${localImageFile.name}`
+    const { data } = await storageRepository.upload({
+      file: localImageFile,
+      path,
     })
-  })
-}
-
-const upload = async ({ localImageFile }: { localImageFile: File }) => {
-  const storageRef = $fireStorage.ref()
-
-  const imageRef = storageRef.child(
-    `images/${loginedUser.value!.id}/${localImageFile.name}`
-  )
-
-  const snapShot = await imageRef.put(localImageFile)
-  form.image.value = await snapShot.ref.getDownloadURL()
+    formInputs.image = data
+  }
 }
 </script>
 
@@ -91,16 +68,9 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
         <v-card elevation="0">
           <form class="v-form" @submit.prevent="onSubmit">
             <div class="form">
-              <template v-if="form.image.value">
-                <!-- <img
-            class="w-32 h-32 object-cover border rounded-full"
-            :src="form.image.value"
-            @click="selectImage"
-          /> -->
-                <!-- <img :src="form.image.value" @click="selectImage" /> -->
-
+              <template v-if="formInputs.image">
                 <v-avatar size="200">
-                  <img :src="form.image.value" @click="selectImage" />
+                  <img :src="formInputs.image" @click="selectImage" />
                 </v-avatar>
               </template>
               <template v-else>
@@ -112,16 +82,16 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
                 />
               </template>
               <input
-                ref="image"
+                ref="inputRef"
                 type="file"
-                style="display: none"
+                class="d-none"
                 accept="image/*"
-                @change="onSelectFile"
+                @change="uploadImage"
               />
             </div>
             <div>
               <v-text-field
-                v-model="form.name.value"
+                v-model="formInputs.name"
                 label="プレイヤー名"
                 counter="8"
                 hide-details="auto"
@@ -147,10 +117,6 @@ const upload = async ({ localImageFile }: { localImageFile: File }) => {
 
 .form {
   text-align: center;
-}
-
-.image {
-  border-radius: 50%;
 }
 
 .button {

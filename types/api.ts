@@ -6,13 +6,15 @@ export type ApiResponse<T> = {
   error: any
 }
 
-// TODO: 型修正
-export type User = {
+export type CreateUserInput = {
   name: string
   iconImageUrl: string
   stars: number
-  id: string
 }
+
+export type User = {
+  id: string
+} & CreateUserInput
 
 export type GameHistory = {
   createdAt: firestore.Timestamp
