@@ -62,3 +62,62 @@ $ yarn commit
 
 https://my-molkky.web.app
 
+
+## ER図
+
+```mermaid
+erDiagram
+  users {
+    string id PK
+    string iconImageUrl
+    string name
+    number stars
+  }
+
+  games {
+    string id PK
+    timestamp createdAt
+  }
+
+  game {
+    string id PK
+    timestamp createdAt
+    number order
+    boolean elimination
+    string iconImageUrl
+    number firstHalfScore
+    number secondHalfScore
+    number[] scores
+    timestamp createdAt
+    string name
+    number stars
+  }
+
+  rooms {
+    string id PK
+    timestamp createdAt
+    boolean delete
+    string hostId
+    string name
+    string password
+    string[] playerIds
+    string status
+  }
+
+  players {
+    string id PK
+    string iconImageUrl
+    string name
+    number stars
+    number order
+    boolean elimination
+    number firstHalfScore
+    number secondHalfScore
+    number[] scores
+    timestamp scores
+  }
+
+  users ||--o{ games : ""
+  games ||--o{ game : ""
+  rooms ||--o{ players : ""
+```
