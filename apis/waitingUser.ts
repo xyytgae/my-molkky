@@ -8,9 +8,8 @@ const createDefaultUser = (
   user: User,
   createdAt: firestore.FieldValue
 ): PlayingUser => ({
-  score: [],
+  scores: [],
   firstHalfScore: 0,
-  totalScore: 0,
   elimination: false,
   order: 0,
   stars: user.stars,
@@ -18,7 +17,7 @@ const createDefaultUser = (
   name: user.name,
   iconImageUrl: user.iconImageUrl,
   createdAt,
-  sum: 0,
+  secondHalfScore: 0,
 })
 
 export const waitingUsersRepo = {
@@ -123,7 +122,7 @@ export const waitingUsersRepo = {
         .get()
 
       const docData = userDoc.data() as PlayingUser
-      const userScores = docData.score
+      const userScores = docData.scores
       const lastZeroIndex = userScores.lastIndexOf(0)
 
       const isToBeEliminated =
@@ -139,7 +138,6 @@ export const waitingUsersRepo = {
           .doc(userId)
           .update({
             elimination: true,
-            totalScore: 0,
           })
       } else {
         // 失格ではない場合にusersに追加し、ゲームを続行させる
@@ -184,7 +182,7 @@ export const waitingUsersRepo = {
         .collection('rooms')
         .doc(roomId)
         .collection('room')
-        .orderBy('totalScore', 'desc')
+        .orderBy('firstHalfScore', 'desc')
         .get()
         .then((snapshot) => {
           const users: PlayingUser[] = []
@@ -201,9 +199,7 @@ export const waitingUsersRepo = {
           .collection('room')
           .doc(user.id)
           .update({
-            firstHalfScore: user.totalScore,
-            score: [],
-            totalScore: 0,
+            scores: [],
             elimination: false,
           })
       })
@@ -234,7 +230,7 @@ export const waitingUsersRepo = {
         .collection('room')
         .doc(userId)
         .update({
-          score: newScores,
+          scores: newScores,
         })
 
       return {
@@ -251,38 +247,73 @@ export const waitingUsersRepo = {
     }
   },
 
-  updateTotalScore: async (
+  updateFirstHalfScore: async (
     roomId: string,
     userId: string,
     user: PlayingUser
   ) => {
     const { $firestore } = useNuxtApp()
-    const { score, firstHalfScore, elimination } = user
+    const { scores, elimination } = user
     user.elimination = false
     try {
       // score配列を元にtotalScoresを計算
-      const newTotalScore = elimination ? 0 : calculateScore(score)
+      const newFirstScore = elimination ? 0 : calculateScore(scores)
       await $firestore
         .collection('rooms')
         .doc(roomId)
         .collection('room')
         .doc(userId)
         .update({
-          totalScore: newTotalScore,
-          sum: firstHalfScore + newTotalScore,
+          firstHalfScore: newFirstScore,
         })
 
-      // 50点に到達すれば、その時点でゲームを終了させる
-      // if (newTotalScore === 50) {
-      //   await $firestore.collection('rooms').doc(roomId).update({
-      //     finishFirstHalf: true,
-      //     finishSecondHalf: true,
-      //     users: [],
-      //   })
-      // }
+      // 50点に到達すれば、その時点で前半を終了させる
+      if (newFirstScore === 50) {
+        const status: RoomStatus = 'FIRST_HALF_FINISHED'
+        await waitingRoomRepo.finishGame(roomId, status)
+      }
 
       return {
-        data: newTotalScore,
+        data: newFirstScore,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  updateSecondHalfScore: async (
+    roomId: string,
+    userId: string,
+    user: PlayingUser
+  ) => {
+    const { $firestore } = useNuxtApp()
+    const { scores, elimination } = user
+    user.elimination = false
+    try {
+      // score配列を元にtotalScoresを計算
+      const newSecondScore = elimination ? 0 : calculateScore(scores)
+      await $firestore
+        .collection('rooms')
+        .doc(roomId)
+        .collection('room')
+        .doc(userId)
+        .update({
+          secondHalfScore: newSecondScore,
+        })
+
+      // 50点に到達すれば、その時点で前半を終了させる
+      if (newSecondScore === 50) {
+        const status: RoomStatus = 'SECOND_HALF_FINISHED'
+        await waitingRoomRepo.finishGame(roomId, status)
+      }
+
+      return {
+        data: newSecondScore,
         success: true,
         error: null,
       }

@@ -34,7 +34,8 @@ const route = useRoute()
 const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
 const { room, subscribeRoomStatusAndPlayerIds } = useWaitingRoom()
-const { setScore, eliminateUser, updateTotalScore } = waitingUsersRepo
+const { setScore, eliminateUser, updateFirstHalfScore, updateSecondHalfScore } =
+  waitingUsersRepo
 const { clearPlayerIds } = waitingRoomRepo
 
 const userId = ref<string>('')
@@ -74,7 +75,7 @@ const maxLength = computed<number>(() => {
   if (!users.value || users.value.length < 1) return 1
   const array = []
   for (let index = 0; index < users.value.length; index++) {
-    array.push(users.value[index].score.length)
+    array.push(users.value[index].scores.length)
   }
   return Math.max.apply(null, array)
 })
@@ -124,7 +125,7 @@ const selectFourthScores = (index: number) => {
 
 const myScores = computed<number[]>(() => {
   if (!users) return []
-  const myScores = users.value.find((user) => user.id === userId.value)?.score
+  const myScores = users.value.find((user) => user.id === userId.value)?.scores
   if (!myScores) return []
   return myScores
 })
@@ -146,7 +147,12 @@ const clickOK = async () => {
   // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
   await setScore(roomId.value!, userId.value!, newScores)
   await eliminateUser(roomId.value!, userId.value!)
-  await updateTotalScore(roomId.value!, userId.value!, myUser.value!)
+
+  if (room.value.status === 'FIRST_HALF_STARTED') {
+    await updateFirstHalfScore(roomId.value!, userId.value!, myUser.value!)
+  } else if (room.value.status === 'SECOND_HALF_STARTED') {
+    await updateSecondHalfScore(roomId.value!, userId.value!, myUser.value!)
+  }
 
   // inputで入力された点数をリセット
   selectScore.value = []
@@ -255,7 +261,7 @@ watch(
                 {{ user.name }}
               </th>
 
-              <td v-for="(userScore, index) in user.score" :key="index">
+              <td v-for="(userScore, index) in user.scores" :key="index">
                 <span v-show="userScore === 0">
                   <v-icon color="red" :icon="mdiCloseThick" />
                 </span>
@@ -265,36 +271,22 @@ watch(
               </td>
 
               <td
-                v-for="n in spaceNumber(user.score.length)"
-                v-show="user.score.length < scoreLength"
+                v-for="n in spaceNumber(user.scores.length)"
+                v-show="user.scores.length < scoreLength"
                 :key="`${user.id}-${n}`"
               >
                 &nbsp;
               </td>
 
-              <td v-if="isStartedSecondHalf" class="border">
+              <td class="border" :class="[{ isActive: !isStartedSecondHalf }]">
                 {{ user.firstHalfScore }}/50
               </td>
-              <td
-                v-if="isStartedSecondHalf"
-                class="border"
-                :class="[{ isActive: isStartedSecondHalf }]"
-              >
-                {{ user.totalScore }}/50
+              <td class="border" :class="[{ isActive: isStartedSecondHalf }]">
+                {{ user.secondHalfScore }}/50
               </td>
 
-              <td
-                v-if="!isStartedSecondHalf"
-                class="border"
-                :class="[{ isActive: !isStartedSecondHalf }]"
-              >
-                {{ user.totalScore }}/50
-              </td>
-              <td v-if="!isStartedSecondHalf" class="border">
-                {{ user.firstHalfScore }}/50
-              </td>
               <td class="border">
-                {{ user.firstHalfScore + user.totalScore }}
+                {{ user.firstHalfScore + user.secondHalfScore }}
               </td>
             </tr>
           </tbody>

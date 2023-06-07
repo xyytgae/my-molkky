@@ -35,7 +35,7 @@ const startSecond = async () => {
   const copiedUsers = [...props.users]
   const playerIds = copiedUsers
     .sort((a, b) => {
-      return b.totalScore - a.totalScore
+      return b.firstHalfScore - a.firstHalfScore
     })
     .map((user) => user.id)
   await updateToStartSecondHalf(roomId.value!, playerIds)
@@ -56,9 +56,17 @@ const winners = ref<PlayingUser[]>([])
 const result = ref<PlayingUser[]>([])
 
 const getWinners = (users: PlayingUser[]): PlayingUser[] => {
-  const sortedPlayers = users.sort((a, b) => b.sum - a.sum)
-  const winnerScore = sortedPlayers[0].sum
-  return sortedPlayers.filter((player) => player.sum === winnerScore)
+  const sortedPlayers = users.sort(
+    (a, b) =>
+      b.firstHalfScore +
+      b.secondHalfScore -
+      (a.firstHalfScore + a.secondHalfScore)
+  )
+  const winnerScore =
+    sortedPlayers[0].firstHalfScore + sortedPlayers[0].secondHalfScore
+  return sortedPlayers.filter(
+    (player) => player.firstHalfScore + player.secondHalfScore === winnerScore
+  )
 }
 
 /**
@@ -142,10 +150,10 @@ if (props.isStartedSecondHalf) {
                   {{ r.firstHalfScore }}
                 </td>
                 <td>
-                  {{ r.totalScore }}
+                  {{ r.secondHalfScore }}
                 </td>
                 <td>
-                  {{ r.firstHalfScore + r.totalScore }}
+                  {{ r.firstHalfScore + r.secondHalfScore }}
                 </td>
               </tr>
             </tbody>
@@ -158,11 +166,9 @@ if (props.isStartedSecondHalf) {
                   {{ r.name }}
                   <span />
                 </th>
-                <td>
-                  {{ r.totalScore }}
-                </td>
                 <td>{{ r.firstHalfScore }}</td>
-                <td>{{ r.totalScore }}</td>
+                <td>0</td>
+                <td>{{ r.firstHalfScore }}</td>
               </tr>
             </tbody>
           </v-table>

@@ -197,9 +197,12 @@ export const waitingRoomRepo = {
     }
   },
   // ゲームを終了させる
-  finishGame: async (roomId: string): Promise<ApiResponse<string | null>> => {
+  finishGame: async (
+    roomId: string,
+    status: RoomStatus
+  ): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
-    const status: RoomStatus = 'SECOND_HALF_FINISHED'
+    // const status: RoomStatus = "FIRST_HALF_FINISHED"
     try {
       await $firestore.collection('rooms').doc(roomId).update({
         status,

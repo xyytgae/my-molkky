@@ -62,7 +62,11 @@ if (success) {
                     >
                       <th>
                         <v-icon
-                          v-if="history.users[0].sum === user.sum"
+                          v-if="
+                            history.users[0].firstHalfScore +
+                              history.users[0].secondHalfScore ===
+                            user.firstHalfScore + user.secondHalfScore
+                          "
                           color="orange"
                           :icon="mdiMedal"
                         />
@@ -73,11 +77,11 @@ if (success) {
                         {{ user.firstHalfScore }}
                       </td>
                       <td>
-                        {{ user.totalScore }}
+                        {{ user.secondHalfScore }}
                       </td>
 
                       <td>
-                        {{ user.firstHalfScore + user.totalScore }}
+                        {{ user.firstHalfScore + user.secondHalfScore }}
                       </td>
                     </tr>
                   </tbody>
