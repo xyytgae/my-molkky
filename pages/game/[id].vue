@@ -34,7 +34,8 @@ const route = useRoute()
 const { loginedUser } = useUser()
 const { users, subscribeUsers } = useWaitingUsers()
 const { room, subscribeRoomStatusAndPlayerIds } = useWaitingRoom()
-const { setScore, eliminateUser, updateTotalScore } = waitingUsersRepo
+const { setScore, eliminateUser, updateFirstHalfScore, updateSecondHalfScore } =
+  waitingUsersRepo
 const { clearPlayerIds } = waitingRoomRepo
 
 const userId = ref<string>('')
@@ -146,7 +147,12 @@ const clickOK = async () => {
   // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
   await setScore(roomId.value!, userId.value!, newScores)
   await eliminateUser(roomId.value!, userId.value!)
-  await updateTotalScore(roomId.value!, userId.value!, myUser.value!)
+
+  if (room.value.status === 'FIRST_HALF_STARTED') {
+    await updateFirstHalfScore(roomId.value!, userId.value!, myUser.value!)
+  } else if (room.value.status === 'SECOND_HALF_STARTED') {
+    await updateSecondHalfScore(roomId.value!, userId.value!, myUser.value!)
+  }
 
   // inputで入力された点数をリセット
   selectScore.value = []

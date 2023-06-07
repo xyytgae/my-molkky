@@ -18,7 +18,7 @@ const createDefaultUser = (
   name: user.name,
   iconImageUrl: user.iconImageUrl,
   createdAt,
-  sum: 0,
+  secondHalfScore: 0,
 })
 
 export const waitingUsersRepo = {
@@ -251,7 +251,50 @@ export const waitingUsersRepo = {
     }
   },
 
-  updateTotalScore: async (
+  updateFirstHalfScore: async (
+    roomId: string,
+    userId: string,
+    user: PlayingUser
+  ) => {
+    const { $firestore } = useNuxtApp()
+    const { scores, secondHalfScore, elimination } = user
+    user.elimination = false
+    try {
+      // score配列を元にtotalScoresを計算
+      const newFirstScore = elimination ? 0 : calculateScore(scores)
+      await $firestore
+        .collection('rooms')
+        .doc(roomId)
+        .collection('room')
+        .doc(userId)
+        .update({
+          totalScore: newFirstScore + secondHalfScore,
+          firstHalfScore: newFirstScore,
+        })
+
+      // 50点に到達すれば、その時点でゲームを終了させる
+      // if (newFirstScore === 50) {
+      //   await $firestore.collection('rooms').doc(roomId).update({
+      //     finishFirstHalf: true,
+      //     finishSecondHalf: true,
+      //     users: [],
+      //   })
+      // }
+
+      return {
+        data: newFirstScore,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  updateSecondHalfScore: async (
     roomId: string,
     userId: string,
     user: PlayingUser
@@ -261,19 +304,19 @@ export const waitingUsersRepo = {
     user.elimination = false
     try {
       // score配列を元にtotalScoresを計算
-      const newTotalScore = elimination ? 0 : calculateScore(scores)
+      const newSecondScore = elimination ? 0 : calculateScore(scores)
       await $firestore
         .collection('rooms')
         .doc(roomId)
         .collection('room')
         .doc(userId)
         .update({
-          totalScore: newTotalScore,
-          sum: firstHalfScore + newTotalScore,
+          totalScore: firstHalfScore + newSecondScore,
+          secondHalfScore: newSecondScore,
         })
 
       // 50点に到達すれば、その時点でゲームを終了させる
-      // if (newTotalScore === 50) {
+      // if (newSecondScore === 50) {
       //   await $firestore.collection('rooms').doc(roomId).update({
       //     finishFirstHalf: true,
       //     finishSecondHalf: true,
@@ -282,7 +325,7 @@ export const waitingUsersRepo = {
       // }
 
       return {
-        data: newTotalScore,
+        data: newSecondScore,
         success: true,
         error: null,
       }

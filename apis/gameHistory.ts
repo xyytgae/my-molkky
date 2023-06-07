@@ -18,10 +18,7 @@ export const gameHistoryRepository = {
         const { createdAt } = doc.data()
         data.push({ createdAt, users: [] })
 
-        const usersSnapshot = await doc.ref
-          .collection('game')
-          .orderBy('sum', 'desc')
-          .get()
+        const usersSnapshot = await doc.ref.collection('game').get()
 
         usersSnapshot.forEach((subDoc) => {
           data[index].users.push({ ...subDoc.data() })

@@ -47,10 +47,10 @@ export type PlayingUser = {
   elimination: boolean
   iconImageUrl: string
   firstHalfScore: number
+  secondHalfScore: number
   totalScore: number
   scores: Array<number>
   createdAt: firestore.Timestamp | firestore.FieldValue
   name: string
   stars: number
-  sum: number
 }

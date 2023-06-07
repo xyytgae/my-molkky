@@ -56,9 +56,17 @@ const winners = ref<PlayingUser[]>([])
 const result = ref<PlayingUser[]>([])
 
 const getWinners = (users: PlayingUser[]): PlayingUser[] => {
-  const sortedPlayers = users.sort((a, b) => b.sum - a.sum)
-  const winnerScore = sortedPlayers[0].sum
-  return sortedPlayers.filter((player) => player.sum === winnerScore)
+  const sortedPlayers = users.sort(
+    (a, b) =>
+      b.firstHalfScore +
+      b.secondHalfScore -
+      (a.firstHalfScore + a.secondHalfScore)
+  )
+  const winnerScore =
+    sortedPlayers[0].firstHalfScore + sortedPlayers[0].secondHalfScore
+  return sortedPlayers.filter(
+    (player) => player.firstHalfScore + player.secondHalfScore === winnerScore
+  )
 }
 
 /**
