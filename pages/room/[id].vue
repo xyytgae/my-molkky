@@ -191,7 +191,6 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
           </v-row>
 
           <h1>{{ users.length }}/4</h1>
-          {{ orderedPlayerIds }}
         </v-card>
       </v-container>
 
