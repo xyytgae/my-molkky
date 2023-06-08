@@ -92,12 +92,13 @@ const clickOK = async () => {
 
   // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
   await setScore(roomId.value!, userId.value!, newScores)
-  await eliminateUser(roomId.value!, userId.value!)
+  const { data } = await eliminateUser(roomId.value!, userId.value!)
+  if (data === null) return
 
   if (room.value.status === 'FIRST_HALF_STARTED') {
-    await updateFirstHalfScore(roomId.value!, userId.value!, myUser)
+    await updateFirstHalfScore(roomId.value!, userId.value!, newScores, data)
   } else if (room.value.status === 'SECOND_HALF_STARTED') {
-    await updateSecondHalfScore(roomId.value!, userId.value!, myUser)
+    await updateSecondHalfScore(roomId.value!, userId.value!, newScores, data)
   }
 
   // inputで入力された点数をリセット

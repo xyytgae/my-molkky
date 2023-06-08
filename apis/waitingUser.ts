@@ -163,7 +163,7 @@ export const waitingUsersRepo = {
         })
 
       return {
-        data: userId,
+        data: isToBeEliminated,
         success: true,
         error: null,
       }
@@ -250,11 +250,12 @@ export const waitingUsersRepo = {
   updateFirstHalfScore: async (
     roomId: string,
     userId: string,
-    user: PlayingUser
+    scores: number[],
+    elimination: boolean
   ) => {
     const { $firestore } = useNuxtApp()
-    const { scores, elimination } = user
-    user.elimination = false
+    // const { scores, elimination } = user
+    // user.elimination = false
     try {
       // score配列を元にtotalScoresを計算
       const newFirstScore = elimination ? 0 : calculateScore(scores)
@@ -289,11 +290,10 @@ export const waitingUsersRepo = {
   updateSecondHalfScore: async (
     roomId: string,
     userId: string,
-    user: PlayingUser
+    scores: number[],
+    elimination: boolean
   ) => {
     const { $firestore } = useNuxtApp()
-    const { scores, elimination } = user
-    user.elimination = false
     try {
       // score配列を元にtotalScoresを計算
       const newSecondScore = elimination ? 0 : calculateScore(scores)
