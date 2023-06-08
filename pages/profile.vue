@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
+import { mdiAccountCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepository } from '~/apis/user'
@@ -77,9 +78,12 @@ starCount.value = loginedUser.value!.stars
               <img class="icon" :src="formInputs.image" @click="selectImage" />
             </template>
             <template v-else>
-              <v-icon color="gray" size="150" @click="selectImage"
-                >mdi-account-circle</v-icon
-              >
+              <v-icon
+                color="grey"
+                size="150"
+                :icon="mdiAccountCircle"
+                @click="selectImage"
+              />
             </template>
             <input
               ref="inputRef"
