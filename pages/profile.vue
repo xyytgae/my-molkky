@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiAccountCircle } from '@mdi/js'
+import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepository } from '~/apis/user'
@@ -67,60 +67,70 @@ starCount.value = loginedUser.value!.stars
 <template>
   <div>
     <v-app-bar app color="primary" dark>
-      <v-toolbar-title>プロフィール編集</v-toolbar-title>
+      <v-app-bar-title>プロフィール編集</v-app-bar-title>
     </v-app-bar>
 
     <v-main>
-      <v-container class="d-flex justify-center align-center">
-        <form class="form" @submit.prevent="onSubmit">
-          <div class="image">
-            <template v-if="formInputs.image">
-              <img class="icon" :src="formInputs.image" @click="selectImage" />
-            </template>
-            <template v-else>
-              <v-icon
-                color="grey"
-                size="150"
-                :icon="mdiAccountCircle"
-                @click="selectImage"
+      <v-container class="d-flex justify-center align-center py-12">
+        <v-card elevation="0">
+          <form @submit.prevent="onSubmit">
+            <div>
+              <template v-if="formInputs.image">
+                <v-icon
+                  v-if="formInputs.image"
+                  size="30"
+                  class="close-icon"
+                  :icon="mdiCloseCircle"
+                  @click="formInputs.image = ''"
+                />
+                <v-avatar class="user-icon">
+                  <img :src="formInputs.image" @click="selectImage" />
+                </v-avatar>
+              </template>
+              <template v-else>
+                <v-icon
+                  color="grey"
+                  class="user-icon"
+                  :icon="mdiAccountCircle"
+                  @click="selectImage"
+                />
+              </template>
+              <input
+                ref="inputRef"
+                type="file"
+                class="d-none"
+                accept="image/*"
+                @change="uploadImage"
               />
-            </template>
-            <input
-              ref="inputRef"
-              type="file"
-              style="display: none"
-              accept="image/*"
-              @change="uploadImage"
-            />
-          </div>
-          <div>
-            <v-text-field
-              v-model="formInputs.name"
-              label="プレイヤー名"
-              class="mt-2"
-              counter="8"
-              variant="underlined"
-              :persistent-counter="true"
-            />
-          </div>
+            </div>
+            <div>
+              <v-text-field
+                v-model="formInputs.name"
+                label="名前"
+                class="my-4"
+                counter="8"
+                :persistent-counter="true"
+              />
+            </div>
 
-          <div class="star">
-            <span style="color: #ffa000"> ★ </span>
-            ×{{ starCount }}
-          </div>
+            <div class="star">
+              <span style="color: #ffa000"> ★ </span>
+              ×{{ starCount }}
+            </div>
 
-          <div class="button">
-            <v-btn color="primary" @click="onSubmit">保存</v-btn>
-          </div>
-        </form>
+            <div class="button">
+              <v-btn color="primary" @click="onSubmit">保存</v-btn>
+            </div>
+          </form>
+        </v-card>
       </v-container>
     </v-main>
   </div>
 </template>
 
 <style scoped>
-.form {
-  margin: 150px auto auto;
+form {
+  margin: auto;
 }
 
 .button {
@@ -131,16 +141,23 @@ starCount.value = loginedUser.value!.stars
   text-align: center;
 }
 
-.image {
-  margin-left: auto;
-  margin-right: auto;
-  width: 10rem;
-  height: 10rem;
+.user-icon {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background-color: white;
 }
 
-.icon {
-  width: 10rem;
-  height: 10rem;
-  border-radius: 80px;
+.user-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.close-icon {
+  position: absolute;
+  z-index: 1;
+  right: 0;
 }
 </style>

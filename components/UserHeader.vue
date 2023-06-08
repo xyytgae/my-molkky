@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiAccount, mdiSwordCross, mdiHome } from '@mdi/js'
+import { mdiAccount, mdiSwordCross, mdiHome, mdiAccountCircle } from '@mdi/js'
 import { ref, useUser } from '#imports'
 
 type Link = {
@@ -43,12 +43,21 @@ const handleLogout = async () => {
   <div>
     <v-navigation-drawer v-model="isDrawerOpen" app clipped>
       <v-list>
-        <v-list-item
-          v-if="loginedUser"
-          :prepend-avatar="loginedUser.iconImageUrl"
-          :title="loginedUser.name"
-          class="my-4"
-        />
+        <v-list-item v-if="loginedUser" :title="loginedUser.name" class="my-4">
+          <template #prepend>
+            <v-avatar
+              v-if="loginedUser && loginedUser.iconImageUrl"
+              :image="loginedUser.iconImageUrl"
+              class="user-icon"
+            />
+            <v-icon
+              v-else
+              color="grey"
+              class="user-icon"
+              :icon="mdiAccountCircle"
+            />
+          </template>
+        </v-list-item>
       </v-list>
 
       <v-divider />
@@ -70,9 +79,15 @@ const handleLogout = async () => {
       </template>
       <nuxt-link to="/profile">
         <v-avatar
-          v-if="loginedUser"
+          v-if="loginedUser && loginedUser.iconImageUrl"
           :image="loginedUser.iconImageUrl"
-          size="large"
+          class="user-icon"
+        />
+        <v-icon
+          v-else
+          color="grey"
+          class="user-icon"
+          :icon="mdiAccountCircle"
         />
       </nuxt-link>
 
@@ -97,5 +112,13 @@ const handleLogout = async () => {
 
 .star {
   color: #ffa000;
+}
+.user-icon {
+  width: 15vw;
+  max-width: 48px;
+  height: 15vw;
+  max-height: 48px;
+  border-radius: 50%;
+  background-color: white;
 }
 </style>

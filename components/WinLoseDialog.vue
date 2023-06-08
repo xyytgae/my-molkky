@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
+import { mdiAccountCircle } from '@mdi/js'
 import { PlayingUser } from '../types/api'
 import { ref, useUser } from '#imports'
 import { waitingUsersRepo } from '~/apis/waitingUser'
@@ -142,7 +143,17 @@ if (props.isStartedSecondHalf) {
             <tbody v-if="isStartedSecondHalf">
               <tr v-for="r in result" :key="r.id">
                 <th>
-                  <img class="image" :src="r.iconImageUrl" />
+                  <v-avatar
+                    v-if="r && r.iconImageUrl"
+                    :image="r.iconImageUrl"
+                    class="user-icon my-auto"
+                  />
+                  <v-icon
+                    v-else
+                    color="grey"
+                    class="user-icon my-auto"
+                    :icon="mdiAccountCircle"
+                  />
                   {{ r.name }}
                   <span />
                 </th>
@@ -162,7 +173,17 @@ if (props.isStartedSecondHalf) {
             <tbody v-else>
               <tr v-for="r in result" :key="r.id">
                 <th>
-                  <img class="image" :src="r.iconImageUrl" />
+                  <v-avatar
+                    v-if="r && r.iconImageUrl"
+                    :image="r.iconImageUrl"
+                    class="user-icon my-auto"
+                  />
+                  <v-icon
+                    v-else
+                    color="grey"
+                    class="user-icon my-auto"
+                    :icon="mdiAccountCircle"
+                  />
                   {{ r.name }}
                   <span />
                 </th>
@@ -179,10 +200,13 @@ if (props.isStartedSecondHalf) {
 </template>
 
 <style scoped>
-.image {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 30px;
+.user-icon {
+  width: 15vw;
+  max-width: 48px;
+  height: 15vw;
+  max-height: 48px;
+  border-radius: 50%;
+  background-color: white;
 }
 
 th {
