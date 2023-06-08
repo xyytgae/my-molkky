@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiAccountCircle } from '@mdi/js'
+import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepository } from '~/apis/user'
@@ -66,17 +66,24 @@ const uploadImage = async (event: Event) => {
     <v-main>
       <v-container class="d-flex justify-center align-center py-12">
         <v-card elevation="0">
-          <form class="v-form" @submit.prevent="onSubmit">
-            <div class="form">
+          <form @submit.prevent="onSubmit">
+            <div>
               <template v-if="formInputs.image">
-                <v-avatar size="200">
+                <v-icon
+                  v-if="formInputs.image"
+                  size="30"
+                  class="close-icon"
+                  :icon="mdiCloseCircle"
+                  @click="formInputs.image = ''"
+                />
+                <v-avatar class="user-icon">
                   <img :src="formInputs.image" @click="selectImage" />
                 </v-avatar>
               </template>
               <template v-else>
                 <v-icon
                   color="grey"
-                  size="200"
+                  class="user-icon"
                   :icon="mdiAccountCircle"
                   @click="selectImage"
                 />
@@ -92,9 +99,10 @@ const uploadImage = async (event: Event) => {
             <div>
               <v-text-field
                 v-model="formInputs.name"
-                label="プレイヤー名"
+                label="名前"
+                class="my-4"
                 counter="8"
-                hide-details="auto"
+                :persistent-counter="true"
               />
             </div>
 
@@ -109,17 +117,31 @@ const uploadImage = async (event: Event) => {
 </template>
 
 <style scoped>
-.v-form {
+form {
   margin: auto;
-  /* justify-items: center; */
-  /* justify-content: center; */
-}
-
-.form {
-  text-align: center;
 }
 
 .button {
   text-align: center;
+}
+
+.user-icon {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background-color: white;
+}
+
+.user-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.close-icon {
+  position: absolute;
+  z-index: 1;
+  right: 0;
 }
 </style>
