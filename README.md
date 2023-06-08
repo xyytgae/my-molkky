@@ -133,6 +133,8 @@ erDiagram
 ├─apis // コントローラー
 ├─assets
 ├─components  // 使い回すコンポーネント
+├─composables
+├─compositions  // provide/inject
 ├─constants  // 定数
 ├─fragments  // apiに直接アクセス可能な使い回さないコンポーネント
 ├─layouts
@@ -140,7 +142,7 @@ erDiagram
 ├─modules  // 共通関数
 ├─pages
 ├─plugins
-├─store
+├─static
 ├─tests
 └─types  // TypeScriptの型
 
