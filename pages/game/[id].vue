@@ -20,7 +20,7 @@ import {
 } from '#imports'
 import { waitingUsersRepo } from '~/apis/waitingUser'
 import { waitingRoomRepo } from '~/apis/waitingRoom'
-import { PlayingUser } from '~~/types/api'
+import { getMaxSubArrayLength } from '~/modules/getMaxSubArrayLength'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -38,124 +38,71 @@ const { setScore, eliminateUser, updateFirstHalfScore, updateSecondHalfScore } =
   waitingUsersRepo
 const { clearPlayerIds } = waitingRoomRepo
 
+const ALL_SKITTLES: readonly (readonly number[])[] = [
+  [7, 9, 8],
+  [5, 11, 12, 6],
+  [3, 10, 4],
+  [1, 2],
+] as const
+
 const userId = ref<string>('')
 const roomId = ref<string>('')
 const unsubscribeRoom = ref<Function | null>(null)
 const unsubscribeUsers = ref<Function | null>(null)
 
-const judge = ref<boolean>(true)
-const howToUse = ref<boolean>(false)
-const dialog = ref<boolean>(false)
+const isHowToUseOpen = ref<boolean>(false)
+const isSelectSkittlesDialogOpen = ref<boolean>(false)
+const isWinLoseDialogOpen = ref<boolean>(false)
+const isSecondHalfStarted = ref<boolean>(false)
 
-const selectScore = ref<number[]>([])
-const allScores = ref<number[][]>([
-  [7, 9, 8],
-  [5, 11, 12, 6],
-  [3, 10, 4],
-  [1, 2],
-])
+const selectedSkittles = ref<number[]>([])
+const firstSkittleRefs = ref<HTMLInputElement[] | null>(null)
+const secondSkittleRefs = ref<HTMLInputElement[] | null>(null)
+const thirdSkittleRefs = ref<HTMLInputElement[] | null>(null)
+const fourthSkittleRefs = ref<HTMLInputElement[] | null>(null)
 
-const firstScores = ref<HTMLInputElement[] | null>(null)
-const secondScores = ref<HTMLInputElement[] | null>(null)
-const thirdScores = ref<HTMLInputElement[] | null>(null)
-const fourthScores = ref<HTMLInputElement[] | null>(null)
-
-const isShowWinLoseDialog = ref<boolean>(false)
-const isStartedSecondHalf = ref<boolean>(false)
-
-const score = computed<number>(() => {
-  if (selectScore.value.length === 1) {
-    return selectScore.value[0]
-  } else {
-    return selectScore.value.length
-  }
+const temporaryScore = computed<number>(() => {
+  if (selectedSkittles.value.length === 1) return selectedSkittles.value[0]
+  return selectedSkittles.value.length
 })
 
-const maxLength = computed<number>(() => {
+const maxInning = computed<number>(() => {
   if (!users.value || users.value.length < 1) return 1
-  const array = []
-  for (let index = 0; index < users.value.length; index++) {
-    array.push(users.value[index].scores.length)
-  }
-  return Math.max.apply(null, array)
+  const maxInning =
+    getMaxSubArrayLength(users.value.map((user) => user.scores)) + 1
+  return maxInning
 })
 
-const scoreLength = computed<number>(() => {
-  if (judge.value) return 1
-  return maxLength.value
-})
-
-const spaceNumber = computed<(number: number) => number>(
-  () => (number: number) => {
-    if (maxLength.value - number < 1) {
-      return 1
-    } else {
-      return maxLength.value - number
-    }
-  }
-)
-
-const switchDialog = () => {
-  dialog.value = !dialog.value
-}
-
-const closeDialog = () => {
-  isShowWinLoseDialog.value = false
-}
-const selectFirstScores = (index: number) => {
-  if (firstScores.value) {
-    firstScores.value[index].click()
+const selectSkittle = (
+  inputElements: HTMLInputElement[] | null,
+  index: number
+) => {
+  if (inputElements) {
+    inputElements[index].click()
   }
 }
-const selectSecondScores = (index: number) => {
-  if (secondScores.value) {
-    secondScores.value[index].click()
-  }
-}
-const selectThirdScores = (index: number) => {
-  if (thirdScores.value) {
-    thirdScores.value[index].click()
-  }
-}
-const selectFourthScores = (index: number) => {
-  if (fourthScores.value) {
-    fourthScores.value[index].click()
-  }
-}
-
-const myScores = computed<number[]>(() => {
-  if (!users) return []
-  const myScores = users.value.find((user) => user.id === userId.value)?.scores
-  if (!myScores) return []
-  return myScores
-})
-
-const myUser = computed<PlayingUser | null>(() => {
-  if (!users) return null
-  const myUser = users.value.find((user) => user.id === userId.value)
-  if (!myUser) return null
-  return myUser
-})
 
 const clickOK = async () => {
-  judge.value = false
-  // this.dialog = false
-  switchDialog()
+  isSelectSkittlesDialogOpen.value = false
 
-  const newScores = [...myScores.value, score.value]
+  const myUser = users.value?.find((user) => user.id === userId.value)
+  if (!myUser) return
+
+  const newScores = [...myUser.scores, temporaryScore.value]
 
   // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
   await setScore(roomId.value!, userId.value!, newScores)
-  await eliminateUser(roomId.value!, userId.value!)
+  const { data } = await eliminateUser(roomId.value!, userId.value!)
+  if (data === null) return
 
   if (room.value.status === 'FIRST_HALF_STARTED') {
-    await updateFirstHalfScore(roomId.value!, userId.value!, myUser.value!)
+    await updateFirstHalfScore(roomId.value!, userId.value!, newScores, data)
   } else if (room.value.status === 'SECOND_HALF_STARTED') {
-    await updateSecondHalfScore(roomId.value!, userId.value!, myUser.value!)
+    await updateSecondHalfScore(roomId.value!, userId.value!, newScores, data)
   }
 
   // inputで入力された点数をリセット
-  selectScore.value = []
+  selectedSkittles.value = []
 }
 
 onUnmounted(() => {
@@ -186,18 +133,18 @@ watch(
     switch (newStatus) {
       // 後半終了
       case 'SECOND_HALF_FINISHED':
-        isShowWinLoseDialog.value = true
+        isWinLoseDialogOpen.value = true
         break
 
       // 後半開始
       case 'SECOND_HALF_STARTED':
-        isShowWinLoseDialog.value = false
-        isStartedSecondHalf.value = true
+        isWinLoseDialogOpen.value = false
+        isSecondHalfStarted.value = true
         break
 
       // 前半終了
       case 'FIRST_HALF_FINISHED':
-        isShowWinLoseDialog.value = true
+        isWinLoseDialogOpen.value = true
         await clearPlayerIds(roomId.value)
         break
     }
@@ -208,30 +155,28 @@ watch(
 <template>
   <div>
     <RoomHeader :room="room">
-      <h1 v-if="isStartedSecondHalf" style="border: 1px solid white">後半</h1>
-      <h1 v-else style="border: 1px solid white">前半</h1>
+      <h1 v-if="isSecondHalfStarted" class="room-status">後半</h1>
+      <h1 v-else class="room-status">前半</h1>
     </RoomHeader>
 
-    <!-- <WinnerDialog></WinnerDialog> -->
     <v-main>
       <v-container fluid>
+        <!-- NOTE: 最新のusersを表示する都合上v-ifで表示を切り替える -->
         <WinLoseDialog
-          v-if="isShowWinLoseDialog"
+          v-if="isWinLoseDialogOpen"
           :users="users"
-          :is-started-second-half="isStartedSecondHalf"
-          @close-dialog="closeDialog"
+          :is-started-second-half="isSecondHalfStarted"
         />
 
         <v-table class="table">
           <thead>
             <tr>
-              <th>名前</th>
-              <th v-if="judge">1回</th>
-              <th v-for="n in maxLength" v-else :key="n">{{ n }}回</th>
-              <th class="border" :class="[{ isActive: !isStartedSecondHalf }]">
+              <th>名前{{ maxInning }}</th>
+              <th v-for="n in maxInning" :key="n">{{ n }}回</th>
+              <th class="border" :class="[{ isActive: !isSecondHalfStarted }]">
                 前半
               </th>
-              <th class="border" :class="[{ isActive: isStartedSecondHalf }]">
+              <th class="border" :class="[{ isActive: isSecondHalfStarted }]">
                 後半
               </th>
               <th class="border">合計</th>
@@ -271,17 +216,17 @@ watch(
               </td>
 
               <td
-                v-for="n in spaceNumber(user.scores.length)"
-                v-show="user.scores.length < scoreLength"
+                v-for="n in maxInning - user.scores.length"
+                v-show="user.scores.length < maxInning"
                 :key="`${user.id}-${n}`"
               >
                 &nbsp;
               </td>
 
-              <td class="border" :class="[{ isActive: !isStartedSecondHalf }]">
+              <td class="border" :class="[{ isActive: !isSecondHalfStarted }]">
                 {{ user.firstHalfScore }}/50
               </td>
-              <td class="border" :class="[{ isActive: isStartedSecondHalf }]">
+              <td class="border" :class="[{ isActive: isSecondHalfStarted }]">
                 {{ user.secondHalfScore }}/50
               </td>
 
@@ -292,10 +237,10 @@ watch(
           </tbody>
         </v-table>
 
-        <v-dialog v-model="dialog" max-width="600px">
+        <v-dialog v-model="isSelectSkittlesDialogOpen" max-width="600px">
           <v-card color="#387d39" dark>
             <v-card-actions>
-              <v-btn icon @click="switchDialog">
+              <v-btn icon @click="isSelectSkittlesDialogOpen = false">
                 <v-icon color="white" :icon="mdiWindowClose" />
               </v-btn>
 
@@ -314,92 +259,92 @@ watch(
               <v-col cols="12" class="input">
                 <div class="skittles">
                   <div
-                    v-for="(firstScore, index) in allScores[0]"
+                    v-for="(firstSkittle, index) in ALL_SKITTLES[0]"
                     :key="index"
                     class="skittle"
-                    @click="selectFirstScores(index)"
+                    @click="selectSkittle(firstSkittleRefs, index)"
                   >
                     <input
-                      ref="firstScores"
-                      v-model="selectScore"
-                      style="display: none"
+                      ref="firstSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
                       type="checkbox"
-                      :value="firstScore"
+                      :value="firstSkittle"
                     />
-                    <div class="score">{{ firstScore }}</div>
+                    <div class="score">{{ firstSkittle }}</div>
                   </div>
                 </div>
 
                 <div class="skittles">
                   <div
-                    v-for="(secondScore, index) in allScores[1]"
+                    v-for="(secondSkittle, index) in ALL_SKITTLES[1]"
                     :key="index"
                     class="skittle"
-                    @click="selectSecondScores(index)"
+                    @click="selectSkittle(secondSkittleRefs, index)"
                   >
                     <input
-                      ref="secondScores"
-                      v-model="selectScore"
-                      style="display: none"
+                      ref="secondSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
                       type="checkbox"
-                      :value="secondScore"
+                      :value="secondSkittle"
                     />
-                    <div class="score">{{ secondScore }}</div>
+                    <div class="score">{{ secondSkittle }}</div>
                   </div>
                 </div>
 
                 <div class="skittles">
                   <div
-                    v-for="(thirdScore, index) in allScores[2]"
+                    v-for="(thirdSkittle, index) in ALL_SKITTLES[2]"
                     :key="index"
                     class="skittle"
-                    @click="selectThirdScores(index)"
+                    @click="selectSkittle(thirdSkittleRefs, index)"
                   >
                     <input
-                      ref="thirdScores"
-                      v-model="selectScore"
-                      style="display: none"
+                      ref="thirdSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
                       type="checkbox"
-                      :value="thirdScore"
+                      :value="thirdSkittle"
                     />
-                    <div class="score">{{ thirdScore }}</div>
+                    <div class="score">{{ thirdSkittle }}</div>
                   </div>
                 </div>
 
                 <div class="skittles">
                   <div
-                    v-for="(fourthScore, index) in allScores[3]"
+                    v-for="(fourthSkittle, index) in ALL_SKITTLES[3]"
                     :key="index"
                     class="skittle"
-                    @click="selectFourthScores(index)"
+                    @click="selectSkittle(fourthSkittleRefs, index)"
                   >
                     <input
-                      ref="fourthScores"
-                      v-model="selectScore"
-                      style="display: none"
+                      ref="fourthSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
                       type="checkbox"
-                      :value="fourthScore"
+                      :value="fourthSkittle"
                     />
-                    <div class="score">{{ fourthScore }}</div>
+                    <div class="score">{{ fourthSkittle }}</div>
                   </div>
                 </div>
               </v-col>
             </v-container>
             <v-card-title class="text-h6 text-white">
-              点数：{{ score }}
+              点数：{{ temporaryScore }}
             </v-card-title>
             <v-card-actions>
               <v-spacer />
-              <v-btn icon @click="howToUse = !howToUse">
+              <v-btn icon @click="isHowToUseOpen = !isHowToUseOpen">
                 <v-icon
                   color="white"
-                  :icon="howToUse ? mdiChevronUp : mdiChevronDown"
+                  :icon="isHowToUseOpen ? mdiChevronUp : mdiChevronDown"
                 />
               </v-btn>
             </v-card-actions>
 
             <v-expand-transition>
-              <div v-show="howToUse">
+              <div v-show="isHowToUseOpen">
                 <v-divider />
                 <v-card-text class="how-to-use">
                   <h3>＜使い方＞</h3>
@@ -414,19 +359,41 @@ watch(
       </v-container>
     </v-main>
 
-    <GameFooter>
-      <OthersTurnDialog v-show="userId !== room.playerIds[0]" />
-      <YourTurnDialog v-show="userId === room.playerIds[0]" />
-      <v-spacer />
-      <v-btn
-        variant="flat"
-        :disabled="userId !== room.playerIds[0]"
-        icon
-        @click="switchDialog"
-      >
-        <v-icon :icon="mdiPencil" color="primary" />
-      </v-btn>
-    </GameFooter>
+    <v-footer app class="pa-0" color="primary">
+      <v-card color="primary" width="100%">
+        <v-card-actions>
+          <v-spacer />
+          <v-card v-show="userId !== room.playerIds[0]">
+            <v-card-text class="py-3 font-weight-bold">
+              他のプレイヤーが入力中です
+              <v-progress-linear
+                color="deep-purple accent-4"
+                height="6"
+                indeterminate
+                rounded
+              />
+            </v-card-text>
+          </v-card>
+
+          <v-card v-show="userId === room.playerIds[0]">
+            <v-card-text class="py-1 px-2 font-weight-bold"
+              >あなたの番です。<br />
+              右のボタンからスコアを入力してください
+            </v-card-text>
+          </v-card>
+
+          <v-spacer />
+          <v-btn
+            variant="flat"
+            :disabled="userId !== room.playerIds[0]"
+            icon
+            @click="isSelectSkittlesDialogOpen = true"
+          >
+            <v-icon :icon="mdiPencil" color="primary" />
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-footer>
   </div>
 </template>
 
@@ -512,5 +479,9 @@ input:checked + div {
 
 .border {
   border: 1px solid grey;
+}
+
+.room-status {
+  border: 1px solid white;
 }
 </style>
