@@ -7,6 +7,7 @@ import {
   mdiChevronUp,
   mdiCloseThick,
   mdiWindowClose,
+  mdiAccountCircle,
 } from '@mdi/js'
 import {
   definePageMeta,
@@ -201,7 +202,18 @@ watch(
                     class="my-auto"
                     :icon="mdiCloseThick"
                   />
-                  <img class="image" :src="user.iconImageUrl" />
+
+                  <v-avatar
+                    v-if="user && user.iconImageUrl"
+                    :image="user.iconImageUrl"
+                    class="user-icon my-auto"
+                  />
+                  <v-icon
+                    v-else
+                    color="grey"
+                    class="user-icon my-auto"
+                    :icon="mdiAccountCircle"
+                  />
                 </span>
                 {{ user.name }}
               </th>
@@ -452,10 +464,13 @@ input:checked + div {
   margin-left: auto;
 }
 
-.image {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 30px;
+.user-icon {
+  width: 15vw;
+  max-width: 48px;
+  height: 15vw;
+  max-height: 48px;
+  border-radius: 50%;
+  background-color: white;
 }
 
 .icon {

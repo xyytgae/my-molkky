@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
+import { mdiAccountCircle } from '@mdi/js'
 import {
   definePageMeta,
   ref,
@@ -177,7 +178,17 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
                     {{ user.order + 1 }}
                   </v-card-title>
 
-                  <img :src="user.iconImageUrl" class="icon" />
+                  <v-avatar
+                    v-if="user && user.iconImageUrl"
+                    :image="user.iconImageUrl"
+                    class="user-icon my-auto"
+                  />
+                  <v-icon
+                    v-else
+                    color="grey"
+                    class="user-icon my-auto"
+                    :icon="mdiAccountCircle"
+                  />
                   <v-card-title class="text-h6">
                     <span>{{ user.name }}</span>
 
@@ -231,12 +242,13 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 </template>
 
 <style scoped>
-.icon {
-  width: 5rem;
-  height: 5rem;
-  border-radius: 40px;
-  object-fit: cover;
-  margin: 10px;
+.user-icon {
+  width: 15vw;
+  max-width: 64px;
+  height: 15vw;
+  max-height: 64px;
+  border-radius: 50%;
+  background-color: white;
 }
 
 .cards {
