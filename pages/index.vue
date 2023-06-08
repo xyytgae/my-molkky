@@ -6,11 +6,9 @@ const router = useRouter()
 
 <template>
   <div>
-    <UserHeader />
     <v-main>
       <div class="class">
         <h1>Molkky</h1>
-        <!-- <v-btn color="primary" @click="changeName"><span>名前変更</span></v-btn> -->
         <v-btn color="primary" @click="router.push('/rooms')"
           ><span>START</span></v-btn
         >
