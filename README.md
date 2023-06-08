@@ -29,10 +29,9 @@
 - ゲーム履歴閲覧
 
 ## 実装予定機能
-- 複数写真投稿
-- 編集
-- 削除
-- ハッシュタグカラー変更
+- プレイルーム編集、削除
+- プレイルームでQRコードを表示
+- PWA
 
 ## 環境構築
 
@@ -54,7 +53,8 @@ $ yarn commit
 ```
 
 ## 技術
-- Nuxt.js（2系）→ Nuxt.js（3系）[移行中](https://github.com/xyytgae/my-molkky/tree/develop)
+- ~~Nuxt.js 2~~ → Nuxt.js 3　移行完了
+- TypeScript
 - Vuetify.js
 - Firebase（Authentication、Firestore、Storage、Hosting）
 
@@ -120,4 +120,28 @@ erDiagram
   users ||--o{ games : ""
   games ||--o{ game : ""
   rooms ||--o{ players : ""
+```
+
+
+## ディレクトリ構成
+
+```
+.
+├─.firebase
+├─.github
+├─.husky
+├─apis // コントローラー
+├─assets
+├─components  // 使い回すコンポーネント
+├─constants  // 定数
+├─fragments  // apiに直接アクセス可能な使い回さないコンポーネント
+├─layouts
+├─middleware
+├─modules  // 共通関数
+├─pages
+├─plugins
+├─store
+├─tests
+└─types  // TypeScriptの型
+
 ```
