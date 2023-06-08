@@ -3,8 +3,8 @@
  * @param nestedArray
  * @returns
  */
-
 export const getMaxSubArrayLength = (nestedArray: number[][]): number => {
+  if (nestedArray.length === 0) return 0
   const arrayLengths = nestedArray.map((subArray) => subArray.length)
   return Math.max(...arrayLengths)
 }
