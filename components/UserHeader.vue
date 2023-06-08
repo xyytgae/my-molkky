@@ -3,17 +3,17 @@ import { useRouter } from '#app'
 import { mdiAccount, mdiSwordCross, mdiHome } from '@mdi/js'
 import { ref, useUser } from '#imports'
 
+type Link = {
+  title: string
+  icon: string
+  url: string
+}
+
 const { loginedUser, logout } = useUser()
 const router = useRouter()
 
-const drawer = ref<boolean>(false)
-const linkList = ref<
-  {
-    title: string
-    icon: string
-    url: string
-  }[]
->([
+const isDrawerOpen = ref<boolean>(false)
+const linkList: Link[] = [
   {
     title: 'プロフィール変更',
     icon: mdiAccount,
@@ -29,7 +29,7 @@ const linkList = ref<
     icon: mdiHome,
     url: '/',
   },
-])
+]
 
 const handleLogout = async () => {
   const { success } = await logout()
@@ -41,7 +41,7 @@ const handleLogout = async () => {
 
 <template>
   <div>
-    <v-navigation-drawer v-model="drawer" app clipped>
+    <v-navigation-drawer v-model="isDrawerOpen" app clipped>
       <v-list>
         <v-list-item
           v-if="loginedUser"
@@ -66,7 +66,7 @@ const handleLogout = async () => {
     </v-navigation-drawer>
     <v-app-bar app color="primary" dark>
       <template #prepend>
-        <v-app-bar-nav-icon @click="drawer = !drawer" />
+        <v-app-bar-nav-icon @click="isDrawerOpen = !isDrawerOpen" />
       </template>
       <nuxt-link to="/profile">
         <v-avatar
