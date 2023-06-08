@@ -159,14 +159,13 @@ watch(
       <h1 v-else class="room-status">前半</h1>
     </RoomHeader>
 
-    <!-- <WinnerDialog></WinnerDialog> -->
     <v-main>
       <v-container fluid>
+        <!-- NOTE: 最新のusersを表示する都合上v-ifで表示を切り替える -->
         <WinLoseDialog
           v-if="isWinLoseDialogOpen"
           :users="users"
           :is-started-second-half="isSecondHalfStarted"
-          @close-dialog="isWinLoseDialogOpen = false"
         />
 
         <v-table class="table">
@@ -360,19 +359,41 @@ watch(
       </v-container>
     </v-main>
 
-    <GameFooter>
-      <OthersTurnDialog v-show="userId !== room.playerIds[0]" />
-      <YourTurnDialog v-show="userId === room.playerIds[0]" />
-      <v-spacer />
-      <v-btn
-        variant="flat"
-        :disabled="userId !== room.playerIds[0]"
-        icon
-        @click="isSelectSkittlesDialogOpen = true"
-      >
-        <v-icon :icon="mdiPencil" color="primary" />
-      </v-btn>
-    </GameFooter>
+    <v-footer app class="pa-0" color="primary">
+      <v-card color="primary" width="100%">
+        <v-card-actions>
+          <v-spacer />
+          <v-card v-show="userId !== room.playerIds[0]">
+            <v-card-text class="py-3 font-weight-bold">
+              他のプレイヤーが入力中です
+              <v-progress-linear
+                color="deep-purple accent-4"
+                height="6"
+                indeterminate
+                rounded
+              />
+            </v-card-text>
+          </v-card>
+
+          <v-card v-show="userId === room.playerIds[0]">
+            <v-card-text class="py-1 px-2 font-weight-bold"
+              >あなたの番です。<br />
+              右のボタンからスコアを入力してください
+            </v-card-text>
+          </v-card>
+
+          <v-spacer />
+          <v-btn
+            variant="flat"
+            :disabled="userId !== room.playerIds[0]"
+            icon
+            @click="isSelectSkittlesDialogOpen = true"
+          >
+            <v-icon :icon="mdiPencil" color="primary" />
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-footer>
   </div>
 </template>
 
