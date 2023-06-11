@@ -1,6 +1,6 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse, User, PlayingUser, RoomStatus } from '../types/api'
-import { waitingRoomRepo } from '../apis/waitingRoom'
+import { waitingRoomRepo } from './room'
 import { calculateScore } from '../modules/calculateScore'
 import { firestore } from 'firebase'
 
