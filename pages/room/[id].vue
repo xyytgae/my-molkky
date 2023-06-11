@@ -9,8 +9,8 @@ import {
   useWaitingUsers,
   useWaitingRoom,
 } from '#imports'
-import { waitingUsersRepo } from '~/apis/waitingUser'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { waitingUsersRepo } from '~/apis/player'
+import { waitingRoomRepo } from '~/apis/room'
 import { isDeleteRoomDialogOpen } from '~/components/DeleteRoomDialog.vue'
 
 definePageMeta({

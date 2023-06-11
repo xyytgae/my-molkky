@@ -19,8 +19,8 @@ import {
   useWaitingRoom,
   watch,
 } from '#imports'
-import { waitingUsersRepo } from '~/apis/waitingUser'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { waitingUsersRepo } from '~/apis/player'
+import { waitingRoomRepo } from '~/apis/room'
 import { getMaxSubArrayLength } from '~/modules/getMaxSubArrayLength'
 
 definePageMeta({

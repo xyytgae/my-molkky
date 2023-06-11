@@ -1,7 +1,7 @@
 import { useNuxtApp, useRouter, useState } from '#app'
 import { Room, ApiResponse } from '../types/api'
 import { Unsubscribe, firestore } from 'firebase'
-import { waitingUsersRepo } from '~/apis/waitingUser'
+import { waitingUsersRepo } from '~/apis/player'
 
 const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   id: '',

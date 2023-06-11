@@ -3,7 +3,7 @@ import { useNuxtApp } from '#app'
 import { mdiCloseCircle, mdiImage } from '@mdi/js'
 import { ref, reactive, watch, inject } from '#imports'
 import { RoomStatus } from '~/types/api'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { waitingRoomRepo } from '~/apis/room'
 import { MESSAGES } from '~/constants/messages'
 import { ErrorDialogStore, ErrorDialogKey } from '~/compositions/useErrorDialog'
 

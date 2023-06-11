@@ -3,8 +3,8 @@ import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
 import { PlayingUser } from '../types/api'
 import { ref, useUser } from '#imports'
-import { waitingUsersRepo } from '~/apis/waitingUser'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { waitingUsersRepo } from '~/apis/player'
+import { waitingRoomRepo } from '~/apis/room'
 import { gameHistoryRepository } from '~/apis/gameHistory'
 
 interface Props {

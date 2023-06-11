@@ -1,7 +1,7 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse, User, PlayingUser, RoomStatus } from '../types/api'
-import { waitingRoomRepo } from './room'
 import { calculateScore } from '../modules/calculateScore'
+import { waitingRoomRepo } from './room'
 import { firestore } from 'firebase'
 
 const createDefaultUser = (
