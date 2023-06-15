@@ -15,12 +15,12 @@ import {
   computed,
   onUnmounted,
   useUser,
-  useWaitingUsers,
-  useWaitingRoom,
+  usePlayers,
+  useRoom,
   watch,
 } from '#imports'
-import { waitingUsersRepo } from '~/apis/player'
-import { waitingRoomRepo } from '~/apis/room'
+import { playerRepo } from '~/apis/player'
+import { roomRepo } from '~/apis/room'
 import { getMaxSubArrayLength } from '~/modules/getMaxSubArrayLength'
 
 definePageMeta({
@@ -33,11 +33,11 @@ definePageMeta({
 
 const route = useRoute()
 const { loginedUser } = useUser()
-const { users, subscribeUsers } = useWaitingUsers()
-const { room, subscribeRoomStatusAndPlayerIds } = useWaitingRoom()
+const { users, subscribeUsers } = usePlayers()
+const { room, subscribeRoomStatusAndPlayerIds } = useRoom()
 const { setScore, eliminateUser, updateFirstHalfScore, updateSecondHalfScore } =
-  waitingUsersRepo
-const { clearPlayerIds } = waitingRoomRepo
+  playerRepo
+const { clearPlayerIds } = roomRepo
 
 const ALL_SKITTLES: readonly (readonly number[])[] = [
   [7, 9, 8],

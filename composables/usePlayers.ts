@@ -24,7 +24,7 @@ const remove = (
   return users.filter((user) => user.id !== updatedRoom.id)
 }
 
-export const useWaitingUsers = () => {
+export const usePlayers = () => {
   const { $firestore } = useNuxtApp()
   const users = useState<PlayingUser[]>('users', () => [])
 

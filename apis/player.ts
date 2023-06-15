@@ -1,7 +1,7 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse, User, PlayingUser, RoomStatus } from '../types/api'
 import { calculateScore } from '../modules/calculateScore'
-import { waitingRoomRepo } from './room'
+import { roomRepo } from './room'
 import { firestore } from 'firebase'
 
 const createDefaultUser = (
@@ -20,7 +20,7 @@ const createDefaultUser = (
   secondHalfScore: 0,
 })
 
-export const waitingUsersRepo = {
+export const playerRepo = {
   createUser: async (
     user: User,
     roomId: string
@@ -111,7 +111,7 @@ export const waitingUsersRepo = {
 
   eliminateUser: async (roomId: string, userId: string) => {
     const { $firestore } = useNuxtApp()
-    await waitingRoomRepo.shiftPlayerId(roomId)
+    await roomRepo.shiftPlayerId(roomId)
 
     try {
       const userDoc = await $firestore
@@ -141,7 +141,7 @@ export const waitingUsersRepo = {
           })
       } else {
         // 失格ではない場合にusersに追加し、ゲームを続行させる
-        await waitingRoomRepo.pushPlayerId(userId, roomId)
+        await roomRepo.pushPlayerId(userId, roomId)
       }
 
       const status: RoomStatus = 'SECOND_HALF_FINISHED'
@@ -271,7 +271,7 @@ export const waitingUsersRepo = {
       // 50点に到達すれば、その時点で前半を終了させる
       if (newFirstScore === 50) {
         const status: RoomStatus = 'FIRST_HALF_FINISHED'
-        await waitingRoomRepo.finishGame(roomId, status)
+        await roomRepo.finishGame(roomId, status)
       }
 
       return {
@@ -309,7 +309,7 @@ export const waitingUsersRepo = {
       // 50点に到達すれば、その時点で前半を終了させる
       if (newSecondScore === 50) {
         const status: RoomStatus = 'SECOND_HALF_FINISHED'
-        await waitingRoomRepo.finishGame(roomId, status)
+        await roomRepo.finishGame(roomId, status)
       }
 
       return {

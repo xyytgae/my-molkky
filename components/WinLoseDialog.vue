@@ -3,8 +3,8 @@ import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
 import { PlayingUser } from '../types/api'
 import { ref, useUser } from '#imports'
-import { waitingUsersRepo } from '~/apis/player'
-import { waitingRoomRepo } from '~/apis/room'
+import { playerRepo } from '~/apis/player'
+import { roomRepo } from '~/apis/room'
 import { gameHistoryRepository } from '~/apis/gameHistory'
 
 interface Props {
@@ -21,8 +21,8 @@ const route = useRoute()
 const router = useRouter()
 
 const { loginedUser } = useUser()
-const { updateUsersToSecondHalf, incrementStars, deleteUser } = waitingUsersRepo
-const { updateToStartSecondHalf, resetRoom } = waitingRoomRepo
+const { updateUsersToSecondHalf, incrementStars, deleteUser } = playerRepo
+const { updateToStartSecondHalf, resetRoom } = roomRepo
 const { create } = gameHistoryRepository
 
 const WLDialog = ref<boolean>(true)

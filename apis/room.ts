@@ -1,7 +1,7 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
 
-export const waitingRoomRepo = {
+export const roomRepo = {
   updateToStartFirstHalf: async (
     roomId: string
   ): Promise<ApiResponse<string | null>> => {

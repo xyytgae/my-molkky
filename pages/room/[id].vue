@@ -6,11 +6,11 @@ import {
   ref,
   onUnmounted,
   useUser,
-  useWaitingUsers,
-  useWaitingRoom,
+  usePlayers,
+  useRoom,
 } from '#imports'
-import { waitingUsersRepo } from '~/apis/player'
-import { waitingRoomRepo } from '~/apis/room'
+import { playerRepo } from '~/apis/player'
+import { roomRepo } from '~/apis/room'
 import { isDeleteRoomDialogOpen } from '~/components/DeleteRoomDialog.vue'
 
 definePageMeta({
@@ -24,8 +24,8 @@ definePageMeta({
 const route = useRoute()
 const router = useRouter()
 const { loginedUser } = useUser()
-const { users, subscribeUsers } = useWaitingUsers()
-const { room, subscribeRoomDeletion } = useWaitingRoom()
+const { users, subscribeUsers } = usePlayers()
+const { room, subscribeRoomDeletion } = useRoom()
 
 const SLIDES: string[] = [
   '「順番を選択」を押してください',
@@ -50,14 +50,14 @@ const exitRoom = async () => {
   } else {
     unsubscribeAll()
     router.push('/rooms')
-    await waitingUsersRepo.deleteUser(userId.value, roomId.value)
+    await playerRepo.deleteUser(userId.value, roomId.value)
   }
 }
 
 const deleteRoomAndExit = async () => {
   unsubscribeAll()
-  await waitingUsersRepo.deleteUser(userId.value, roomId.value)
-  await waitingRoomRepo.deleteRoom(roomId.value)
+  await playerRepo.deleteUser(userId.value, roomId.value)
+  await roomRepo.deleteRoom(roomId.value)
   router.push('/rooms')
 }
 
@@ -80,7 +80,7 @@ const decideOrder = async () => {
   // 全員を選んでいない場合return
   if (orderedPlayerIds.value.length !== users.value.length) return
   isOrderMode.value = false
-  await waitingUsersRepo.updateOrder(orderedPlayerIds.value, roomId.value)
+  await playerRepo.updateOrder(orderedPlayerIds.value, roomId.value)
   isShowStartButton.value = false
 
   // v-carouselを進める
@@ -88,7 +88,7 @@ const decideOrder = async () => {
 }
 
 const startGame = async () => {
-  await waitingRoomRepo.updateToStartFirstHalf(roomId.value)
+  await roomRepo.updateToStartFirstHalf(roomId.value)
 }
 
 const unsubscribeAll = () => {
@@ -113,7 +113,7 @@ roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 
 if (loginedUser.value && roomId.value) {
-  await waitingUsersRepo.createUser(loginedUser.value, roomId.value)
+  await playerRepo.createUser(loginedUser.value, roomId.value)
 }
 
 subscribeUsers(roomId.value).then(({ data }) => {

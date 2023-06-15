@@ -1,7 +1,7 @@
 import { useNuxtApp, useRouter, useState } from '#app'
 import { Room, ApiResponse } from '../types/api'
 import { Unsubscribe, firestore } from 'firebase'
-import { waitingUsersRepo } from '~/apis/player'
+import { playerRepo } from '~/apis/player'
 
 const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   id: '',
@@ -14,7 +14,7 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
   status: 'NOT_STARTED',
 })
 
-export const useWaitingRoom = () => {
+export const useRoom = () => {
   const { $firestore, $firebase } = useNuxtApp()
   const router = useRouter()
   const room = useState<Room>('room', () =>
@@ -36,7 +36,7 @@ export const useWaitingRoom = () => {
           (doc) => {
             const docData = doc.data() as Room
             if (docData.delete) {
-              waitingUsersRepo.deleteUser(userId, roomId)
+              playerRepo.deleteUser(userId, roomId)
               router.push('/rooms')
             }
             if (docData.status !== 'NOT_STARTED') {
