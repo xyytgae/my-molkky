@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
-import { PlayingUser } from '../types/api'
+import { Player } from '../types/api'
 import { ref, useUser } from '#imports'
 import { playerRepo } from '~/apis/player'
 import { roomRepo } from '~/apis/room'
 import { gameHistoryRepository } from '~/apis/gameHistory'
 
 interface Props {
-  users: PlayingUser[]
+  users: Player[]
   isStartedSecondHalf: boolean
 }
 
@@ -53,10 +53,10 @@ const finish = async () => {
   }
 }
 
-const winners = ref<PlayingUser[]>([])
-const result = ref<PlayingUser[]>([])
+const winners = ref<Player[]>([])
+const result = ref<Player[]>([])
 
-const getWinners = (users: PlayingUser[]): PlayingUser[] => {
+const getWinners = (users: Player[]): Player[] => {
   const sortedPlayers = users.sort(
     (a, b) =>
       b.firstHalfScore +

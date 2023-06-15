@@ -1,8 +1,8 @@
 import { useState, useNuxtApp } from '#app'
-import { PlayingUser, ApiResponse } from '../types/api'
+import { Player, ApiResponse } from '../types/api'
 import { Unsubscribe } from 'firebase'
 
-const add = (users: PlayingUser[], addedUser: PlayingUser): PlayingUser[] => {
+const add = (users: Player[], addedUser: Player): Player[] => {
   const isNotAdded = !users.find((user) => user.id === addedUser.id)
   if (isNotAdded) {
     users.push(addedUser)
@@ -10,23 +10,17 @@ const add = (users: PlayingUser[], addedUser: PlayingUser): PlayingUser[] => {
   return users
 }
 
-const update = (
-  users: PlayingUser[],
-  updatedRoom: PlayingUser
-): PlayingUser[] => {
+const update = (users: Player[], updatedRoom: Player): Player[] => {
   return users.map((user) => (user.id === updatedRoom.id ? updatedRoom : user))
 }
 
-const remove = (
-  users: PlayingUser[],
-  updatedRoom: PlayingUser
-): PlayingUser[] => {
+const remove = (users: Player[], updatedRoom: Player): Player[] => {
   return users.filter((user) => user.id !== updatedRoom.id)
 }
 
 export const usePlayers = () => {
   const { $firestore } = useNuxtApp()
-  const users = useState<PlayingUser[]>('users', () => [])
+  const users = useState<Player[]>('users', () => [])
 
   const subscribeUsers = async (
     roomId: string
@@ -40,9 +34,9 @@ export const usePlayers = () => {
         .orderBy('order', 'asc')
         .onSnapshot((usersSnapShot) => {
           usersSnapShot.docChanges().forEach((snapshot) => {
-            const user: PlayingUser = {
+            const user: Player = {
               id: snapshot.doc.id,
-              ...(snapshot.doc.data() as Omit<PlayingUser, 'id'>),
+              ...(snapshot.doc.data() as Omit<Player, 'id'>),
             }
 
             switch (snapshot.type) {

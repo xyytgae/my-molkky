@@ -1,5 +1,5 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, User, PlayingUser, RoomStatus } from '../types/api'
+import { ApiResponse, User, Player, RoomStatus } from '../types/api'
 import { calculateScore } from '../modules/calculateScore'
 import { roomRepo } from './room'
 import { firestore } from 'firebase'
@@ -7,7 +7,7 @@ import { firestore } from 'firebase'
 const createDefaultUser = (
   user: User,
   createdAt: firestore.FieldValue
-): PlayingUser => ({
+): Player => ({
   scores: [],
   firstHalfScore: 0,
   elimination: false,
@@ -121,7 +121,7 @@ export const playerRepo = {
         .doc(userId)
         .get()
 
-      const docData = userDoc.data() as PlayingUser
+      const docData = userDoc.data() as Player
       const userScores = docData.scores
       const lastZeroIndex = userScores.lastIndexOf(0)
 
@@ -185,9 +185,9 @@ export const playerRepo = {
         .orderBy('firstHalfScore', 'desc')
         .get()
         .then((snapshot) => {
-          const users: PlayingUser[] = []
+          const users: Player[] = []
           snapshot.forEach((doc) => {
-            users.push({ ...doc.data(), id: doc.id } as PlayingUser)
+            users.push({ ...doc.data(), id: doc.id } as Player)
           })
           return users
         })

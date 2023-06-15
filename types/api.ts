@@ -48,7 +48,7 @@ export type Room = {
   id: string
 } & CreateRoomInput
 
-export type PlayingUser = {
+export type Player = {
   id: string
   order: number
   elimination: boolean
