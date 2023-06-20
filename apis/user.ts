@@ -1,7 +1,7 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse, CreateUserInput, UpdateUserInput } from '../types/api'
 
-export const userRepository = {
+export const userRepo = {
   /**
    * ユーザーを作成する
    * @param userId
@@ -59,6 +59,35 @@ export const userRepository = {
 
       return {
         data: userId,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  /**
+   * ユーザーのstarを増やす
+   * @param userId
+   * @returns
+   */
+  incrementStars: async ({ userId }: { userId: string }) => {
+    const { $firestore, $firebase } = useNuxtApp()
+    try {
+      await $firestore
+        .collection('users')
+        .doc(userId)
+        .update({
+          stars: $firebase.firestore.FieldValue.increment(1),
+          // stones: $firebase.firestore.FieldValue.increment(1),
+        })
+
+      return {
+        data: null,
         success: true,
         error: null,
       }

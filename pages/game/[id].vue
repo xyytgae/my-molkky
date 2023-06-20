@@ -33,11 +33,8 @@ definePageMeta({
 
 const route = useRoute()
 const { loginedUser } = useUser()
-const { users, subscribeUsers } = usePlayers()
+const { users, subscribePlayers } = usePlayers()
 const { room, subscribeRoomStatusAndPlayerIds } = useRoom()
-const { setScore, eliminateUser, updateFirstHalfScore, updateSecondHalfScore } =
-  playerRepo
-const { clearPlayerIds } = roomRepo
 
 const ALL_SKITTLES: readonly (readonly number[])[] = [
   [7, 9, 8],
@@ -49,7 +46,7 @@ const ALL_SKITTLES: readonly (readonly number[])[] = [
 const userId = ref<string>('')
 const roomId = ref<string>('')
 const unsubscribeRoom = ref<Function | null>(null)
-const unsubscribeUsers = ref<Function | null>(null)
+const unsubscribePlayers = ref<Function | null>(null)
 
 const isHowToUseOpen = ref<boolean>(false)
 const isSelectSkittlesDialogOpen = ref<boolean>(false)
@@ -92,14 +89,31 @@ const clickOK = async () => {
   const newScores = [...myUser.scores, temporaryScore.value]
 
   // scoreにスコアを反映し、失格の判定や合計点数の計算をまとめて行う
-  await setScore(roomId.value!, userId.value!, newScores)
-  const { data } = await eliminateUser(roomId.value!, userId.value!)
-  if (data === null) return
+  await playerRepo.updateScore({
+    roomId: roomId.value!,
+    playerId: userId.value!,
+    newScores,
+  })
+  const { data: elimination } = await playerRepo.updateElimination({
+    roomId: roomId.value!,
+    playerId: userId.value!,
+  })
+  if (elimination === null) return
 
   if (room.value.status === 'FIRST_HALF_STARTED') {
-    await updateFirstHalfScore(roomId.value!, userId.value!, newScores, data)
+    await playerRepo.updateFirstHalfScore({
+      roomId: roomId.value!,
+      playerId: userId.value!,
+      scores: newScores,
+      elimination,
+    })
   } else if (room.value.status === 'SECOND_HALF_STARTED') {
-    await updateSecondHalfScore(roomId.value!, userId.value!, newScores, data)
+    await playerRepo.updateSecondHalfScore({
+      roomId: roomId.value!,
+      playerId: userId.value!,
+      scores: newScores,
+      elimination,
+    })
   }
 
   // inputで入力された点数をリセット
@@ -107,8 +121,8 @@ const clickOK = async () => {
 }
 
 onUnmounted(() => {
-  if (unsubscribeUsers.value) {
-    unsubscribeUsers.value()
+  if (unsubscribePlayers.value) {
+    unsubscribePlayers.value()
   }
   if (unsubscribeRoom.value) {
     unsubscribeRoom.value()
@@ -121,8 +135,8 @@ onUnmounted(() => {
 userId.value = loginedUser.value!.id
 roomId.value = route.params.id as string
 
-subscribeUsers(roomId.value).then(({ data }) => {
-  unsubscribeUsers.value = data
+subscribePlayers(roomId.value).then(({ data }) => {
+  unsubscribePlayers.value = data
 })
 subscribeRoomStatusAndPlayerIds(roomId.value).then(({ data }) => {
   unsubscribeRoom.value = data
@@ -146,7 +160,9 @@ watch(
       // 前半終了
       case 'FIRST_HALF_FINISHED':
         isWinLoseDialogOpen.value = true
-        await clearPlayerIds(roomId.value)
+        await roomRepo.resetPlayerIds({
+          roomId: roomId.value,
+        })
         break
     }
   }

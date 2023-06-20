@@ -1,56 +1,28 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, User, Player, RoomStatus } from '../types/api'
+import {
+  ApiResponse,
+  User,
+  Player,
+  RoomStatus,
+  CreatePlayerInput,
+} from '../types/api'
 import { calculateScore } from '../modules/calculateScore'
 import { roomRepo } from './room'
-import { firestore } from 'firebase'
-
-const createDefaultUser = (
-  user: User,
-  createdAt: firestore.FieldValue
-): Player => ({
-  scores: [],
-  firstHalfScore: 0,
-  elimination: false,
-  order: 0,
-  stars: user.stars,
-  id: user.id,
-  name: user.name,
-  iconImageUrl: user.iconImageUrl,
-  createdAt,
-  secondHalfScore: 0,
-})
 
 export const playerRepo = {
-  createUser: async (
-    user: User,
+  /**
+   * プレイヤーを作成する
+   * @param player
+   * @param roomId
+   * @returns
+   */
+  create: async ({
+    roomId,
+    player,
+  }: {
     roomId: string
-  ): Promise<ApiResponse<User | null>> => {
-    const { $firestore, $firebase } = useNuxtApp()
-    const createdAt = $firebase.firestore.FieldValue.serverTimestamp()
-    const addedUser = createDefaultUser(user, createdAt)
-
-    try {
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(user.id)
-        .set(addedUser)
-
-      return {
-        data: user,
-        success: true,
-        error: null,
-      }
-    } catch (error) {
-      return {
-        data: null,
-        success: false,
-        error,
-      }
-    }
-  },
-  deleteUser: async (userId: string, roomId: string) => {
+    player: CreatePlayerInput
+  }): Promise<ApiResponse<User | null>> => {
     const { $firestore } = useNuxtApp()
 
     try {
@@ -58,11 +30,11 @@ export const playerRepo = {
         .collection('rooms')
         .doc(roomId)
         .collection('players')
-        .doc(userId)
-        .delete()
+        .doc(player.id)
+        .set(player)
 
       return {
-        data: userId,
+        data: player,
         success: true,
         error: null,
       }
@@ -74,8 +46,55 @@ export const playerRepo = {
       }
     }
   },
+  /**
+   * プレイヤーを削除する
+   * @param roomId
+   * @param playerId
+   * @returns
+   */
+  delete: async ({
+    roomId,
+    playerId,
+  }: {
+    roomId: string
+    playerId: string
+  }) => {
+    const { $firestore } = useNuxtApp()
 
-  updateOrder: async (playerIds: string[], roomId: string) => {
+    try {
+      await $firestore
+        .collection('rooms')
+        .doc(roomId)
+        .collection('players')
+        .doc(playerId)
+        .delete()
+
+      return {
+        data: playerId,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  /**
+   * プレイヤーの順序を更新する
+   * @param playerIds
+   * @param roomId
+   * @returns
+   */
+  updateOrder: async ({
+    roomId,
+    playerIds,
+  }: {
+    roomId: string
+    playerIds: Array<string>
+  }) => {
     const { $firestore } = useNuxtApp()
 
     try {
@@ -108,17 +127,30 @@ export const playerRepo = {
       }
     }
   },
-
-  eliminateUser: async (roomId: string, userId: string) => {
+  /**
+   * プレイヤーを失格にする
+   * @param roomId
+   * @param playerId
+   * @returns
+   */
+  updateElimination: async ({
+    roomId,
+    playerId,
+  }: {
+    roomId: string
+    playerId: string
+  }) => {
     const { $firestore } = useNuxtApp()
-    await roomRepo.shiftPlayerId(roomId)
+    await roomRepo.removeFirstPlayerId({
+      roomId,
+    })
 
     try {
       const userDoc = await $firestore
         .collection('rooms')
         .doc(roomId)
         .collection('players')
-        .doc(userId)
+        .doc(playerId)
         .get()
 
       const docData = userDoc.data() as Player
@@ -135,13 +167,16 @@ export const playerRepo = {
           .collection('rooms')
           .doc(roomId)
           .collection('players')
-          .doc(userId)
+          .doc(playerId)
           .update({
             elimination: true,
           })
       } else {
         // 失格ではない場合にusersに追加し、ゲームを続行させる
-        await roomRepo.pushPlayerId(userId, roomId)
+        await roomRepo.addPlayerId({
+          playerId,
+          roomId,
+        })
       }
 
       const status: RoomStatus = 'SECOND_HALF_FINISHED'
@@ -175,29 +210,34 @@ export const playerRepo = {
       }
     }
   },
-  updateUsersToSecondHalf: async (roomId: string) => {
+  /**
+   * プレイヤーを後半に更新する
+   * @param roomId
+   * @returns
+   */
+  updateToSecondHalf: async ({ roomId }: { roomId: string }) => {
     const { $firestore } = useNuxtApp()
     try {
-      const users = await $firestore
+      const players = await $firestore
         .collection('rooms')
         .doc(roomId)
         .collection('players')
         .orderBy('firstHalfScore', 'desc')
         .get()
         .then((snapshot) => {
-          const users: Player[] = []
+          const players: Player[] = []
           snapshot.forEach((doc) => {
-            users.push({ ...doc.data(), id: doc.id } as Player)
+            players.push({ ...doc.data(), id: doc.id } as Player)
           })
-          return users
+          return players
         })
 
-      const promises = users.map(async (user) => {
+      const promises = players.map(async (player) => {
         await $firestore
           .collection('rooms')
           .doc(roomId)
           .collection('players')
-          .doc(user.id)
+          .doc(player.id)
           .update({
             scores: [],
             elimination: false,
@@ -207,7 +247,7 @@ export const playerRepo = {
       await Promise.all(promises)
 
       return {
-        data: users,
+        data: players,
         success: true,
         error: null,
       }
@@ -219,16 +259,29 @@ export const playerRepo = {
       }
     }
   },
-  // scoreにスコアを記録後、失格の判定や合計点の計算を実行
-  // updateScore: async (userId: string, roomId: string, newScores: number[]) => {
-  setScore: async (roomId: string, userId: string, newScores: number[]) => {
+  /**
+   * scoreにスコアを記録後、失格の判定や合計点の計算を実行
+   * @param roomId
+   * @param playerId
+   * @param newScores
+   * @returns
+   */
+  updateScore: async ({
+    roomId,
+    playerId,
+    newScores,
+  }: {
+    roomId: string
+    playerId: string
+    newScores: number[]
+  }) => {
     const { $firestore } = useNuxtApp()
     try {
       await $firestore
         .collection('rooms')
         .doc(roomId)
         .collection('players')
-        .doc(userId)
+        .doc(playerId)
         .update({
           scores: newScores,
         })
@@ -246,13 +299,25 @@ export const playerRepo = {
       }
     }
   },
-
-  updateFirstHalfScore: async (
-    roomId: string,
-    userId: string,
-    scores: number[],
+  /**
+   * 前半のスコアを更新する
+   * @param roomId
+   * @param playerId
+   * @param scores
+   * @param elimination
+   * @returns
+   */
+  updateFirstHalfScore: async ({
+    roomId,
+    playerId,
+    scores,
+    elimination,
+  }: {
+    roomId: string
+    playerId: string
+    scores: number[]
     elimination: boolean
-  ) => {
+  }) => {
     const { $firestore } = useNuxtApp()
     // const { scores, elimination } = user
     // user.elimination = false
@@ -263,7 +328,7 @@ export const playerRepo = {
         .collection('rooms')
         .doc(roomId)
         .collection('players')
-        .doc(userId)
+        .doc(playerId)
         .update({
           firstHalfScore: newFirstScore,
         })
@@ -271,7 +336,10 @@ export const playerRepo = {
       // 50点に到達すれば、その時点で前半を終了させる
       if (newFirstScore === 50) {
         const status: RoomStatus = 'FIRST_HALF_FINISHED'
-        await roomRepo.finishGame(roomId, status)
+        await roomRepo.finishGame({
+          roomId,
+          status,
+        })
       }
 
       return {
@@ -287,12 +355,25 @@ export const playerRepo = {
       }
     }
   },
-  updateSecondHalfScore: async (
-    roomId: string,
-    userId: string,
-    scores: number[],
+  /**
+   * 後半のスコアを更新する
+   * @param roomId
+   * @param playerId
+   * @param scores
+   * @param elimination
+   * @returns
+   */
+  updateSecondHalfScore: async ({
+    roomId,
+    playerId,
+    scores,
+    elimination,
+  }: {
+    roomId: string
+    playerId: string
+    scores: number[]
     elimination: boolean
-  ) => {
+  }) => {
     const { $firestore } = useNuxtApp()
     try {
       // score配列を元にtotalScoresを計算
@@ -301,7 +382,7 @@ export const playerRepo = {
         .collection('rooms')
         .doc(roomId)
         .collection('players')
-        .doc(userId)
+        .doc(playerId)
         .update({
           secondHalfScore: newSecondScore,
         })
@@ -309,35 +390,14 @@ export const playerRepo = {
       // 50点に到達すれば、その時点で前半を終了させる
       if (newSecondScore === 50) {
         const status: RoomStatus = 'SECOND_HALF_FINISHED'
-        await roomRepo.finishGame(roomId, status)
+        await roomRepo.finishGame({
+          roomId,
+          status,
+        })
       }
 
       return {
         data: newSecondScore,
-        success: true,
-        error: null,
-      }
-    } catch (error) {
-      return {
-        data: null,
-        success: false,
-        error,
-      }
-    }
-  },
-  incrementStars: async (userId: string) => {
-    const { $firestore, $firebase } = useNuxtApp()
-    try {
-      await $firestore
-        .collection('users')
-        .doc(userId)
-        .update({
-          stars: $firebase.firestore.FieldValue.increment(1),
-          // stones: $firebase.firestore.FieldValue.increment(1),
-        })
-
-      return {
-        data: null,
         success: true,
         error: null,
       }

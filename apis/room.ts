@@ -2,9 +2,16 @@ import { useNuxtApp } from '#app'
 import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
 
 export const roomRepo = {
-  updateToStartFirstHalf: async (
+  /**
+   * ルームを前半に更新する
+   * @param roomId
+   * @returns
+   */
+  updateToStartFirstHalf: async ({
+    roomId,
+  }: {
     roomId: string
-  ): Promise<ApiResponse<string | null>> => {
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'FIRST_HALF_STARTED'
     try {
@@ -25,10 +32,19 @@ export const roomRepo = {
       }
     }
   },
-  updateToStartSecondHalf: async (
-    roomId: string,
+  /**
+   * ルームを後半に更新する
+   * @param roomId
+   * @param playerIds
+   * @returns
+   */
+  updateToStartSecondHalf: async ({
+    roomId,
+    playerIds,
+  }: {
+    roomId: string
     playerIds: string[]
-  ): Promise<ApiResponse<string | null>> => {
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'SECOND_HALF_STARTED'
     try {
@@ -55,9 +71,11 @@ export const roomRepo = {
    * @param input
    * @returns
    */
-  createRoom: async (
+  create: async ({
+    input,
+  }: {
     input: CreateRoomInput
-  ): Promise<ApiResponse<string | null>> => {
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
       await $firestore.collection('rooms').doc(input.hostId).set(input)
@@ -75,8 +93,16 @@ export const roomRepo = {
       }
     }
   },
-
-  deleteRoom: async (roomId: string): Promise<ApiResponse<string | null>> => {
+  /**
+   * ルームを削除する
+   * @param roomId
+   * @returns
+   */
+  delete: async ({
+    roomId,
+  }: {
+    roomId: string
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
 
     try {
@@ -98,16 +124,16 @@ export const roomRepo = {
       }
     }
   },
-
   /**
    * 前半終了後に順番を表すusersをリセットする
    * @param roomId
    * @returns
    */
-  // resetPlayerIds: async (roomId: string): Promise<ApiResponse<string | null>> => {
-  clearPlayerIds: async (
+  resetPlayerIds: async ({
+    roomId,
+  }: {
     roomId: string
-  ): Promise<ApiResponse<string | null>> => {
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
 
     try {
@@ -128,7 +154,6 @@ export const roomRepo = {
       }
     }
   },
-
   /**
    * 自分のidをplayerIdsにpushし、自分の順番が再度戻ってくるようにする
    * 失格している場合は実行されない
@@ -136,11 +161,13 @@ export const roomRepo = {
    * @param roomId
    * @returns
    */
-  // addPlayerIdId: async (
-  pushPlayerId: async (
-    playerId: string,
+  addPlayerId: async ({
+    playerId,
+    roomId,
+  }: {
+    playerId: string
     roomId: string
-  ): Promise<ApiResponse<Room['playerIds']>> => {
+  }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
       const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
@@ -169,10 +196,11 @@ export const roomRepo = {
    * @param roomId
    * @returns
    */
-  // removeFirstPlayerIdId: async (
-  shiftPlayerId: async (
+  removeFirstPlayerId: async ({
+    roomId,
+  }: {
     roomId: string
-  ): Promise<ApiResponse<Room['playerIds']>> => {
+  }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
       const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
@@ -196,11 +224,19 @@ export const roomRepo = {
       }
     }
   },
-  // ゲームを終了させる
-  finishGame: async (
-    roomId: string,
+  /**
+   * ゲームを終了させる
+   * @param roomId
+   * @param status
+   * @returns
+   */
+  finishGame: async ({
+    roomId,
+    status,
+  }: {
+    roomId: string
     status: RoomStatus
-  ): Promise<ApiResponse<string | null>> => {
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     // const status: RoomStatus = "FIRST_HALF_FINISHED"
     try {
@@ -222,8 +258,16 @@ export const roomRepo = {
       }
     }
   },
-
-  resetRoom: async (roomId: string): Promise<ApiResponse<string | null>> => {
+  /**
+   * ルームをリセットする
+   * @param roomId
+   * @returns
+   */
+  reset: async ({
+    roomId,
+  }: {
+    roomId: string
+  }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'NOT_STARTED'
     try {

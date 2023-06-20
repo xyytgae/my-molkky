@@ -59,7 +59,9 @@ const createRoom = async () => {
     status,
   }
 
-  const { success } = await roomRepo.createRoom(input)
+  const { success } = await roomRepo.create({
+    input,
+  })
   if (!success) {
     isErrorDialogOpen.value = true
     errorMessage.value = MESSAGES.ROOM.CREATE.ERROR

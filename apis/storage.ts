@@ -1,7 +1,7 @@
 import { useNuxtApp } from '#app'
 import { ApiResponse } from '../types/api'
 
-export const storageRepository = {
+export const storageRepo = {
   /**
    * 画像をアップロードする
    * @param file

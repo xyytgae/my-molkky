@@ -22,7 +22,7 @@ export const usePlayers = () => {
   const { $firestore } = useNuxtApp()
   const users = useState<Player[]>('users', () => [])
 
-  const subscribeUsers = async (
+  const subscribePlayers = async (
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
@@ -72,6 +72,6 @@ export const usePlayers = () => {
   return {
     // NOTE: 型の都合でreadonlyをつけていない
     users,
-    subscribeUsers,
+    subscribePlayers,
   }
 }

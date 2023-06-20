@@ -36,7 +36,10 @@ export const useRoom = () => {
           (doc) => {
             const docData = doc.data() as Room
             if (docData.delete) {
-              playerRepo.deleteUser(userId, roomId)
+              playerRepo.delete({
+                roomId,
+                playerId: userId,
+              })
               router.push('/rooms')
             }
             if (docData.status !== 'NOT_STARTED') {
