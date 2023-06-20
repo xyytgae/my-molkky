@@ -3,8 +3,8 @@ import { useRouter } from '#app'
 import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
-import { userRepository } from '~/apis/user'
-import { storageRepository } from '~/apis/storage'
+import { userRepo } from '~/apis/user'
+import { storageRepo } from '~/apis/storage'
 
 type FormInputs = {
   name: string
@@ -31,7 +31,7 @@ const onSubmit = async () => {
     iconImageUrl: formInputs.image,
     stars: starCount.value,
   }
-  await userRepository.update({
+  await userRepo.update({
     userId: loginedUser.value!.id,
     input,
   })
@@ -48,7 +48,7 @@ const uploadImage = async (event: Event) => {
   const localImageFile = await onSelectFile(event)
   if (localImageFile) {
     const path = `${loginedUser.value!.id}/${localImageFile.name}`
-    const { data } = await storageRepository.upload({
+    const { data } = await storageRepo.upload({
       file: localImageFile,
       path,
     })

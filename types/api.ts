@@ -6,6 +6,9 @@ export type ApiResponse<T> = {
   error: any
 }
 
+/**
+ * ユーザー
+ */
 export type CreateUserInput = {
   name: string
   iconImageUrl: string
@@ -22,6 +25,27 @@ export type User = {
   id: string
 } & CreateUserInput
 
+/**
+ * プレイヤー
+ */
+export type CreatePlayerInput = {
+  id: string
+  order: number
+  elimination: boolean
+  iconImageUrl: string
+  firstHalfScore: number
+  secondHalfScore: number
+  scores: Array<number>
+  createdAt: firestore.Timestamp | firestore.FieldValue
+  name: string
+  stars: number
+}
+
+export type Player = CreatePlayerInput
+
+/**
+ * ゲームヒストリー
+ */
 export type GameHistory = {
   createdAt: firestore.Timestamp
   users: Array<any>
@@ -34,6 +58,9 @@ export type RoomStatus =
   | 'SECOND_HALF_STARTED'
   | 'SECOND_HALF_FINISHED'
 
+/**
+ * ルーム
+ */
 export type CreateRoomInput = {
   hostId: string
   name: string
@@ -47,16 +74,3 @@ export type CreateRoomInput = {
 export type Room = {
   id: string
 } & CreateRoomInput
-
-export type PlayingUser = {
-  id: string
-  order: number
-  elimination: boolean
-  iconImageUrl: string
-  firstHalfScore: number
-  secondHalfScore: number
-  scores: Array<number>
-  createdAt: firestore.Timestamp | firestore.FieldValue
-  name: string
-  stars: number
-}

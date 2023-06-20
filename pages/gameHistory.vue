@@ -2,7 +2,7 @@
 import { mdiMedal } from '@mdi/js'
 import { GameHistory } from '~/types/api'
 import { definePageMeta, useUser, ref, useNuxtApp } from '#imports'
-import { gameHistoryRepository } from '~/apis/gameHistory'
+import { gameHistoryRepo } from '~/apis/gameHistory'
 import { DATE_FORMAT } from '~/constants/dayjs'
 
 definePageMeta({
@@ -18,7 +18,7 @@ const gameHistories = ref<GameHistory[]>([])
  * init
  */
 const userId = loginedUser.value!.id
-const { data, success } = await gameHistoryRepository.get(userId)
+const { data, success } = await gameHistoryRepo.get(userId)
 if (success) {
   gameHistories.value = data
 }

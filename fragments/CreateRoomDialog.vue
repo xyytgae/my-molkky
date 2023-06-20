@@ -3,7 +3,7 @@ import { useNuxtApp } from '#app'
 import { mdiCloseCircle, mdiImage } from '@mdi/js'
 import { ref, reactive, watch, inject } from '#imports'
 import { RoomStatus } from '~/types/api'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { roomRepo } from '~/apis/room'
 import { MESSAGES } from '~/constants/messages'
 import { ErrorDialogStore, ErrorDialogKey } from '~/compositions/useErrorDialog'
 
@@ -59,7 +59,9 @@ const createRoom = async () => {
     status,
   }
 
-  const { success } = await waitingRoomRepo.createRoom(input)
+  const { success } = await roomRepo.create({
+    input,
+  })
   if (!success) {
     isErrorDialogOpen.value = true
     errorMessage.value = MESSAGES.ROOM.CREATE.ERROR

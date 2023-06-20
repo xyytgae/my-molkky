@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from '#app'
+import { useRoute, useRouter, useNuxtApp } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
+import { User, CreatePlayerInput } from '~/types/api'
 import {
   definePageMeta,
   ref,
   onUnmounted,
   useUser,
-  useWaitingUsers,
-  useWaitingRoom,
+  usePlayers,
+  useRoom,
 } from '#imports'
-import { waitingUsersRepo } from '~/apis/waitingUser'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
+import { playerRepo } from '~/apis/player'
+import { roomRepo } from '~/apis/room'
 import { isDeleteRoomDialogOpen } from '~/components/DeleteRoomDialog.vue'
 
 definePageMeta({
@@ -23,9 +24,10 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
+const { $firebase } = useNuxtApp()
 const { loginedUser } = useUser()
-const { users, subscribeUsers } = useWaitingUsers()
-const { room, subscribeRoomDeletion } = useWaitingRoom()
+const { users, subscribePlayers } = usePlayers()
+const { room, subscribeRoomDeletion } = useRoom()
 
 const SLIDES: string[] = [
   '「順番を選択」を押してください',
@@ -35,7 +37,7 @@ const SLIDES: string[] = [
 
 const userId = ref<string>('')
 const roomId = ref<string>('')
-const unsubscribeUsers = ref<Function | null>(null)
+const unsubscribePlayers = ref<Function | null>(null)
 const unsubscribeRoomDeletion = ref<Function | null>(null)
 const orderedPlayerIds = ref<string[]>([])
 const isOrderMode = ref<boolean>(false)
@@ -50,14 +52,22 @@ const exitRoom = async () => {
   } else {
     unsubscribeAll()
     router.push('/rooms')
-    await waitingUsersRepo.deleteUser(userId.value, roomId.value)
+    await playerRepo.delete({
+      roomId: roomId.value,
+      playerId: userId.value,
+    })
   }
 }
 
 const deleteRoomAndExit = async () => {
   unsubscribeAll()
-  await waitingUsersRepo.deleteUser(userId.value, roomId.value)
-  await waitingRoomRepo.deleteRoom(roomId.value)
+  await playerRepo.delete({
+    roomId: roomId.value,
+    playerId: userId.value,
+  })
+  await roomRepo.delete({
+    roomId: roomId.value,
+  })
   router.push('/rooms')
 }
 
@@ -80,7 +90,10 @@ const decideOrder = async () => {
   // 全員を選んでいない場合return
   if (orderedPlayerIds.value.length !== users.value.length) return
   isOrderMode.value = false
-  await waitingUsersRepo.updateOrder(orderedPlayerIds.value, roomId.value)
+  await playerRepo.updateOrder({
+    roomId: roomId.value,
+    playerIds: orderedPlayerIds.value,
+  })
   isShowStartButton.value = false
 
   // v-carouselを進める
@@ -88,12 +101,14 @@ const decideOrder = async () => {
 }
 
 const startGame = async () => {
-  await waitingRoomRepo.updateToStartFirstHalf(roomId.value)
+  await roomRepo.updateToStartFirstHalf({
+    roomId: roomId.value,
+  })
 }
 
 const unsubscribeAll = () => {
-  if (unsubscribeUsers.value) {
-    unsubscribeUsers.value()
+  if (unsubscribePlayers.value) {
+    unsubscribePlayers.value()
   }
   if (unsubscribeRoomDeletion.value) {
     unsubscribeRoomDeletion.value()
@@ -102,6 +117,19 @@ const unsubscribeAll = () => {
 
 onUnmounted(() => {
   unsubscribeAll()
+})
+
+const createDefaultPlayer = (user: User): CreatePlayerInput => ({
+  scores: [],
+  firstHalfScore: 0,
+  elimination: false,
+  order: 0,
+  stars: user.stars,
+  id: user.id,
+  name: user.name,
+  iconImageUrl: user.iconImageUrl,
+  createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+  secondHalfScore: 0,
 })
 
 /**
@@ -113,11 +141,15 @@ roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 
 if (loginedUser.value && roomId.value) {
-  await waitingUsersRepo.createUser(loginedUser.value, roomId.value)
+  const defaultPlayer = createDefaultPlayer(loginedUser.value)
+  await playerRepo.create({
+    roomId: roomId.value,
+    player: defaultPlayer,
+  })
 }
 
-subscribeUsers(roomId.value).then(({ data }) => {
-  unsubscribeUsers.value = data
+subscribePlayers(roomId.value).then(({ data }) => {
+  unsubscribePlayers.value = data
 })
 
 subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {

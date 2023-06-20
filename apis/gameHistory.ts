@@ -1,7 +1,12 @@
 import { useNuxtApp } from '#app'
-import { ApiResponse, GameHistory, PlayingUser } from '../types/api'
+import { ApiResponse, GameHistory, Player } from '../types/api'
 
-export const gameHistoryRepository = {
+export const gameHistoryRepo = {
+  /**
+   * ゲーム履歴を取得する
+   * @param userId
+   * @returns
+   */
   get: async (userId: string): Promise<ApiResponse<GameHistory[]>> => {
     const { $firestore } = useNuxtApp()
     const data: GameHistory[] = []
@@ -39,7 +44,13 @@ export const gameHistoryRepository = {
       }
     }
   },
-  create: async (userId: string, users: PlayingUser[]) => {
+  /**
+   * ゲーム履歴を作成する
+   * @param userId
+   * @param users
+   * @returns
+   */
+  create: async (userId: string, users: Player[]) => {
     const { $firestore, $firebase } = useNuxtApp()
     try {
       const gameRef = await $firestore

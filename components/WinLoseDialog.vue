@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle } from '@mdi/js'
-import { PlayingUser } from '../types/api'
+import { Player } from '../types/api'
 import { ref, useUser } from '#imports'
-import { waitingUsersRepo } from '~/apis/waitingUser'
-import { waitingRoomRepo } from '~/apis/waitingRoom'
-import { gameHistoryRepository } from '~/apis/gameHistory'
+import { userRepo } from '~/apis/user'
+import { playerRepo } from '~/apis/player'
+import { roomRepo } from '~/apis/room'
+import { gameHistoryRepo } from '~/apis/gameHistory'
 
 interface Props {
-  users: PlayingUser[]
+  users: Player[]
   isStartedSecondHalf: boolean
 }
 
@@ -21,16 +22,15 @@ const route = useRoute()
 const router = useRouter()
 
 const { loginedUser } = useUser()
-const { updateUsersToSecondHalf, incrementStars, deleteUser } = waitingUsersRepo
-const { updateToStartSecondHalf, resetRoom } = waitingRoomRepo
-const { create } = gameHistoryRepository
 
 const WLDialog = ref<boolean>(true)
 const userId = ref<string>('')
 const roomId = ref<string>('')
 
 const startSecond = async () => {
-  await updateUsersToSecondHalf(roomId.value!)
+  await playerRepo.updateToSecondHalf({
+    roomId: roomId.value!,
+  })
 
   // props.usersをtotalScoreを元にソートして、userIdの配列を作る
   const copiedUsers = [...props.users]
@@ -39,24 +39,32 @@ const startSecond = async () => {
       return b.firstHalfScore - a.firstHalfScore
     })
     .map((user) => user.id)
-  await updateToStartSecondHalf(roomId.value!, playerIds)
+  await roomRepo.updateToStartSecondHalf({
+    roomId: roomId.value!,
+    playerIds,
+  })
 }
 
 const finish = async () => {
-  await deleteUser(userId.value, roomId.value)
+  await playerRepo.delete({
+    roomId: roomId.value,
+    playerId: userId.value,
+  })
 
   if (userId.value === roomId.value) {
-    await resetRoom(roomId.value)
+    await roomRepo.reset({
+      roomId: roomId.value,
+    })
     router.push(`/room/${roomId.value}`)
   } else {
     router.push('/rooms')
   }
 }
 
-const winners = ref<PlayingUser[]>([])
-const result = ref<PlayingUser[]>([])
+const winners = ref<Player[]>([])
+const result = ref<Player[]>([])
 
-const getWinners = (users: PlayingUser[]): PlayingUser[] => {
+const getWinners = (users: Player[]): Player[] => {
   const sortedPlayers = users.sort(
     (a, b) =>
       b.firstHalfScore +
@@ -81,9 +89,11 @@ if (props.isStartedSecondHalf) {
   winners.value = getWinners(result.value)
   const isWinner = winners.value.some((winner) => winner.id === userId.value)
   if (isWinner) {
-    await incrementStars(userId.value)
+    await userRepo.incrementStars({
+      userId: userId.value,
+    })
   }
-  await create(userId.value, result.value)
+  await gameHistoryRepo.create(userId.value, result.value)
 }
 </script>
 
