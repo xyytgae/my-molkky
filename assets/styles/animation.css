@@ -1,0 +1,350 @@
+/* #pin1 {
+  animation: pin1 0.3s forwards linear;
+  animation-delay: 4s;
+  transform-origin: bottom;
+  -webkit-animation: pin1 1s forwards linear;
+  -webkit-animation-delay: 3.2s;
+}
+
+@keyframes pin1 {
+  50% {
+    transform: rotate(-45deg);
+    top: 15px;
+    left: -20px;
+  }
+  75% {
+    transform: rotate(-67.5deg);
+    top: 15px;
+    left: -30px;
+  }
+  100% {
+    transform: rotate(-90deg);
+    top: 15px;
+    left: -40px;
+  }
+}
+@-webkit-keyframes pin1 {
+  50% {
+    -webkit-transform: rotate(-360deg);
+    top: 25px;
+    left: 100px;
+  }
+  100% {
+    -webkit-transform: rotate(-425deg);
+    top: 50px;
+    left: 200px;
+  }
+}
+
+#pin2 {
+  animation: pin2 0.3s forwards linear;
+  animation-delay: 3.8s;
+  transform-origin: bottom;
+  -webkit-animation: pin2 2s forwards linear;
+  -webkit-animation-delay: 3.4s;
+}
+
+@keyframes pin2 {
+  50% {
+    transform: rotate(30deg);
+    left: 10px;
+  }
+  75% {
+    transform: rotate(60deg);
+    left: 20px;
+  }
+  100% {
+    transform: rotate(90deg);
+    left: 30px;
+  }
+}
+@-webkit-keyframes pin2 {
+  50% {
+    -webkit-transform: rotate(-632deg);
+    top: 50px;
+    left: 90px;
+  }
+  100% {
+    -webkit-transform: rotate(-1252deg);
+    top: 80px;
+    left: 180px;
+  }
+}
+
+#pin3 {
+  animation: pin3 0.3s forwards linear;
+  -webkit-animation: pin3 0.3s forwards linear;
+  animation-delay: 3.4s;
+  -webkit-animation-delay: 3.4s;
+  transform-origin: bottom;
+}
+
+@keyframes pin3 {
+  50% {
+    transform: rotate(-45deg);
+  }
+  75% {
+    transform: rotate(-67.5deg);
+  }
+  100% {
+    transform: rotate(-90deg);
+  }
+}
+@-webkit-keyframes pin3 {
+  50% {
+    -webkit-transform: rotate(-951deg);
+    top: 50px;
+    left: 200px;
+  }
+  100% {
+    -webkit-transform: rotate(-1462deg);
+    top: 80px;
+    left: 420px;
+  }
+}
+
+#pin4 {
+  animation: pin4 0.3s forwards linear;
+  -webkit-animation: pin4 0.3s forwards linear;
+  animation-delay: 3.6s;
+  -webkit-animation-delay: 3.6s;
+  transform-origin: bottom;
+}
+
+@keyframes pin4 {
+  50% {
+    transform: rotate(45deg);
+  }
+  75% {
+    transform: rotate(67.5deg);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}
+@-webkit-keyframes pin4 {
+  50% {
+    -webkit-transform: rotate(-851deg);
+    bottom: 100px;
+    left: 200px;
+  }
+  100% {
+    -webkit-transform: rotate(-1762deg);
+    bottom: 200px;
+    left: 300px;
+  }
+}
+
+#pin5 {
+  animation: pin5 2s forwards linear;
+  -webkit-animation: pin5 2s forwards linear;
+  animation-delay: 3.6s;
+  -webkit-animation-delay: 3.6s;
+}
+
+@keyframes pin5 {
+  50% {
+    transform: rotate(-641deg);
+    bottom: 100px;
+    left: 200px;
+  }
+  100% {
+    transform: rotate(-1700deg);
+    bottom: 200px;
+    left: 340px;
+  }
+}
+@-webkit-keyframes pin5 {
+  50% {
+    -webkit-transform: rotate(-641deg);
+    bottom: 100px;
+    left: 200px;
+  }
+  100% {
+    -webkit-transform: rotate(-1700deg);
+    bottom: 200px;
+    left: 340px;
+  }
+}
+
+#pin6 {
+  animation: pin6 2s forwards linear;
+  -webkit-animation: pin6 2s forwards linear;
+  animation-delay: 3.6s;
+  -webkit-animation-delay: 3.6s;
+}
+
+@keyframes pin6 {
+  50% {
+    transform: rotate(-842deg);
+    bottom: 290px;
+    left: 150px;
+  }
+  100% {
+    transform: rotate(-931deg);
+    bottom: 325px;
+    left: 220px;
+  }
+}
+@-webkit-keyframes pin6 {
+  50% {
+    -webkit-transform: rotate(-842deg);
+    bottom: 290px;
+    left: 150px;
+  }
+  100% {
+    -webkit-transform: rotate(-931deg);
+    bottom: 325px;
+    left: 220px;
+  }
+}
+
+#pin7 {
+  animation: pin7 0.3s forwards linear;
+  -webkit-animation: pin7 0.3s forwards linear;
+  animation-delay: 3.8s;
+  -webkit-animation-delay: 3.8s;
+  transform-origin: bottom;
+}
+
+@keyframes pin7 {
+  50% {
+    transform: rotate(-45deg);
+    top: 15px;
+    left: -20px;
+  }
+  75% {
+    transform: rotate(-67.5deg);
+    top: 15px;
+    left: -30px;
+  }
+  100% {
+    transform: rotate(-90deg);
+    top: 15px;
+    left: -40px;
+  }
+}
+@-webkit-keyframes pin7 {
+  50% {
+    transform: rotate(-45deg);
+    top: 15px;
+    left: -20px;
+  }
+  75% {
+    transform: rotate(-67.5deg);
+    top: 15px;
+    left: -30px;
+  }
+  100% {
+    transform: rotate(-90deg);
+    top: 15px;
+    left: -40px;
+  }
+}
+
+#pin8 {
+  animation: pin8 0.3s forwards linear;
+  -webkit-animation: pin8 0.3s forwards linear;
+  animation-delay: 3.8s;
+  -webkit-animation-delay: 3.8s;
+  transform-origin: bottom;
+}
+
+@keyframes pin8 {
+  50% {
+    transform: rotate(45deg);
+  }
+  75% {
+    transform: rotate(67.5deg);
+  }
+  100% {
+    transform: rotate(90deg);
+  }
+}
+@-webkit-keyframes pin8 {
+  50% {
+    -webkit-transform: rotate(-641deg);
+    bottom: 240px;
+    left: 240px;
+  }
+  100% {
+    -webkit-transform: rotate(-728deg);
+    bottom: 210px;
+    left: 370px;
+  }
+}
+
+#pin9 {
+  animation: pin9 0.3s forwards linear;
+  -webkit-animation: pin9 0.3s forwards linear;
+  animation-delay: 3.8s;
+  -webkit-animation-delay: 3.8s;
+  transform-origin: bottom;
+  perspective: 30px;
+}
+
+@keyframes pin9 {
+  50% {
+    transform: rotateX(25deg);
+  }
+  75% {
+    transform: rotateX(35deg);
+  }
+  100% {
+    transform: rotateX(45deg) rotateY(-20deg);
+  }
+}
+@-webkit-keyframes pin9 {
+  50% {
+    -webkit-transform: rotate(-641deg);
+    bottom: 500px;
+    left: 240px;
+  }
+  100% {
+    -webkit-transform: rotate(-728deg);
+    bottom: 652px;
+    left: 420px;
+  }
+}
+
+#pin10 {
+  -webkit-animation: pin10 0.3s forwards linear;
+  animation: pin10 0.3s forwards linear;
+  animation-delay: 3.8s;
+  -webkit-animation-delay: 3.8s;
+  transform-origin: bottom right;
+}
+
+@keyframes pin10 {
+  50% {
+    transform: rotate(30deg);
+    left: -10px;
+  }
+  75% {
+    transform: rotate(50deg);
+    left: -20px;
+  }
+  100% {
+    transform: rotate(70deg);
+    left: -40px;
+  }
+}
+@-webkit-keyframes pin10 {
+  50% {
+    -webkit-transform: rotate(-1121deg);
+    bottom: 570px;
+    left: 500px;
+  }
+  100% {
+    -webkit-transform: rotate(-1641deg);
+    bottom: 595px;
+    left: 700px;
+  }
+}
+
+#pin11 {
+  -webkit-animation: pin10 2s forwards linear;
+  animation: pin10 2s forwards linear;
+  animation-delay: 3.8s;
+  -webkit-animation-delay: 3.8s;
+} */
