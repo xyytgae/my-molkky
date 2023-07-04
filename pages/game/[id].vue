@@ -188,7 +188,7 @@ watch(
         <v-table class="table">
           <thead>
             <tr>
-              <th>名前{{ maxInning }}</th>
+              <th>名前</th>
               <th v-for="n in maxInning" :key="n">{{ n }}回</th>
               <th class="border" :class="[{ isActive: !isSecondHalfStarted }]">
                 前半
