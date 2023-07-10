@@ -21,7 +21,8 @@ import {
 } from '#imports'
 import { playerRepo } from '~/apis/player'
 import { roomRepo } from '~/apis/room'
-import { getMaxSubArrayLength } from '~/modules/getMaxSubArrayLength'
+import { getCurrentInning } from '~/modules/getCurrentInning'
+import { generateInningSequence } from '~/modules/generateInningSequence'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -64,11 +65,11 @@ const temporaryScore = computed<number>(() => {
   return selectedSkittles.value.length
 })
 
-const maxInning = computed<number>(() => {
-  if (!users.value || users.value.length < 1) return 1
-  const maxInning =
-    getMaxSubArrayLength(users.value.map((user) => user.scores)) + 1
-  return maxInning
+const inningSequence = computed<number[]>(() => {
+  const DEFAULT_INNING_SEQUENCE = [1, 2, 3, 4]
+  if (!users.value || users.value.length < 1) return DEFAULT_INNING_SEQUENCE
+  const currentInning = getCurrentInning(users.value.map((user) => user.scores))
+  return generateInningSequence(currentInning)
 })
 
 const selectSkittle = (
@@ -171,13 +172,18 @@ watch(
 
 <template>
   <div>
-    <RoomHeader :room="room">
-      <h1 v-if="isSecondHalfStarted" class="room-status">後半</h1>
-      <h1 v-else class="room-status">前半</h1>
-    </RoomHeader>
+    <v-app-bar flat>
+      <v-app-bar-title v-if="room">
+        {{ room.name }}
+      </v-app-bar-title>
+      <v-spacer />
+      <h3 class="room-status mr-4 py-1 px-3">
+        {{ isSecondHalfStarted ? '後半' : '前半' }}
+      </h3>
+    </v-app-bar>
 
     <v-main>
-      <v-container fluid>
+      <v-container class="px-0">
         <!-- NOTE: 最新のusersを表示する都合上v-ifで表示を切り替える -->
         <WinLoseDialog
           v-if="isWinLoseDialogOpen"
@@ -185,88 +191,110 @@ watch(
           :is-started-second-half="isSecondHalfStarted"
         />
 
-        <v-table class="table">
+        <v-table class="mx-auto">
           <thead>
             <tr>
-              <th>名前</th>
-              <th v-for="n in maxInning" :key="n">{{ n }}回</th>
-              <th class="border" :class="[{ isActive: !isSecondHalfStarted }]">
-                前半
+              <th class="name-header" />
+              <th
+                v-if="inningSequence[0] !== 1"
+                class="inning-header text-center text-caption pa-1"
+              >
+                …
               </th>
-              <th class="border" :class="[{ isActive: isSecondHalfStarted }]">
-                後半
+
+              <th
+                v-for="inning in inningSequence"
+                :key="inning"
+                class="inning-header text-center pa-1"
+              >
+                {{ inning }}
               </th>
-              <th class="border">合計</th>
+              <th class="period-and-total text-center pa-1">
+                {{ isSecondHalfStarted ? '後半' : '前半' }}
+              </th>
+              <th class="period-and-total text-center pa-1">合計</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="user in users" :key="user.id">
               <th
-                class="name"
-                :class="[user.id === room.playerIds[0] ? 'order' : '']"
+                class="name-data text-center text-caption py-1"
+                :class="[user.id === room.playerIds[0] ? 'my-order' : '']"
               >
-                <span class="icon">
-                  <v-icon
-                    v-show="user.id === room.playerIds[0]"
-                    color="red"
-                    class="my-auto"
-                    :icon="mdiArrowRightBoldCircle"
-                  />
-                  <v-icon
+                <div class="player-icon-container mx-auto pl-4">
+                  <span
                     v-if="user.elimination"
-                    color="red"
-                    class="my-auto"
-                    :icon="mdiCloseThick"
-                  />
+                    class="text-red font-weight-bold my-auto text-h6"
+                  >
+                    ✘
+                  </span>
 
                   <v-avatar
                     v-if="user && user.iconImageUrl"
                     :image="user.iconImageUrl"
-                    class="user-icon my-auto"
+                    class="player-icon my-auto mr-2"
                   />
                   <v-icon
                     v-else
                     color="grey"
-                    class="user-icon my-auto"
+                    class="player-icon my-auto"
                     :icon="mdiAccountCircle"
                   />
-                </span>
+                </div>
                 {{ user.name }}
               </th>
 
-              <td v-for="(userScore, index) in user.scores" :key="index">
-                <span v-show="userScore === 0">
-                  <v-icon color="red" :icon="mdiCloseThick" />
-                </span>
-                <span v-show="userScore > 0">
-                  {{ userScore }}
-                </span>
+              <td
+                v-if="inningSequence[0] !== 1"
+                class="inning-data text-caption text-center pa-1"
+              >
+                …
               </td>
 
               <td
-                v-for="n in maxInning - user.scores.length"
-                v-show="user.scores.length < maxInning"
-                :key="`${user.id}-${n}`"
+                v-for="inning in inningSequence"
+                :key="inning"
+                class="inning-data text-center pa-1"
               >
-                &nbsp;
+                <span
+                  v-show="user.scores[inning - 1] === 0"
+                  class="text-red font-weight-bold"
+                >
+                  ✘
+                </span>
+                <span
+                  v-show="user.scores[inning - 1] > 0"
+                  class="font-weight-bold"
+                >
+                  {{ user.scores[inning - 1] }}
+                </span>
               </td>
 
-              <td class="border" :class="[{ isActive: !isSecondHalfStarted }]">
-                {{ user.firstHalfScore }}/50
-              </td>
-              <td class="border" :class="[{ isActive: isSecondHalfStarted }]">
-                {{ user.secondHalfScore }}/50
+              <td class="period-and-total text-center pa-1">
+                <span class="font-weight-bold">
+                  {{
+                    isSecondHalfStarted
+                      ? user.secondHalfScore
+                      : user.firstHalfScore
+                  }}
+                </span>
+                <br />
+                <span class="text-subtitle-2"> /50 </span>
               </td>
 
-              <td class="border">
-                {{ user.firstHalfScore + user.secondHalfScore }}
+              <td class="period-and-total text-center pa-1">
+                <span class="font-weight-bold"
+                  >{{ user.firstHalfScore + user.secondHalfScore }}
+                </span>
+                <br />
+                <span class="text-subtitle-2"> /100 </span>
               </td>
             </tr>
           </tbody>
         </v-table>
 
         <v-dialog v-model="isSelectSkittlesDialogOpen" max-width="600px">
-          <v-card color="#387d39" dark>
+          <v-card color="#387d39">
             <v-card-actions>
               <v-btn icon @click="isSelectSkittlesDialogOpen = false">
                 <v-icon color="white" :icon="mdiWindowClose" />
@@ -284,7 +312,7 @@ watch(
             </v-card-actions>
 
             <v-container class="container">
-              <v-col cols="12" class="input">
+              <v-col cols="12" class="pa-0">
                 <div class="skittles">
                   <div
                     v-for="(firstSkittle, index) in ALL_SKITTLES[0]"
@@ -374,11 +402,15 @@ watch(
             <v-expand-transition>
               <div v-show="isHowToUseOpen">
                 <v-divider />
-                <v-card-text class="how-to-use">
-                  <h3>＜使い方＞</h3>
-                  <li>0本選択・・・0点</li>
-                  <li>1本選択・・・選択された数字が点数</li>
-                  <li>複数本選択・・・選択された本数が点数</li>
+                <v-card-text>
+                  <h3 class="text-white">＜使い方＞</h3>
+                  <li class="text-white text-body-1">0本選択・・・0点</li>
+                  <li class="text-white text-body-1">
+                    1本選択・・・選択された数字が点数
+                  </li>
+                  <li class="text-white text-body-1">
+                    複数本選択・・・選択された本数が点数
+                  </li>
                 </v-card-text>
               </div>
             </v-expand-transition>
@@ -387,15 +419,15 @@ watch(
       </v-container>
     </v-main>
 
-    <v-footer app class="pa-0" color="primary">
-      <v-card color="primary" width="100%">
+    <v-footer app class="pa-0">
+      <v-card width="100%">
         <v-card-actions>
           <v-spacer />
-          <v-card v-show="userId !== room.playerIds[0]">
+          <v-card v-show="userId !== room.playerIds[0]" variant="flat">
             <v-card-text class="py-3 font-weight-bold">
               他のプレイヤーが入力中です
               <v-progress-linear
-                color="deep-purple accent-4"
+                color="#38512f"
                 height="6"
                 indeterminate
                 rounded
@@ -403,21 +435,22 @@ watch(
             </v-card-text>
           </v-card>
 
-          <v-card v-show="userId === room.playerIds[0]">
+          <v-card v-show="userId === room.playerIds[0]" variant="flat">
             <v-card-text class="py-1 px-2 font-weight-bold"
-              >あなたの番です。<br />
-              右のボタンからスコアを入力してください
+              >あなたの番です<br />
+              スコアを入力してください
             </v-card-text>
           </v-card>
 
           <v-spacer />
           <v-btn
-            variant="flat"
+            color="#f2e4cf"
+            variant="elevated"
             :disabled="userId !== room.playerIds[0]"
             icon
             @click="isSelectSkittlesDialogOpen = true"
           >
-            <v-icon :icon="mdiPencil" color="primary" />
+            <v-icon :icon="mdiPencil" color="#38512f" />
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -426,9 +459,28 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-.table {
+* {
+  color: #38512f;
+}
+.v-btn--disabled {
+  opacity: 0.3;
+}
+.v-app-bar,
+.v-footer,
+.v-footer .v-card {
+  background-color: white;
+}
+
+.v-main {
+  background-color: #f2e4cf;
+  height: 100vh;
+}
+
+.v-table {
   margin-top: 30px;
   margin-bottom: 150px;
+  max-width: 720px;
+  background-color: rgb(254, 245, 231);
 }
 
 .skittle {
@@ -452,11 +504,9 @@ watch(
 }
 
 .score {
-  background: red;
   border-radius: 50%;
   line-height: 50px;
   text-align: center;
-
   background: #fce2c9;
   cursor: pointer;
   cursor: hand;
@@ -466,53 +516,45 @@ input:checked + div {
   opacity: 0.3;
 }
 
-.input {
-  padding: 0;
+.player-icon-container {
+  position: relative;
+  width: fit-content;
 }
 
-.how-to-use {
-  font-size: 15px;
-  color: white;
+// 失格マーク
+.player-icon-container span {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.button {
-  // color: blue;
-  margin-left: auto;
-}
-
-.user-icon {
-  width: 15vw;
-  max-width: 48px;
-  height: 15vw;
-  max-height: 48px;
+.player-icon {
   border-radius: 50%;
   background-color: white;
+  width: 10vw;
+  max-width: 48px;
+  height: 10vw;
+  max-height: 48px;
 }
 
-.icon {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.name {
-  text-align: center !important;
-  font-size: 15px !important;
-  width: 100px;
-}
-
-.order {
+.my-order {
   background: orange;
 }
 
-.isActive {
-  background: rgba(128, 128, 128, 0.5);
-}
-
-.border {
-  border: 1px solid grey;
-}
-
 .room-status {
-  border: 1px solid white;
+  border: 1px solid grey;
+  border-radius: 10px;
+}
+
+.name-header,
+.name-data {
+  max-width: 64px;
+}
+
+.inning-header,
+.inning-data,
+.period-and-total {
+  max-width: 10vw !important;
 }
 </style>
