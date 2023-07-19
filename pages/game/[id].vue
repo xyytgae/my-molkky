@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import { useRoute } from '#app'
-import {
-  mdiPencil,
-  mdiArrowRightBoldCircle,
-  mdiChevronDown,
-  mdiChevronUp,
-  mdiCloseThick,
-  mdiWindowClose,
-  mdiAccountCircle,
-} from '@mdi/js'
+import { mdiAccountCircle, mdiDrag } from '@mdi/js'
 import {
   definePageMeta,
   ref,
@@ -18,6 +10,7 @@ import {
   usePlayers,
   useRoom,
   watch,
+  onMounted,
 } from '#imports'
 import { playerRepo } from '~/apis/player'
 import { roomRepo } from '~/apis/room'
@@ -49,8 +42,6 @@ const roomId = ref<string>('')
 const unsubscribeRoom = ref<Function | null>(null)
 const unsubscribePlayers = ref<Function | null>(null)
 
-const isHowToUseOpen = ref<boolean>(false)
-const isSelectSkittlesDialogOpen = ref<boolean>(false)
 const isWinLoseDialogOpen = ref<boolean>(false)
 const isSecondHalfStarted = ref<boolean>(false)
 
@@ -59,6 +50,17 @@ const firstSkittleRefs = ref<HTMLInputElement[] | null>(null)
 const secondSkittleRefs = ref<HTMLInputElement[] | null>(null)
 const thirdSkittleRefs = ref<HTMLInputElement[] | null>(null)
 const fourthSkittleRefs = ref<HTMLInputElement[] | null>(null)
+
+const skittlesCardRef = ref<HTMLDivElement | null>(null)
+// NOTE: ◯px
+const topPosition = ref<string>('')
+const maxTop = ref<number>(0)
+const maxBottom = ref<number>(0)
+// NOTE: 要素内でのクリックした相対的なマウスの高さの位置
+const mouseDownPositionOfSkittlesCard = ref<number>(0)
+
+const isOverlayOpen = ref(true)
+const timerId = ref<NodeJS.Timeout | null>(null)
 
 const temporaryScore = computed<number>(() => {
   if (selectedSkittles.value.length === 1) return selectedSkittles.value[0]
@@ -72,6 +74,10 @@ const inningSequence = computed<number[]>(() => {
   return generateInningSequence(currentInning)
 })
 
+const isMyTurn = computed<boolean>(
+  () => userId.value === room.value.playerIds[0]
+)
+
 const selectSkittle = (
   inputElements: HTMLInputElement[] | null,
   index: number
@@ -82,8 +88,6 @@ const selectSkittle = (
 }
 
 const clickOK = async () => {
-  isSelectSkittlesDialogOpen.value = false
-
   const myUser = users.value?.find((user) => user.id === userId.value)
   if (!myUser) return
 
@@ -119,8 +123,75 @@ const clickOK = async () => {
 
   // inputで入力された点数をリセット
   selectedSkittles.value = []
+  isOverlayOpen.value = true
 }
 
+const isMouseEvent = (event: MouseEvent | TouchEvent): event is MouseEvent =>
+  event.type === 'mousemove' || event.type === 'mousedown'
+
+const mouseDown = (event: MouseEvent | TouchEvent) => {
+  const pageY: number = isMouseEvent(event)
+    ? event.clientY
+    : event.changedTouches[0].clientY
+
+  mouseDownPositionOfSkittlesCard.value =
+    pageY - skittlesCardRef.value!.offsetTop
+
+  if (isMouseEvent(event)) {
+    document.body.addEventListener('mousemove', mouseMove, false)
+  }
+}
+
+// マウスカーソルが動いたときに発火
+const mouseMove = (event: MouseEvent | TouchEvent) => {
+  const pageY: number = isMouseEvent(event)
+    ? event.pageY
+    : event.changedTouches[0].pageY
+
+  // NOTE: 要素のtop位置を計算する
+  const topPositionOfSkittlesCard =
+    pageY - mouseDownPositionOfSkittlesCard.value
+
+  if (topPositionOfSkittlesCard < maxTop.value) {
+    // 最上部に到達したとき、最上部の位置に固定する
+    topPosition.value = maxTop.value + 'px'
+  } else if (topPositionOfSkittlesCard > maxBottom.value) {
+    // 最下部に到達したとき、最下部の位置に固定する
+    topPosition.value = maxBottom.value + 'px'
+  } else {
+    topPosition.value = topPositionOfSkittlesCard + 'px'
+  }
+
+  // マウスボタンが離されたとき、またはカーソルが外れたとき発火
+  if (isMouseEvent(event)) {
+    document.body.addEventListener('mouseup', mouseUp, false)
+    document.body.addEventListener('mouseleave', mouseUp, false)
+  }
+}
+
+// マウスボタンが上がったら発火
+const mouseUp = () => {
+  document.body.removeEventListener('mousemove', mouseMove, false)
+  document.body.removeEventListener('mouseup', mouseUp, false)
+}
+// isOverlayOpenを解除する関数
+const toggleOverlay = () => {
+  if (timerId.value !== null) {
+    clearTimeout(timerId.value)
+  }
+  if (!isMyTurn.value) return
+  isOverlayOpen.value = false
+
+  timerId.value = setTimeout(() => {
+    isOverlayOpen.value = true
+  }, 10000)
+}
+
+onMounted(() => {
+  const pageHeight = window.document.documentElement.clientHeight
+  maxTop.value = pageHeight * 0.5
+  maxBottom.value = pageHeight * 0.8
+})
 onUnmounted(() => {
   if (unsubscribePlayers.value) {
     unsubscribePlayers.value()
@@ -171,7 +242,11 @@ watch(
 </script>
 
 <template>
-  <div>
+  <div
+    class="position-relative overflow-hidden"
+    @mousedown="toggleOverlay"
+    @touchstart="toggleOverlay"
+  >
     <v-app-bar flat>
       <v-app-bar-title v-if="room">
         {{ room.name }}
@@ -293,168 +368,156 @@ watch(
           </tbody>
         </v-table>
 
-        <v-dialog v-model="isSelectSkittlesDialogOpen" max-width="600px">
-          <v-card color="#387d39">
-            <v-card-actions>
-              <v-btn icon @click="isSelectSkittlesDialogOpen = false">
-                <v-icon color="white" :icon="mdiWindowClose" />
-              </v-btn>
-
-              <v-spacer />
-              <v-btn
-                color="orange"
-                rounded
-                variant="flat"
-                class="text-white"
-                @click="clickOK"
-                >OK</v-btn
-              >
-            </v-card-actions>
-
-            <v-container class="container">
-              <v-col cols="12" class="pa-0">
-                <div class="skittles">
-                  <div
-                    v-for="(firstSkittle, index) in ALL_SKITTLES[0]"
-                    :key="index"
-                    class="skittle"
-                    @click="selectSkittle(firstSkittleRefs, index)"
-                  >
-                    <input
-                      ref="firstSkittleRefs"
-                      v-model="selectedSkittles"
-                      class="d-none"
-                      type="checkbox"
-                      :value="firstSkittle"
-                    />
-                    <div class="score">{{ firstSkittle }}</div>
-                  </div>
-                </div>
-
-                <div class="skittles">
-                  <div
-                    v-for="(secondSkittle, index) in ALL_SKITTLES[1]"
-                    :key="index"
-                    class="skittle"
-                    @click="selectSkittle(secondSkittleRefs, index)"
-                  >
-                    <input
-                      ref="secondSkittleRefs"
-                      v-model="selectedSkittles"
-                      class="d-none"
-                      type="checkbox"
-                      :value="secondSkittle"
-                    />
-                    <div class="score">{{ secondSkittle }}</div>
-                  </div>
-                </div>
-
-                <div class="skittles">
-                  <div
-                    v-for="(thirdSkittle, index) in ALL_SKITTLES[2]"
-                    :key="index"
-                    class="skittle"
-                    @click="selectSkittle(thirdSkittleRefs, index)"
-                  >
-                    <input
-                      ref="thirdSkittleRefs"
-                      v-model="selectedSkittles"
-                      class="d-none"
-                      type="checkbox"
-                      :value="thirdSkittle"
-                    />
-                    <div class="score">{{ thirdSkittle }}</div>
-                  </div>
-                </div>
-
-                <div class="skittles">
-                  <div
-                    v-for="(fourthSkittle, index) in ALL_SKITTLES[3]"
-                    :key="index"
-                    class="skittle"
-                    @click="selectSkittle(fourthSkittleRefs, index)"
-                  >
-                    <input
-                      ref="fourthSkittleRefs"
-                      v-model="selectedSkittles"
-                      class="d-none"
-                      type="checkbox"
-                      :value="fourthSkittle"
-                    />
-                    <div class="score">{{ fourthSkittle }}</div>
-                  </div>
-                </div>
-              </v-col>
-            </v-container>
-            <v-card-title class="text-h6 text-white">
-              点数：{{ temporaryScore }}
-            </v-card-title>
-            <v-card-actions>
-              <v-spacer />
-              <v-btn icon @click="isHowToUseOpen = !isHowToUseOpen">
-                <v-icon
-                  color="white"
-                  :icon="isHowToUseOpen ? mdiChevronUp : mdiChevronDown"
-                />
-              </v-btn>
-            </v-card-actions>
-
-            <v-expand-transition>
-              <div v-show="isHowToUseOpen">
-                <v-divider />
-                <v-card-text>
-                  <h3 class="text-white">＜使い方＞</h3>
-                  <li class="text-white text-body-1">0本選択・・・0点</li>
-                  <li class="text-white text-body-1">
-                    1本選択・・・選択された数字が点数
-                  </li>
-                  <li class="text-white text-body-1">
-                    複数本選択・・・選択された本数が点数
-                  </li>
-                </v-card-text>
+        <div
+          id="skittles-card"
+          ref="skittlesCardRef"
+          :style="{
+            top: topPosition,
+          }"
+        >
+          <v-overlay
+            :model-value="!isMyTurn"
+            contained
+            :persistent="!isMyTurn"
+            z-index="1"
+          />
+          <div class="text-center pb-4">
+            <v-btn
+              size="large"
+              color="white"
+              :icon="mdiDrag"
+              variant="text"
+              style="z-index: 2"
+              @mousedown="mouseDown"
+              @touchstart="mouseDown"
+              @touchmove="mouseMove"
+            />
+          </div>
+          <div class="text-center">
+            <p class="text-subtitle-1 text-sm-h6 text-white my-2">
+              スコア：
+              {{ temporaryScore }}
+            </p>
+            <v-btn
+              :disabled="!isMyTurn"
+              color="orange"
+              rounded
+              variant="flat"
+              class="text-white mx-auto"
+              @click="clickOK"
+              >OK</v-btn
+            >
+          </div>
+          <div class="pa-4">
+            <v-col cols="12" class="pa-0">
+              <div class="skittles">
+                <button
+                  v-for="(firstSkittle, index) in ALL_SKITTLES[0]"
+                  :key="index"
+                  class="skittle"
+                  :class="{
+                    'v-btn--disabled': !isMyTurn,
+                  }"
+                  @click="selectSkittle(firstSkittleRefs, index)"
+                >
+                  <input
+                    ref="firstSkittleRefs"
+                    v-model="selectedSkittles"
+                    class="d-none"
+                    type="checkbox"
+                    :value="firstSkittle"
+                  />
+                  <div class="score">{{ firstSkittle }}</div>
+                </button>
               </div>
-            </v-expand-transition>
-          </v-card>
-        </v-dialog>
+
+              <div class="skittles">
+                <button
+                  v-for="(secondSkittle, index) in ALL_SKITTLES[1]"
+                  :key="index"
+                  class="skittle"
+                  :class="{
+                    'v-btn--disabled': !isMyTurn,
+                  }"
+                  @click="selectSkittle(secondSkittleRefs, index)"
+                >
+                  <input
+                    ref="secondSkittleRefs"
+                    v-model="selectedSkittles"
+                    class="d-none"
+                    type="checkbox"
+                    :value="secondSkittle"
+                  />
+                  <div class="score">{{ secondSkittle }}</div>
+                </button>
+              </div>
+
+              <div class="skittles">
+                <button
+                  v-for="(thirdSkittle, index) in ALL_SKITTLES[2]"
+                  :key="index"
+                  class="skittle"
+                  :class="{
+                    'v-btn--disabled': !isMyTurn,
+                  }"
+                  @click="selectSkittle(thirdSkittleRefs, index)"
+                >
+                  <input
+                    ref="thirdSkittleRefs"
+                    v-model="selectedSkittles"
+                    class="d-none"
+                    type="checkbox"
+                    :value="thirdSkittle"
+                  />
+                  <div class="score">{{ thirdSkittle }}</div>
+                </button>
+              </div>
+
+              <div class="skittles">
+                <button
+                  v-for="(fourthSkittle, index) in ALL_SKITTLES[3]"
+                  :key="index"
+                  class="skittle"
+                  :class="{
+                    'v-btn--disabled': !isMyTurn,
+                  }"
+                  @click="selectSkittle(fourthSkittleRefs, index)"
+                >
+                  <input
+                    ref="fourthSkittleRefs"
+                    v-model="selectedSkittles"
+                    class="d-none"
+                    type="checkbox"
+                    :value="fourthSkittle"
+                  />
+                  <div class="score">{{ fourthSkittle }}</div>
+                </button>
+              </div>
+            </v-col>
+          </div>
+        </div>
+
+        <div id="alert">
+          <v-alert
+            :model-value="!isMyTurn && isOverlayOpen"
+            type="info"
+            color="white"
+            location="center"
+          >
+            他のプレイヤーが入力中です
+            <v-progress-linear color="black" height="6" stream rounded
+          /></v-alert>
+          <v-alert
+            :model-value="isMyTurn && isOverlayOpen"
+            type="warning"
+            location="center"
+          >
+            あなたの番です
+            <v-progress-linear color="#38512f" height="6" stream rounded
+          /></v-alert>
+        </div>
       </v-container>
     </v-main>
-
-    <v-footer app class="pa-0">
-      <v-card width="100%">
-        <v-card-actions>
-          <v-spacer />
-          <v-card v-show="userId !== room.playerIds[0]" variant="flat">
-            <v-card-text class="py-3 font-weight-bold">
-              他のプレイヤーが入力中です
-              <v-progress-linear
-                color="#38512f"
-                height="6"
-                indeterminate
-                rounded
-              />
-            </v-card-text>
-          </v-card>
-
-          <v-card v-show="userId === room.playerIds[0]" variant="flat">
-            <v-card-text class="py-1 px-2 font-weight-bold"
-              >あなたの番です<br />
-              スコアを入力してください
-            </v-card-text>
-          </v-card>
-
-          <v-spacer />
-          <v-btn
-            color="#f2e4cf"
-            variant="elevated"
-            :disabled="userId !== room.playerIds[0]"
-            icon
-            @click="isSelectSkittlesDialogOpen = true"
-          >
-            <v-icon :icon="mdiPencil" color="#38512f" />
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-footer>
   </div>
 </template>
 
@@ -556,5 +619,38 @@ input:checked + div {
 .inning-data,
 .period-and-total {
   max-width: 10vw !important;
+}
+#skittles-card {
+  user-select: none;
+  position: absolute;
+  background-color: rgb(56, 125, 57);
+  border-radius: 50% 50% 0 0;
+  height: 480px;
+  width: 100%;
+  max-width: 720px;
+  left: 50%;
+  transform: translateX(-50%);
+  -webkit-transform: translateX(-50%);
+  -ms-transform: translateX(-50%);
+  // NOTE: AndroidChromeのPull-to-Refreshを無効化
+  touch-action: pan-down;
+
+  @media screen and (min-width: 600px) {
+    border-radius: 50% / 100% 100% 0 0;
+  }
+}
+#overlay {
+  position: absolute;
+  height: 480px;
+  width: 100%;
+  max-width: 720px;
+}
+#alert {
+  position: absolute;
+  width: 80%;
+  max-width: 480px;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>
