@@ -376,7 +376,7 @@ watch(
           }"
         >
           <v-overlay
-            v-model="isOverlayOpen"
+            :model-value="!isMyTurn"
             contained
             :persistent="!isMyTurn"
             z-index="1"
@@ -399,7 +399,7 @@ watch(
               {{ temporaryScore }}
             </p>
             <v-btn
-              :disabled="isOverlayOpen"
+              :disabled="!isMyTurn"
               color="orange"
               rounded
               variant="flat"
@@ -416,7 +416,7 @@ watch(
                   :key="index"
                   class="skittle"
                   :class="{
-                    'v-btn--disabled': isOverlayOpen,
+                    'v-btn--disabled': !isMyTurn,
                   }"
                   @click="selectSkittle(firstSkittleRefs, index)"
                 >
@@ -437,7 +437,7 @@ watch(
                   :key="index"
                   class="skittle"
                   :class="{
-                    'v-btn--disabled': isOverlayOpen,
+                    'v-btn--disabled': !isMyTurn,
                   }"
                   @click="selectSkittle(secondSkittleRefs, index)"
                 >
@@ -458,7 +458,7 @@ watch(
                   :key="index"
                   class="skittle"
                   :class="{
-                    'v-btn--disabled': isOverlayOpen,
+                    'v-btn--disabled': !isMyTurn,
                   }"
                   @click="selectSkittle(thirdSkittleRefs, index)"
                 >
@@ -479,7 +479,7 @@ watch(
                   :key="index"
                   class="skittle"
                   :class="{
-                    'v-btn--disabled': isOverlayOpen,
+                    'v-btn--disabled': !isMyTurn,
                   }"
                   @click="selectSkittle(fourthSkittleRefs, index)"
                 >
