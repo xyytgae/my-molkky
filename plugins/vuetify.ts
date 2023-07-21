@@ -16,6 +16,10 @@ const customTheme: ThemeDefinition = {
     warning: colors.amber.base,
     error: colors.deepOrange.accent4,
     success: colors.green.accent3,
+    'warm-vanilla': '#f2e4cf', // 背景のメインカラー等
+    'custard-yellow': '#fef5e7', // 背景のサブカラー等
+    'forest-shade': '#38512f', // テキストカラー等
+    star: '#ffa000',
   },
 }
 

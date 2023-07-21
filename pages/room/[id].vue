@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRoute, useRouter, useNuxtApp } from '#app'
-import { mdiAccountCircle } from '@mdi/js'
+import { mdiAccountCircle, mdiChevronLeft } from '@mdi/js'
 import { User, CreatePlayerInput } from '~/types/api'
 import {
   definePageMeta,
@@ -159,8 +159,13 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 
 <template>
   <div>
-    <RoomHeader :room="room" />
-    <v-main class="mb-15">
+    <v-app-bar flat>
+      <v-app-bar-title>
+        {{ room.name }}
+      </v-app-bar-title>
+    </v-app-bar>
+
+    <v-main>
       <v-container>
         <v-row class="pb-3" justify="center" align-content="center">
           <v-col v-if="isHost" cols="12" sm="8">
@@ -169,7 +174,7 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
               height="auto"
               :show-arrows="false"
               hide-delimiters
-              progress="primary"
+              progress="forest-shade"
             >
               <v-carousel-item v-for="(slide, i) in SLIDES" :key="i" :value="i">
                 <v-sheet height="100%">
@@ -182,19 +187,23 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
           </v-col>
 
           <v-col v-else cols="12" sm="8">
-            <v-card color="primary">
-              <v-card-text>
+            <v-card color="forest-shade">
+              <v-card-text class="text-white">
                 ホストがスタートするまでお待ちください
-                <v-progress-linear indeterminate color="white" class="mb-0" />
+                <v-progress-linear stream rounded color="white" class="mb-0" />
               </v-card-text>
             </v-card>
           </v-col>
         </v-row>
 
-        <v-card class="cards mb-10">
+        <v-card class="cards mb-10" elevation="0">
           <v-row>
             <v-col v-for="(user, index) in users" :key="user.id" cols="12">
-              <v-card @click="chooseOrder(index)">
+              <v-card
+                color="custard-yellow"
+                elevation="1"
+                @click="chooseOrder(index)"
+              >
                 <input
                   ref="orderInputRefs"
                   v-model="orderedPlayerIds"
@@ -203,10 +212,8 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
                   :value="user.id"
                   :disabled="!isOrderMode"
                 />
-                <div class="d-flex flex-no-wrap">
-                  <v-card-title
-                    class="my-auto mx-2 pa-3 circle text-grey-darken-1"
-                  >
+                <div class="d-flex flex-no-wrap align-center">
+                  <v-card-title class="ordered-number d-flex mx-2">
                     {{ user.order + 1 }}
                   </v-card-title>
 
@@ -224,16 +231,14 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
                   <v-card-title class="text-h6">
                     <span>{{ user.name }}</span>
 
-                    <div>
-                      <span style="color: #ffa000">★</span>×{{ user.stars }}
-                    </div>
+                    <div><span class="text-star">★</span>×{{ user.stars }}</div>
                   </v-card-title>
                 </div>
               </v-card>
             </v-col>
           </v-row>
 
-          <h1>{{ users.length }}/4</h1>
+          <p class="text-white text-h5 my-2 mx-2">{{ users.length }}/4</p>
         </v-card>
       </v-container>
 
@@ -242,38 +247,74 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
         @delete-room="deleteRoomAndExit"
       />
     </v-main>
-    <RoomFooter @exit-room="exitRoom">
-      <template v-if="isHost">
-        <v-btn
-          v-show="!isOrderMode"
-          variant="outlined"
-          color="white"
-          @click="changeOrderMode"
-          >順番を選択</v-btn
-        >
-        <v-btn
-          v-show="isOrderMode"
-          variant="outlined"
-          color="white"
-          :disabled="orderedPlayerIds.length !== users.length"
-          @click="decideOrder"
-          >順番を決定</v-btn
-        >
-        <v-spacer />
 
-        <v-btn
-          v-show="!isShowStartButton"
-          variant="elevated"
-          color="white"
-          @click="startGame"
-          >START</v-btn
-        >
-      </template>
-    </RoomFooter>
+    <v-footer app fixed padless>
+      <v-card tile flat class="pa-0 ma-0" width="100%">
+        <v-card-actions class="pa-0">
+          <v-btn icon @click="exitRoom">
+            <v-icon
+              color="forest-shade"
+              size="x-large"
+              :icon="mdiChevronLeft"
+            />
+          </v-btn>
+
+          <v-spacer />
+
+          <template v-if="isHost">
+            <v-btn
+              v-show="!isOrderMode"
+              variant="outlined"
+              color="forest-shade"
+              @click="changeOrderMode"
+              >順番を選択</v-btn
+            >
+            <v-btn
+              v-show="isOrderMode"
+              variant="outlined"
+              color="forest-shade"
+              :disabled="orderedPlayerIds.length !== users.length"
+              @click="decideOrder"
+              >順番を決定</v-btn
+            >
+            <v-spacer />
+
+            <v-btn
+              v-show="!isShowStartButton"
+              variant="elevated"
+              color="forest-shade"
+              @click="startGame"
+              >START</v-btn
+            >
+          </template>
+        </v-card-actions>
+      </v-card>
+    </v-footer>
   </div>
 </template>
 
 <style scoped>
+* {
+  color: rgb(var(--v-theme-forest-shade));
+}
+
+.v-main {
+  background-color: rgb(var(--v-theme-warm-vanilla));
+  height: 100vh;
+}
+
+.ordered-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  width: 50px;
+  height: 68px;
+  border-radius: 50%;
+  background: linear-gradient(#e9d5bd, #ecd5c1);
+  color: #432e1d;
+  justify-content: center;
+  align-items: center;
+}
+
 .user-icon {
   width: 15vw;
   max-width: 64px;
@@ -284,21 +325,9 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 }
 
 .cards {
-  background: skyblue;
+  background-color: rgb(var(--v-theme-forest-shade));
 }
 
-input:checked + div {
-  background: lightgreen;
-}
-.circle {
-  width: 50px;
-  height: 50px;
-  border: 1px solid gray;
-  border-radius: 50%;
-  text-align: center;
-  box-sizing: border-box;
-  line-height: 25px;
-}
 .v-carousel {
   border: 1px solid gray !important;
   border-radius: 5px !important;
