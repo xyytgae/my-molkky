@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiLock } from '@mdi/js'
+import { mdiLock, mdiHome, mdiPlus } from '@mdi/js'
 import {
   ref,
   onUnmounted,
@@ -95,7 +95,23 @@ onUnmounted(() => {
       />
       <LazyErrorDialog />
     </v-main>
-    <RoomsFooter @open-dialog="isCreateRoomDialogOpen = true" />
+
+    <v-footer app fixed padless>
+      <v-card tile flat color="primary" class="lighten-1" width="100%">
+        <v-card-actions>
+          <v-btn :icon="mdiHome" size="large" to="/" />
+
+          <v-spacer />
+
+          <v-btn :prepend-icon="mdiPlus" @click="isCreateRoomDialogOpen = true">
+            <template #prepend>
+              <v-icon size="x-large" />
+            </template>
+            <span>部屋を作成</span>
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-footer>
   </div>
 </template>
 
