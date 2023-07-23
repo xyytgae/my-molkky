@@ -58,28 +58,29 @@ onUnmounted(() => {
   <div>
     <UserHeader />
 
-    <v-main class="main">
+    <v-main>
       <v-container>
         <v-row v-for="room in rooms" :key="room.id" dense>
           <v-col cols="12">
-            <v-card>
-              <div class="room-item d-flex flex-no-wrap">
-                <v-card-title class="text-h6 my-auto">
-                  {{ room.name }}
-                  <v-icon v-if="room.password" :icon="mdiLock" />
-                </v-card-title>
+            <v-card
+              class="room-item d-flex flex-no-wrap"
+              color="custard-yellow"
+            >
+              <v-card-title class="text-h6 my-auto">
+                {{ room.name }}
+                <v-icon v-if="room.password" :icon="mdiLock" />
+              </v-card-title>
 
-                <v-spacer />
+              <v-spacer />
 
-                <v-card-actions>
-                  <v-btn
-                    color="primary"
-                    variant="elevated"
-                    @click="moveToRoomPage(room)"
-                    >入室</v-btn
-                  >
-                </v-card-actions>
-              </div>
+              <v-card-actions>
+                <v-btn
+                  color="forest-shade"
+                  variant="elevated"
+                  @click="moveToRoomPage(room)"
+                  >入室</v-btn
+                >
+              </v-card-actions>
             </v-card>
           </v-col>
         </v-row>
@@ -97,8 +98,8 @@ onUnmounted(() => {
     </v-main>
 
     <v-footer app fixed padless>
-      <v-card tile flat color="primary" class="lighten-1" width="100%">
-        <v-card-actions>
+      <v-card tile flat width="100%">
+        <v-card-actions class="pa-0">
           <v-btn :icon="mdiHome" size="large" to="/" />
 
           <v-spacer />
@@ -116,8 +117,16 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-.main {
-  margin-bottom: 200px;
+* {
+  color: rgb(var(--v-theme-forest-shade));
+}
+
+.v-footer {
+  border-top: 1px solid grey;
+}
+.v-main {
+  background-color: rgb(var(--v-theme-warm-vanilla));
+  height: 100vh;
 }
 
 .room-item {

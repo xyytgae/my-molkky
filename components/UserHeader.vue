@@ -72,8 +72,22 @@ const handleLogout = async () => {
           }}</v-list-item-title>
         </v-list-item>
       </v-list>
+
+      <template #append>
+        <div class="pa-2">
+          <v-btn
+            v-if="loginedUser"
+            block
+            variant="outlined"
+            rounded="xl"
+            color="forest-shade"
+            @click="handleLogout"
+            >ログアウト</v-btn
+          >
+        </div>
+      </template>
     </v-navigation-drawer>
-    <v-app-bar app color="primary" dark>
+    <v-app-bar flat app>
       <template #prepend>
         <v-app-bar-nav-icon @click="isDrawerOpen = !isDrawerOpen" />
       </template>
@@ -91,28 +105,22 @@ const handleLogout = async () => {
         />
       </nuxt-link>
 
-      <v-app-bar-title v-if="loginedUser" class="name"
+      <v-app-bar-title v-if="loginedUser"
         >{{ loginedUser.name }}
         <div>
           <span class="star"> ★ </span>
           ×{{ loginedUser.stars }}
         </div>
       </v-app-bar-title>
-      <v-spacer />
-      <v-btn v-if="loginedUser" text @click="handleLogout">ログアウト</v-btn>
-      <v-btn v-else text @click="router.push('/login')">ログイン</v-btn>
     </v-app-bar>
   </div>
 </template>
 
 <style scoped>
-.name {
-  padding-left: 10px;
+.v-app-bar {
+  border-bottom: 1px solid grey;
 }
 
-.star {
-  color: #ffa000;
-}
 .user-icon {
   width: 15vw;
   max-width: 48px;
