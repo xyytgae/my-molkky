@@ -6,6 +6,6 @@
 
 <style>
 .star {
-  color: #ffa000;
+  color: #ffa000 !important;
 }
 </style>
