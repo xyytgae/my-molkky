@@ -5,7 +5,6 @@ import {
   mdiCloseCircle,
   mdiHome,
   mdiAccount,
-  mdiSwordCross,
   mdiHistory,
 } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
@@ -26,7 +25,7 @@ definePageMeta({
 const LINKS: Link[] = [
   {
     title: 'ルーム',
-    icon: mdiSwordCross,
+    icon: 'custom:skittles',
     url: '/rooms',
   },
   {
@@ -126,7 +125,7 @@ starCount.value = loginedUser.value!.stars
       <v-list>
         <v-list-item v-for="link in LINKS" :key="link.title" :to="link.url">
           <template #prepend>
-            <v-icon :icon="link.icon" color="black" />
+            <v-icon :icon="link.icon" color="black" size="x-large" />
           </template>
           <v-list-item-title class="text-subtitle-2 text-black">{{
             link.title
