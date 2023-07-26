@@ -31,29 +31,35 @@ if (success) {
     </MainHeader>
     <v-main>
       <v-container>
-        <h3>最大15件まで表示されます</h3>
+        <h4>最大15件まで表示されます</h4>
         <v-row>
           <v-col
             v-for="(history, index) in gameHistories"
             :key="index"
             cols="12"
-            class="card"
+            md="6"
+            lg="4"
+            xl="3"
           >
-            <v-card :theme="index % 2 !== 0 ? 'dark' : ''">
-              <v-card-title class="text-subtitle-1">
-                <span>
+            <v-card color="custard-yellow">
+              <v-card-item class="pt-2 pb-0 px-2">
+                <v-card-title class="text-subtitle-2">
                   {{ $dayjs(history.createdAt.toDate()).format(DATE_FORMAT) }}
-                </span>
-              </v-card-title>
+                </v-card-title>
+              </v-card-item>
 
-              <v-card-text>
+              <v-card-text class="px-2 pb-2">
                 <v-table>
                   <thead>
                     <tr>
-                      <th>名前</th>
-                      <th>前半</th>
-                      <th>後半</th>
-                      <th>合計</th>
+                      <th />
+                      <th class="period-and-total text-center px-1">前半</th>
+                      <th class="period-and-total text-center px-1">後半</th>
+                      <th
+                        class="period-and-total text-center px-1 font-weight-bold"
+                      >
+                        合計
+                      </th>
                     </tr>
                   </thead>
 
@@ -62,7 +68,7 @@ if (success) {
                       v-for="user in history.users"
                       :key="`${index}-${user.id}`"
                     >
-                      <th>
+                      <th class="px-1">
                         <v-icon
                           v-if="
                             history.users[0].firstHalfScore +
@@ -70,19 +76,22 @@ if (success) {
                             user.firstHalfScore + user.secondHalfScore
                           "
                           color="orange"
+                          class="position-absolute"
                           :icon="mdiMedal"
                         />
-                        {{ user.name }}
+                        <span class="ml-6"> {{ user.name }}</span>
                       </th>
 
-                      <td>
+                      <td class="period-and-total text-center px-1">
                         {{ user.firstHalfScore }}
                       </td>
-                      <td>
+                      <td class="period-and-total text-center px-1">
                         {{ user.secondHalfScore }}
                       </td>
 
-                      <td>
+                      <td
+                        class="period-and-total text-center px-1 font-weight-bold"
+                      >
                         {{ user.firstHalfScore + user.secondHalfScore }}
                       </td>
                     </tr>
@@ -96,3 +105,18 @@ if (success) {
     </v-main>
   </div>
 </template>
+
+<style scoped>
+.v-main {
+  background-color: rgb(var(--v-theme-warm-vanilla));
+  min-height: 100vh;
+}
+
+.v-table {
+  background-color: rgb(var(--v-theme-custard-yellow));
+}
+
+.period-and-total {
+  max-width: 10vw !important;
+}
+</style>
