@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
+import {
+  mdiAccountCircle,
+  mdiCloseCircle,
+  mdiHome,
+  mdiAccount,
+  mdiHistory,
+} from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepo } from '~/apis/user'
 import { storageRepo } from '~/apis/storage'
+import { Link } from '~/types/common'
 
 type FormInputs = {
   name: string
@@ -15,9 +22,33 @@ definePageMeta({
   middleware: ['check-auth'],
 })
 
+const LINKS: Link[] = [
+  {
+    title: 'ルーム',
+    icon: 'custom:skittles',
+    url: '/rooms',
+  },
+  {
+    title: 'プロフィール変更',
+    icon: mdiAccount,
+    url: '/profile',
+  },
+  {
+    title: 'ゲーム履歴',
+    icon: mdiHistory,
+    url: '/gameHistory',
+  },
+  {
+    title: 'ホーム',
+    icon: mdiHome,
+    url: '/',
+  },
+]
+
 const router = useRouter()
 const { loginedUser } = useUser()
 
+const isDrawerOpen = ref<boolean>(false)
 const starCount = ref<number>(0)
 const formInputs = reactive<FormInputs>({
   name: '',
@@ -66,43 +97,79 @@ starCount.value = loginedUser.value!.stars
 
 <template>
   <div>
-    <v-app-bar app color="primary" dark>
+    <v-navigation-drawer v-model="isDrawerOpen" app clipped>
+      <v-list>
+        <v-list-item
+          v-if="loginedUser"
+          :title="loginedUser.name"
+          class="my-4 text-black"
+        >
+          <template #prepend>
+            <v-avatar
+              v-if="loginedUser && loginedUser.iconImageUrl"
+              :image="loginedUser.iconImageUrl"
+              class="user-icon"
+            />
+            <v-icon
+              v-else
+              color="grey"
+              class="user-icon"
+              :icon="mdiAccountCircle"
+            />
+          </template>
+        </v-list-item>
+      </v-list>
+
+      <v-divider />
+
+      <v-list>
+        <v-list-item v-for="link in LINKS" :key="link.title" :to="link.url">
+          <template #prepend>
+            <v-icon :icon="link.icon" color="black" size="x-large" />
+          </template>
+          <v-list-item-title class="text-subtitle-2 text-black">{{
+            link.title
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-app-bar flat app>
+      <template #prepend>
+        <v-app-bar-nav-icon @click="isDrawerOpen = !isDrawerOpen" />
+      </template>
       <v-app-bar-title>プロフィール編集</v-app-bar-title>
     </v-app-bar>
 
     <v-main>
-      <v-container class="d-flex justify-center align-center py-12">
-        <v-card elevation="0">
-          <form @submit.prevent="onSubmit">
-            <div>
-              <template v-if="formInputs.image">
-                <v-icon
-                  v-if="formInputs.image"
-                  size="30"
-                  class="close-icon"
-                  :icon="mdiCloseCircle"
-                  @click="formInputs.image = ''"
-                />
-                <v-avatar class="user-icon">
-                  <img :src="formInputs.image" @click="selectImage" />
-                </v-avatar>
-              </template>
-              <template v-else>
-                <v-icon
-                  color="grey"
-                  class="user-icon"
-                  :icon="mdiAccountCircle"
-                  @click="selectImage"
-                />
-              </template>
-              <input
-                ref="inputRef"
-                type="file"
-                class="d-none"
-                accept="image/*"
-                @change="uploadImage"
+      <v-container>
+        <v-card elevation="0" max-width="400" class="d-flex py-12 mx-auto">
+          <form class="mx-auto" @submit.prevent="onSubmit">
+            <div v-if="formInputs.image" class="position-relative">
+              <v-icon
+                size="30"
+                class="close-icon"
+                :icon="mdiCloseCircle"
+                @click="formInputs.image = ''"
               />
+              <v-avatar class="editing-user-icon">
+                <img :src="formInputs.image" @click="selectImage" />
+              </v-avatar>
             </div>
+            <v-icon
+              v-else
+              color="grey"
+              class="editing-user-icon"
+              :icon="mdiAccountCircle"
+              @click="selectImage"
+            />
+            <input
+              ref="inputRef"
+              type="file"
+              class="d-none"
+              accept="image/*"
+              @change="uploadImage"
+            />
             <div>
               <v-text-field
                 v-model="formInputs.name"
@@ -113,14 +180,12 @@ starCount.value = loginedUser.value!.stars
               />
             </div>
 
-            <div class="star">
-              <span style="color: #ffa000"> ★ </span>
+            <div class="text-center my-4">
+              <span class="star"> ★ </span>
               ×{{ starCount }}
             </div>
 
-            <div class="button">
-              <v-btn color="primary" @click="onSubmit">保存</v-btn>
-            </div>
+            <v-btn color="forest-shade" block @click="onSubmit">保存</v-btn>
           </form>
         </v-card>
       </v-container>
@@ -129,26 +194,31 @@ starCount.value = loginedUser.value!.stars
 </template>
 
 <style scoped>
-form {
-  margin: auto;
+.v-app-bar {
+  border-bottom: 1px solid grey;
 }
-
-.button {
-  text-align: center;
-}
-
-.star {
-  text-align: center;
+.v-main {
+  background-color: rgb(var(--v-theme-warm-vanilla));
+  height: 100vh;
 }
 
 .user-icon {
+  width: 15vw;
+  max-width: 48px;
+  height: 15vw;
+  max-height: 48px;
+  border-radius: 50%;
+  background-color: white;
+}
+
+.editing-user-icon {
   width: 180px;
   height: 180px;
   border-radius: 50%;
   background-color: white;
 }
 
-.user-icon img {
+.editing-user-icon img {
   width: 100%;
   height: 100%;
   border-radius: 50%;

@@ -5,6 +5,7 @@ import * as directives from 'vuetify/directives'
 import colors from 'vuetify/lib/util/colors.mjs'
 import 'vuetify/styles'
 import { aliases, mdi } from 'vuetify/iconsets/mdi-svg'
+import { custom } from '~/src/iconsets/custom'
 
 const customTheme: ThemeDefinition = {
   dark: false,
@@ -38,6 +39,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       aliases,
       sets: {
         mdi,
+        custom,
       },
     },
   })
