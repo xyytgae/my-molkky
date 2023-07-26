@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import {
-  mdiAccountCircle,
-  mdiCloseCircle,
-  mdiHome,
-  mdiAccount,
-  mdiHistory,
-} from '@mdi/js'
+import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
 import { definePageMeta, ref, reactive, useUser } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepo } from '~/apis/user'
 import { storageRepo } from '~/apis/storage'
-import { Link } from '~/types/common'
 
 type FormInputs = {
   name: string
@@ -22,33 +15,9 @@ definePageMeta({
   middleware: ['check-auth'],
 })
 
-const LINKS: Link[] = [
-  {
-    title: 'ルーム',
-    icon: 'custom:skittles',
-    url: '/rooms',
-  },
-  {
-    title: 'プロフィール変更',
-    icon: mdiAccount,
-    url: '/profile',
-  },
-  {
-    title: 'ゲーム履歴',
-    icon: mdiHistory,
-    url: '/gameHistory',
-  },
-  {
-    title: 'ホーム',
-    icon: mdiHome,
-    url: '/',
-  },
-]
-
 const router = useRouter()
 const { loginedUser } = useUser()
 
-const isDrawerOpen = ref<boolean>(false)
 const starCount = ref<number>(0)
 const formInputs = reactive<FormInputs>({
   name: '',
@@ -97,49 +66,9 @@ starCount.value = loginedUser.value!.stars
 
 <template>
   <div>
-    <v-navigation-drawer v-model="isDrawerOpen" app clipped>
-      <v-list>
-        <v-list-item
-          v-if="loginedUser"
-          :title="loginedUser.name"
-          class="my-4 text-black"
-        >
-          <template #prepend>
-            <v-avatar
-              v-if="loginedUser && loginedUser.iconImageUrl"
-              :image="loginedUser.iconImageUrl"
-              class="user-icon"
-            />
-            <v-icon
-              v-else
-              color="grey"
-              class="user-icon"
-              :icon="mdiAccountCircle"
-            />
-          </template>
-        </v-list-item>
-      </v-list>
-
-      <v-divider />
-
-      <v-list>
-        <v-list-item v-for="link in LINKS" :key="link.title" :to="link.url">
-          <template #prepend>
-            <v-icon :icon="link.icon" color="black" size="x-large" />
-          </template>
-          <v-list-item-title class="text-subtitle-2 text-black">{{
-            link.title
-          }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-    </v-navigation-drawer>
-
-    <v-app-bar flat app>
-      <template #prepend>
-        <v-app-bar-nav-icon @click="isDrawerOpen = !isDrawerOpen" />
-      </template>
+    <MainHeader>
       <v-app-bar-title>プロフィール編集</v-app-bar-title>
-    </v-app-bar>
+    </MainHeader>
 
     <v-main>
       <v-container>
@@ -194,21 +123,9 @@ starCount.value = loginedUser.value!.stars
 </template>
 
 <style scoped>
-.v-app-bar {
-  border-bottom: 1px solid grey;
-}
 .v-main {
   background-color: rgb(var(--v-theme-warm-vanilla));
   height: 100vh;
-}
-
-.user-icon {
-  width: 15vw;
-  max-width: 48px;
-  height: 15vw;
-  max-height: 48px;
-  border-radius: 50%;
-  background-color: white;
 }
 
 .editing-user-icon {

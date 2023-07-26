@@ -26,7 +26,9 @@ if (success) {
 
 <template>
   <div>
-    <UserHeader />
+    <MainHeader>
+      <v-app-bar-title>ゲーム履歴</v-app-bar-title>
+    </MainHeader>
     <v-main>
       <v-container>
         <h3>最大15件まで表示されます</h3>

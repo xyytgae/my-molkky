@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import {
-  mdiLock,
-  mdiHome,
-  mdiPlus,
-  mdiAccount,
-  mdiSwordCross,
-  mdiAccountCircle,
-} from '@mdi/js'
+import { mdiLock, mdiHome, mdiPlus, mdiAccountCircle } from '@mdi/js'
 import {
   ref,
   onUnmounted,
@@ -21,12 +14,6 @@ import { isCreateRoomDialogOpen } from '~/fragments/CreateRoomDialog.vue'
 import { isPasswordInputDialogOpen } from '~/fragments/PasswordInputDialog.vue'
 import { useErrorDialog, ErrorDialogKey } from '~/compositions/useErrorDialog'
 
-type Link = {
-  title: string
-  icon: string
-  url: string
-}
-
 definePageMeta({
   middleware: ['check-auth'],
 })
@@ -34,12 +21,11 @@ definePageMeta({
 provide(ErrorDialogKey, useErrorDialog())
 
 const router = useRouter()
-const { loginedUser, logout } = useUser()
+const { loginedUser } = useUser()
 const { rooms, subscribe } = useRooms()
 
 const userId = ref<string>('')
 const errorMessages = ref<string>('')
-const isDrawerOpen = ref<boolean>(false)
 
 const selectedRoom = ref<Room | null>(null)
 
@@ -56,31 +42,6 @@ const moveToRoomPage = (room: Room) => {
   router.push(`/room/${selectedRoom.value.id}`)
 }
 
-const linkList: Link[] = [
-  {
-    title: 'プロフィール変更',
-    icon: mdiAccount,
-    url: '/profile',
-  },
-  {
-    title: 'ゲーム履歴',
-    icon: mdiSwordCross,
-    url: '/gameHistory',
-  },
-  {
-    title: 'ホーム',
-    icon: mdiHome,
-    url: '/',
-  },
-]
-
-const handleLogout = async () => {
-  const { success } = await logout()
-  if (success) {
-    router.push('/login')
-  }
-}
-
 /**
  * init
  */
@@ -95,60 +56,7 @@ onUnmounted(() => {
 
 <template>
   <div>
-    <v-navigation-drawer v-model="isDrawerOpen" app clipped>
-      <v-list>
-        <v-list-item
-          v-if="loginedUser"
-          :title="loginedUser.name"
-          class="my-4 text-black"
-        >
-          <template #prepend>
-            <v-avatar
-              v-if="loginedUser && loginedUser.iconImageUrl"
-              :image="loginedUser.iconImageUrl"
-              class="user-icon"
-            />
-            <v-icon
-              v-else
-              color="grey"
-              class="user-icon"
-              :icon="mdiAccountCircle"
-            />
-          </template>
-        </v-list-item>
-      </v-list>
-
-      <v-divider />
-
-      <v-list dense>
-        <v-list-item v-for="link in linkList" :key="link.title" :to="link.url">
-          <template #prepend>
-            <v-icon :icon="link.icon" color="black" />
-          </template>
-          <v-list-item-title class="text-subtitle-2 text-black">{{
-            link.title
-          }}</v-list-item-title>
-        </v-list-item>
-      </v-list>
-
-      <template #append>
-        <div class="pa-2">
-          <v-btn
-            v-if="loginedUser"
-            block
-            variant="outlined"
-            rounded="xl"
-            color="forest-shade"
-            @click="handleLogout"
-            >ログアウト</v-btn
-          >
-        </div>
-      </template>
-    </v-navigation-drawer>
-    <v-app-bar flat app>
-      <template #prepend>
-        <v-app-bar-nav-icon @click="isDrawerOpen = !isDrawerOpen" />
-      </template>
+    <MainHeader>
       <nuxt-link to="/profile">
         <v-avatar
           v-if="loginedUser && loginedUser.iconImageUrl"
@@ -169,8 +77,8 @@ onUnmounted(() => {
           <span class="star"> ★ </span>
           ×{{ loginedUser.stars }}
         </div>
-      </v-app-bar-title>
-    </v-app-bar>
+      </v-app-bar-title></MainHeader
+    >
 
     <v-main>
       <v-container>
@@ -233,9 +141,6 @@ onUnmounted(() => {
 <style scoped>
 * {
   color: rgb(var(--v-theme-forest-shade));
-}
-.v-app-bar {
-  border-bottom: 1px solid grey;
 }
 .v-footer {
   border-top: 1px solid grey;
