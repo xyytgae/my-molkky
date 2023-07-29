@@ -23,8 +23,16 @@ const formInputs = reactive<FormInputs>({
   image: '',
 })
 const inputRef = ref<HTMLInputElement | null>(null)
+const isFormValid = ref<boolean>(false)
+
+const rules = {
+  required: (value: string) => !!value || '必須項目です',
+  counter: (value: string) =>
+    value.length <= 8 || '8文字以内で入力してください',
+}
 
 const onSubmit = async () => {
+  if (!isFormValid.value) return
   const input = {
     name: formInputs.name,
     iconImageUrl: formInputs.image,
@@ -34,7 +42,6 @@ const onSubmit = async () => {
     userId: loginedUser.value!.id,
     input,
   })
-
   router.push('/rooms')
 }
 
@@ -59,57 +66,64 @@ const uploadImage = async (event: Event) => {
 
 <template>
   <div>
-    <v-app-bar app color="primary">
+    <v-app-bar flat app>
       <v-app-bar-title>アカウント登録</v-app-bar-title>
     </v-app-bar>
 
     <v-main>
-      <v-container class="d-flex justify-center align-center py-12">
-        <v-card elevation="0">
-          <form @submit.prevent="onSubmit">
-            <div>
-              <template v-if="formInputs.image">
+      <v-container>
+        <v-card elevation="0" max-width="400" class="mx-auto">
+          <v-form
+            v-model="isFormValid"
+            class="mx-8 my-12"
+            @submit.prevent="onSubmit"
+          >
+            <div class="d-flex">
+              <div v-if="formInputs.image" class="position-relative mx-auto">
                 <v-icon
-                  v-if="formInputs.image"
                   size="30"
                   class="close-icon"
                   :icon="mdiCloseCircle"
                   @click="formInputs.image = ''"
                 />
-                <v-avatar class="user-icon">
+                <v-avatar class="editing-user-icon">
                   <img :src="formInputs.image" @click="selectImage" />
                 </v-avatar>
-              </template>
-              <template v-else>
-                <v-icon
-                  color="grey"
-                  class="user-icon"
-                  :icon="mdiAccountCircle"
-                  @click="selectImage"
-                />
-              </template>
-              <input
-                ref="inputRef"
-                type="file"
-                class="d-none"
-                accept="image/*"
-                @change="uploadImage"
-              />
-            </div>
-            <div>
-              <v-text-field
-                v-model="formInputs.name"
-                label="名前"
-                class="my-4"
-                counter="8"
-                :persistent-counter="true"
-              />
-            </div>
+              </div>
 
-            <div class="button">
-              <v-btn color="primary" @click="onSubmit">登録</v-btn>
+              <v-icon
+                v-else
+                color="grey"
+                class="editing-user-icon mx-auto"
+                :icon="mdiAccountCircle"
+                @click="selectImage"
+              />
             </div>
-          </form>
+            <input
+              ref="inputRef"
+              type="file"
+              class="d-none"
+              accept="image/*"
+              @change="uploadImage"
+            />
+            <v-text-field
+              v-model="formInputs.name"
+              label="名前"
+              class="my-4"
+              counter="8"
+              :persistent-counter="true"
+              :rules="[rules.required, rules.counter]"
+            />
+
+            <v-btn
+              class="mt-8"
+              color="forest-shade"
+              :disabled="!isFormValid"
+              block
+              @click="onSubmit"
+              >登録</v-btn
+            >
+          </v-form>
         </v-card>
       </v-container>
     </v-main>
@@ -117,22 +131,28 @@ const uploadImage = async (event: Event) => {
 </template>
 
 <style scoped>
-form {
-  margin: auto;
+.v-app-bar {
+  border-bottom: 1px solid grey;
 }
 
-.button {
-  text-align: center;
+.v-main {
+  background-color: rgb(var(--v-theme-warm-vanilla));
+  height: 100vh;
 }
 
-.user-icon {
+/* バリデーションエラー時のカウンターの幅調整 */
+::v-deep(.v-counter) {
+  min-width: fit-content;
+}
+
+.editing-user-icon {
   width: 180px;
   height: 180px;
   border-radius: 50%;
   background-color: white;
 }
 
-.user-icon img {
+.editing-user-icon img {
   width: 100%;
   height: 100%;
   border-radius: 50%;

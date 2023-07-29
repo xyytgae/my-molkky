@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
 import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
-import { definePageMeta, ref, reactive, useUser } from '#imports'
+import { definePageMeta, ref, reactive, useUser, watch } from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepo } from '~/apis/user'
 import { storageRepo } from '~/apis/storage'
@@ -18,18 +18,26 @@ definePageMeta({
 const router = useRouter()
 const { loginedUser } = useUser()
 
-const starCount = ref<number>(0)
 const formInputs = reactive<FormInputs>({
   name: '',
   image: '',
 })
 const inputRef = ref<HTMLInputElement | null>(null)
+const formRef = ref<HTMLFormElement | null>(null)
+const isFormValid = ref<boolean>(false)
+
+const rules = {
+  required: (value: string) => !!value || '必須項目です',
+  counter: (value: string) =>
+    value.length <= 8 || '8文字以内で入力してください',
+}
 
 const onSubmit = async () => {
+  if (!isFormValid.value) return
   const input = {
     name: formInputs.name,
     iconImageUrl: formInputs.image,
-    stars: starCount.value,
+    stars: loginedUser.value!.stars,
   }
   await userRepo.update({
     userId: loginedUser.value!.id,
@@ -61,7 +69,13 @@ const uploadImage = async (event: Event) => {
  */
 formInputs.name = loginedUser.value!.name
 formInputs.image = loginedUser.value!.iconImageUrl
-starCount.value = loginedUser.value!.stars
+
+// NOTE: v-model="isFormValid"の影響で、isFormValidがnullになるため一度強制的にvalidateを発火させる
+watch(formRef, () => {
+  if (formRef.value) {
+    formRef.value.validate()
+  }
+})
 </script>
 
 <template>
@@ -72,26 +86,34 @@ starCount.value = loginedUser.value!.stars
 
     <v-main>
       <v-container>
-        <v-card elevation="0" max-width="400" class="d-flex py-12 mx-auto">
-          <form class="mx-auto" @submit.prevent="onSubmit">
-            <div v-if="formInputs.image" class="position-relative">
+        <v-card elevation="0" max-width="400" class="mx-auto">
+          <v-form
+            ref="formRef"
+            v-model="isFormValid"
+            class="mx-8 my-12"
+            @submit.prevent="onSubmit"
+          >
+            <div class="d-flex">
+              <div v-if="formInputs.image" class="position-relative mx-auto">
+                <v-icon
+                  size="30"
+                  class="close-icon"
+                  :icon="mdiCloseCircle"
+                  @click="formInputs.image = ''"
+                />
+                <v-avatar class="editing-user-icon">
+                  <img :src="formInputs.image" @click="selectImage" />
+                </v-avatar>
+              </div>
+
               <v-icon
-                size="30"
-                class="close-icon"
-                :icon="mdiCloseCircle"
-                @click="formInputs.image = ''"
+                v-else
+                color="grey"
+                class="editing-user-icon mx-auto"
+                :icon="mdiAccountCircle"
+                @click="selectImage"
               />
-              <v-avatar class="editing-user-icon">
-                <img :src="formInputs.image" @click="selectImage" />
-              </v-avatar>
             </div>
-            <v-icon
-              v-else
-              color="grey"
-              class="editing-user-icon"
-              :icon="mdiAccountCircle"
-              @click="selectImage"
-            />
             <input
               ref="inputRef"
               type="file"
@@ -99,23 +121,24 @@ starCount.value = loginedUser.value!.stars
               accept="image/*"
               @change="uploadImage"
             />
-            <div>
-              <v-text-field
-                v-model="formInputs.name"
-                label="名前"
-                class="my-4"
-                counter="8"
-                :persistent-counter="true"
-              />
-            </div>
+            <v-text-field
+              v-model="formInputs.name"
+              label="名前"
+              class="my-4"
+              counter="8"
+              :persistent-counter="true"
+              :rules="[rules.required, rules.counter]"
+            />
 
-            <div class="text-center my-4">
-              <span class="star"> ★ </span>
-              ×{{ starCount }}
-            </div>
-
-            <v-btn color="forest-shade" block @click="onSubmit">保存</v-btn>
-          </form>
+            <v-btn
+              class="mt-8"
+              color="forest-shade"
+              :disabled="!isFormValid"
+              block
+              @click="onSubmit"
+              >保存</v-btn
+            >
+          </v-form>
         </v-card>
       </v-container>
     </v-main>
@@ -126,6 +149,11 @@ starCount.value = loginedUser.value!.stars
 .v-main {
   background-color: rgb(var(--v-theme-warm-vanilla));
   height: 100vh;
+}
+
+/* バリデーションエラー時のカウンターの幅調整 */
+::v-deep(.v-counter) {
+  min-width: fit-content;
 }
 
 .editing-user-icon {
