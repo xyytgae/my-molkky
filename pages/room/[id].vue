@@ -45,6 +45,7 @@ const isHost = ref<boolean>(false)
 const isShowStartButton = ref<boolean>(true)
 const stepper = ref<number>(0)
 const orderInputRefs = ref<HTMLInputElement[] | null>(null)
+const isLimitDialogOpen = ref<boolean>(false)
 
 const exitRoom = async () => {
   if (isHost.value) {
@@ -140,20 +141,31 @@ userId.value = loginedUser.value!.id
 roomId.value = route.params.id as string
 isHost.value = roomId.value === userId.value
 
-if (loginedUser.value && roomId.value) {
-  const defaultPlayer = createDefaultPlayer(loginedUser.value)
-  await playerRepo.create({
-    roomId: roomId.value,
-    player: defaultPlayer,
-  })
-}
+roomRepo.get({ roomId: roomId.value }).then(async ({ data }) => {
+  if (!data || !loginedUser.value) return
 
-subscribePlayers(roomId.value).then(({ data }) => {
-  unsubscribePlayers.value = data
-})
+  const numberOfPlayers = data.playerIds.length
+  if (numberOfPlayers < 4) {
+    const defaultPlayer = createDefaultPlayer(loginedUser.value)
+    await roomRepo.addPlayerId({
+      playerId: userId.value,
+      roomId: roomId.value,
+    })
+    await playerRepo.create({
+      roomId: roomId.value,
+      player: defaultPlayer,
+    })
 
-subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
-  unsubscribeRoomDeletion.value = data
+    subscribePlayers(roomId.value).then(({ data }) => {
+      unsubscribePlayers.value = data
+    })
+
+    subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
+      unsubscribeRoomDeletion.value = data
+    })
+  } else {
+    isLimitDialogOpen.value = true
+  }
 })
 </script>
 
@@ -242,6 +254,26 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
         </v-card>
       </v-container>
 
+      <v-dialog
+        v-model="isLimitDialogOpen"
+        max-width="400"
+        persistent
+        scrim="warm-vanilla"
+      >
+        <v-card>
+          <v-card-title class="py-4"> この部屋は満員です </v-card-title>
+          <v-card-actions>
+            <v-btn
+              class="ml-auto"
+              color="forest-shade"
+              variant="elevated"
+              @click="router.push('/rooms')"
+              >部屋一覧に戻る</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <LazyDeleteRoomDialog
         v-model="isDeleteRoomDialogOpen"
         @delete-room="deleteRoomAndExit"
@@ -301,6 +333,11 @@ subscribeRoomDeletion(userId.value, roomId.value).then(({ data }) => {
 .v-main {
   background-color: rgb(var(--v-theme-warm-vanilla));
   height: 100vh;
+}
+
+/* v-dialogのoverlayを上書き */
+::v-deep(.v-overlay__scrim) {
+  opacity: 100% !important;
 }
 
 .ordered-number {
