@@ -3,6 +3,34 @@ import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
 
 export const roomRepo = {
   /**
+   * ルームを取得する
+   * @param roomId
+   * @returns
+   */
+  get: async ({
+    roomId,
+  }: {
+    roomId: string
+  }): Promise<ApiResponse<Room | null>> => {
+    const { $firestore } = useNuxtApp()
+    try {
+      const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
+      const room = roomDoc.data() as Room
+
+      return {
+        data: room,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: null,
+        success: false,
+        error,
+      }
+    }
+  },
+  /**
    * ルームを前半に更新する
    * @param roomId
    * @returns
