@@ -1,10 +1,19 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
 import { mdiAccountCircle, mdiCloseCircle } from '@mdi/js'
-import { definePageMeta, ref, reactive, useUser, watch } from '#imports'
+import {
+  definePageMeta,
+  ref,
+  reactive,
+  useUser,
+  watch,
+  onBeforeRouteLeave,
+  computed,
+} from '#imports'
 import { onSelectFile } from '~/modules/onSelectFile'
 import { userRepo } from '~/apis/user'
 import { storageRepo } from '~/apis/storage'
+import { useConfirm } from '~/composables/useConfirm'
 
 type FormInputs = {
   name: string
@@ -17,6 +26,9 @@ definePageMeta({
 
 const router = useRouter()
 const { loginedUser } = useUser()
+const { onConfirm } = useConfirm()
+
+const CONFIRM_TEXT = '編集内容が保存されていません。\n 編集を破棄しますか？'
 
 const formInputs = reactive<FormInputs>({
   name: '',
@@ -31,6 +43,12 @@ const rules = {
   counter: (value: string) =>
     value.length <= 8 || '8文字以内で入力してください',
 }
+
+const isFormInputsChanged = computed<boolean>(
+  () =>
+    formInputs.name !== loginedUser.value!.name ||
+    formInputs.image !== loginedUser.value!.iconImageUrl
+)
 
 const onSubmit = async () => {
   if (!isFormValid.value) return
@@ -63,6 +81,20 @@ const uploadImage = async (event: Event) => {
     formInputs.image = data
   }
 }
+
+onBeforeRouteLeave(async (_to, _from, next) => {
+  if (!isFormInputsChanged.value) {
+    next()
+    return
+  }
+
+  const answer = await onConfirm()
+  if (answer) {
+    next()
+  } else {
+    next(false)
+  }
+})
 
 /**
  * init
@@ -141,6 +173,7 @@ watch(formRef, () => {
           </v-form>
         </v-card>
       </v-container>
+      <LazyConfirmDialog :content="CONFIRM_TEXT" />
     </v-main>
   </div>
 </template>

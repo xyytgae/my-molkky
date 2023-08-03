@@ -5,14 +5,15 @@ import { User, CreatePlayerInput } from '~/types/api'
 import {
   definePageMeta,
   ref,
-  onUnmounted,
   useUser,
   usePlayers,
   useRoom,
+  onBeforeRouteLeave,
+  computed,
 } from '#imports'
 import { playerRepo } from '~/apis/player'
 import { roomRepo } from '~/apis/room'
-import { isDeleteRoomDialogOpen } from '~/components/DeleteRoomDialog.vue'
+import { useConfirm } from '~/composables/useConfirm'
 
 definePageMeta({
   middleware: ['check-auth'],
@@ -28,6 +29,7 @@ const { $firebase } = useNuxtApp()
 const { loginedUser } = useUser()
 const { users, subscribePlayers } = usePlayers()
 const { room, subscribeRoomDeletion } = useRoom()
+const { onConfirm } = useConfirm()
 
 const SLIDES: string[] = [
   '「順番を選択」を押してください',
@@ -47,30 +49,9 @@ const stepper = ref<number>(0)
 const orderInputRefs = ref<HTMLInputElement[] | null>(null)
 const isLimitDialogOpen = ref<boolean>(false)
 
-const exitRoom = async () => {
-  if (isHost.value) {
-    isDeleteRoomDialogOpen.value = true
-  } else {
-    unsubscribeAll()
-    router.push('/rooms')
-    await playerRepo.delete({
-      roomId: roomId.value,
-      playerId: userId.value,
-    })
-  }
-}
-
-const deleteRoomAndExit = async () => {
-  unsubscribeAll()
-  await playerRepo.delete({
-    roomId: roomId.value,
-    playerId: userId.value,
-  })
-  await roomRepo.delete({
-    roomId: roomId.value,
-  })
-  router.push('/rooms')
-}
+const confirmText = computed(() =>
+  isHost.value ? 'ルームを削除しますか？' : 'ルームから退出しますか？'
+)
 
 const chooseOrder = (index: number) => {
   if (orderInputRefs.value) {
@@ -95,6 +76,10 @@ const decideOrder = async () => {
     roomId: roomId.value,
     playerIds: orderedPlayerIds.value,
   })
+  await roomRepo.updatePlayerIds({
+    roomId: roomId.value,
+    playerIds: orderedPlayerIds.value,
+  })
   isShowStartButton.value = false
 
   // v-carouselを進める
@@ -116,9 +101,27 @@ const unsubscribeAll = () => {
   }
 }
 
-onUnmounted(() => {
+const exitRoom = async () => {
+  await playerRepo.delete({
+    roomId: roomId.value,
+    playerId: userId.value,
+  })
+  if (isHost.value) {
+    await roomRepo.delete({
+      roomId: roomId.value,
+    })
+  } else {
+    const newPlayerIds = room.value!.playerIds.filter(
+      (playerId) => playerId !== userId.value
+    )
+    await roomRepo.updatePlayerIds({
+      roomId: roomId.value,
+      playerIds: newPlayerIds,
+    })
+  }
+
   unsubscribeAll()
-})
+}
 
 const createDefaultPlayer = (user: User): CreatePlayerInput => ({
   scores: [],
@@ -131,6 +134,20 @@ const createDefaultPlayer = (user: User): CreatePlayerInput => ({
   iconImageUrl: user.iconImageUrl,
   createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
   secondHalfScore: 0,
+})
+
+onBeforeRouteLeave(async (_to, _from, next) => {
+  if (room.value.delete) {
+    next()
+    return
+  }
+  const answer = await onConfirm()
+  if (answer) {
+    exitRoom()
+    next()
+  } else {
+    next(false)
+  }
 })
 
 /**
@@ -147,10 +164,13 @@ roomRepo.get({ roomId: roomId.value }).then(async ({ data }) => {
   const numberOfPlayers = data.playerIds.length
   if (numberOfPlayers < 4) {
     const defaultPlayer = createDefaultPlayer(loginedUser.value)
-    await roomRepo.addPlayerId({
-      playerId: userId.value,
-      roomId: roomId.value,
-    })
+    if (!data.playerIds.includes(userId.value)) {
+      await roomRepo.addPlayerId({
+        playerId: userId.value,
+        roomId: roomId.value,
+      })
+    }
+
     await playerRepo.create({
       roomId: roomId.value,
       player: defaultPlayer,
@@ -274,16 +294,13 @@ roomRepo.get({ roomId: roomId.value }).then(async ({ data }) => {
         </v-card>
       </v-dialog>
 
-      <LazyDeleteRoomDialog
-        v-model="isDeleteRoomDialogOpen"
-        @delete-room="deleteRoomAndExit"
-      />
+      <LazyConfirmDialog :content="confirmText" />
     </v-main>
 
     <v-footer app fixed padless>
       <v-card tile flat class="pa-0 ma-0" width="100%">
         <v-card-actions class="pa-0">
-          <v-btn icon @click="exitRoom">
+          <v-btn icon @click="router.push('/rooms')">
             <v-icon
               color="forest-shade"
               size="x-large"
