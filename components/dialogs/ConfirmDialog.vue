@@ -19,7 +19,7 @@ const { isConfirmDialogOpen, onOK, onCancel, close } = useConfirm()
     @click:outside="close"
   >
     <v-card>
-      <v-card-text class="px-4 py-6"> {{ content }} </v-card-text>
+      <v-card-text class="px-4 py-6 text-pre-line"> {{ content }} </v-card-text>
 
       <v-card-actions>
         <v-btn @click="onCancel">キャンセル</v-btn>
