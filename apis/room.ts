@@ -220,6 +220,38 @@ export const roomRepo = {
     }
   },
   /**
+   * プレイヤーの順序を更新する
+   * @param playerIds
+   * @param roomId
+   * @returns
+   */
+  updatePlayerIds: async ({
+    playerIds,
+    roomId,
+  }: {
+    playerIds: string[]
+    roomId: string
+  }): Promise<ApiResponse<Room['playerIds']>> => {
+    const { $firestore } = useNuxtApp()
+    try {
+      await $firestore.collection('rooms').doc(roomId).update({
+        playerIds,
+      })
+
+      return {
+        data: playerIds,
+        success: true,
+        error: null,
+      }
+    } catch (error) {
+      return {
+        data: [],
+        success: false,
+        error,
+      }
+    }
+  },
+  /**
    * users配列の先頭を消去し、次のユーザーに順番が回ってくるようにする
    * @param roomId
    * @returns

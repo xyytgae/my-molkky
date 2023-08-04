@@ -108,11 +108,7 @@ export const playerRepo = {
             order: index,
           })
       })
-
       await Promise.all(promises)
-      await $firestore.collection('rooms').doc(roomId).update({
-        playerIds,
-      })
 
       return {
         data: playerIds,
