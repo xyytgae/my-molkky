@@ -1,4 +1,5 @@
 import { useNuxtApp } from '#app'
+import { setDoc, doc, deleteDoc, updateDoc, getDoc } from 'firebase/firestore'
 import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
 
 export const roomRepo = {
@@ -14,7 +15,7 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
+      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
       const room = roomDoc.data() as Room
 
       return {
@@ -43,7 +44,7 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'FIRST_HALF_STARTED'
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         status,
       })
 
@@ -76,7 +77,7 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'SECOND_HALF_STARTED'
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         status,
         playerIds,
       })
@@ -106,7 +107,7 @@ export const roomRepo = {
   }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      await $firestore.collection('rooms').doc(input.hostId).set(input)
+      await setDoc(doc($firestore, 'rooms', input.hostId), input)
 
       return {
         data: input.hostId,
@@ -134,10 +135,10 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
 
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         delete: true,
       })
-      await $firestore.collection('rooms').doc(roomId).delete()
+      await deleteDoc(doc($firestore, 'rooms', roomId))
 
       return {
         data: roomId,
@@ -165,7 +166,7 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
 
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         playerIds: [],
       })
 
@@ -198,11 +199,11 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
+      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
       const { playerIds } = roomDoc.data() as Room
       const newPlayerIds = [...playerIds, playerId]
 
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         playerIds: newPlayerIds,
       })
 
@@ -234,7 +235,7 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         playerIds,
       })
 
@@ -263,11 +264,11 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await $firestore.collection('rooms').doc(roomId).get()
+      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
       const { playerIds } = roomDoc.data() as Room
       const newPlayerIds = [...playerIds]
       newPlayerIds.shift()
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         playerIds: newPlayerIds,
       })
 
@@ -300,7 +301,7 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
     // const status: RoomStatus = "FIRST_HALF_FINISHED"
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         status,
         playerIds: [],
       })
@@ -331,7 +332,7 @@ export const roomRepo = {
     const { $firestore } = useNuxtApp()
     const status: RoomStatus = 'NOT_STARTED'
     try {
-      await $firestore.collection('rooms').doc(roomId).update({
+      await updateDoc(doc($firestore, 'rooms', roomId), {
         status,
         playerIds: [],
       })

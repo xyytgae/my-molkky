@@ -1,6 +1,12 @@
 import { useState, useNuxtApp } from '#app'
+import {
+  onSnapshot,
+  Unsubscribe,
+  query,
+  collection,
+  orderBy,
+} from 'firebase/firestore'
 import { Player, ApiResponse } from '../types/api'
-import { Unsubscribe } from 'firebase'
 
 const add = (users: Player[], addedUser: Player): Player[] => {
   const isNotAdded = !users.find((user) => user.id === addedUser.id)
@@ -27,19 +33,19 @@ export const usePlayers = () => {
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
       users.value = []
-      const unsubscribe = await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .orderBy('order', 'asc')
-        .onSnapshot((usersSnapShot) => {
-          usersSnapShot.docChanges().forEach((snapshot) => {
+      const unsubscribe = await onSnapshot(
+        query(
+          collection($firestore, 'rooms', roomId, 'players'),
+          orderBy('order', 'asc')
+        ),
+        (usersSnapShot) => {
+          usersSnapShot.docChanges().forEach((change) => {
             const user: Player = {
-              id: snapshot.doc.id,
-              ...(snapshot.doc.data() as Omit<Player, 'id'>),
+              id: change.doc.id,
+              ...(change.doc.data() as Omit<Player, 'id'>),
             }
 
-            switch (snapshot.type) {
+            switch (change.type) {
               case 'added':
                 users.value = add(users.value, user)
                 break
@@ -53,7 +59,8 @@ export const usePlayers = () => {
                 break
             }
           })
-        })
+        }
+      )
 
       return {
         data: unsubscribe,

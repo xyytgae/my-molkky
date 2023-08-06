@@ -1,9 +1,15 @@
 import { useNuxtApp, useRouter, useState } from '#app'
+import {
+  onSnapshot,
+  Unsubscribe,
+  doc,
+  serverTimestamp,
+  FieldValue,
+} from 'firebase/firestore'
 import { Room, ApiResponse } from '../types/api'
-import { Unsubscribe, firestore } from 'firebase'
 import { playerRepo } from '~/apis/player'
 
-const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
+const createDefaultRoom = (createdAt: FieldValue): Room => ({
   id: '',
   hostId: '',
   name: '',
@@ -15,10 +21,10 @@ const createDefaultRoom = (createdAt: firestore.FieldValue): Room => ({
 })
 
 export const useRoom = () => {
-  const { $firestore, $firebase } = useNuxtApp()
+  const { $firestore } = useNuxtApp()
   const router = useRouter()
   const room = useState<Room>('room', () =>
-    createDefaultRoom($firebase.firestore.FieldValue.serverTimestamp())
+    createDefaultRoom(serverTimestamp())
   )
 
   const subscribeRoomDeletion = async (
@@ -26,28 +32,26 @@ export const useRoom = () => {
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
-      const unsubscribe = await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .onSnapshot(
-          {
-            includeMetadataChanges: true,
-          },
-          (doc) => {
-            const docData = doc.data() as Room
-            if (docData.delete) {
-              playerRepo.delete({
-                roomId,
-                playerId: userId,
-              })
-              router.push('/rooms')
-            }
-            if (docData.status !== 'NOT_STARTED') {
-              router.push(`/game/${roomId}`)
-            }
-            room.value = docData
+      const unsubscribe = await onSnapshot(
+        doc($firestore, 'rooms', roomId),
+        {
+          includeMetadataChanges: true,
+        },
+        (doc) => {
+          const docData = doc.data() as Room
+          if (docData.delete) {
+            playerRepo.delete({
+              roomId,
+              playerId: userId,
+            })
+            router.push('/rooms')
           }
-        )
+          if (docData.status !== 'NOT_STARTED') {
+            router.push(`/game/${roomId}`)
+          }
+          room.value = docData
+        }
+      )
 
       return {
         data: unsubscribe,
@@ -67,18 +71,16 @@ export const useRoom = () => {
     roomId: string
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
-      const unsubscribe = await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .onSnapshot(
-          {
-            includeMetadataChanges: true,
-          },
-          (doc) => {
-            const docData = doc.data() as Room
-            room.value = docData
-          }
-        )
+      const unsubscribe = await onSnapshot(
+        doc($firestore, 'rooms', roomId),
+        {
+          includeMetadataChanges: true,
+        },
+        (doc) => {
+          const docData = doc.data() as Room
+          room.value = docData
+        }
+      )
 
       return {
         data: unsubscribe,

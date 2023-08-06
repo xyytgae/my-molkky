@@ -1,7 +1,12 @@
 import { useState, useNuxtApp } from '#app'
+import {
+  onSnapshot,
+  query,
+  collection,
+  orderBy,
+  Unsubscribe,
+} from 'firebase/firestore'
 import { Room, ApiResponse } from '../types/api'
-import { readonly } from '#imports'
-import { Unsubscribe } from 'firebase'
 
 const add = (rooms: Room[], addedRoom: Room): Room[] => {
   const isNotAdded = !rooms.find((room) => room.id === addedRoom.id)
@@ -31,17 +36,16 @@ export const useRooms = () => {
   const subscribe = async (): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
       rooms.value = []
-      const unsubscribe = await $firestore
-        .collection('rooms')
-        .orderBy('createdAt', 'desc')
-        .onSnapshot((roomsSnapShot) => {
-          roomsSnapShot.docChanges().forEach((snapshot) => {
+      const unsubscribe = await onSnapshot(
+        query(collection($firestore, 'rooms'), orderBy('createdAt', 'desc')),
+        (roomsSnapShot) => {
+          roomsSnapShot.docChanges().forEach((change) => {
             const room: Room = {
-              id: snapshot.doc.id,
-              ...(snapshot.doc.data() as Omit<Room, 'id'>),
+              id: change.doc.id,
+              ...(change.doc.data() as Omit<Room, 'id'>),
             }
 
-            switch (snapshot.type) {
+            switch (change.type) {
               case 'added':
                 rooms.value = add(rooms.value, room)
                 break
@@ -55,7 +59,8 @@ export const useRooms = () => {
                 break
             }
           })
-        })
+        }
+      )
 
       return {
         data: unsubscribe,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useRoute, useRouter, useNuxtApp } from '#app'
+import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle, mdiChevronLeft } from '@mdi/js'
+import { serverTimestamp } from 'firebase/firestore'
 import { User, CreatePlayerInput } from '~/types/api'
 import {
   definePageMeta,
@@ -25,7 +26,6 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { $firebase } = useNuxtApp()
 const { loginedUser } = useUser()
 const { users, subscribePlayers } = usePlayers()
 const { room, subscribeRoomDeletion } = useRoom()
@@ -132,7 +132,7 @@ const createDefaultPlayer = (user: User): CreatePlayerInput => ({
   id: user.id,
   name: user.name,
   iconImageUrl: user.iconImageUrl,
-  createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+  createdAt: serverTimestamp(),
   secondHalfScore: 0,
 })
 

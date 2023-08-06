@@ -1,4 +1,12 @@
 import { useState, useNuxtApp } from '#app'
+import { doc, getDoc } from 'firebase/firestore'
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+} from 'firebase/auth'
 import { User } from '../types/api'
 
 // TODO: 型修正
@@ -8,13 +16,13 @@ type ApiResponse = {
 }
 
 export const useUser = () => {
-  const { $firebase, $fireAuth, $firestore } = useNuxtApp()
+  const { $fireAuth, $firestore } = useNuxtApp()
   const loginedUser = useState<User | null>('loginedUser', () => null)
 
   const getUser = async (uid: string): Promise<ApiResponse> => {
     try {
-      const userSnapshot = await $firestore.collection('users').doc(uid).get()
-      if (userSnapshot.exists) {
+      const userSnapshot = await getDoc(doc($firestore, 'users', uid))
+      if (userSnapshot.exists()) {
         loginedUser.value = { ...userSnapshot.data(), id: uid } as User
       } else {
         loginedUser.value = {
@@ -39,8 +47,11 @@ export const useUser = () => {
 
   const googleLogin = async (): Promise<ApiResponse> => {
     try {
-      const googleAuthProvider = new $firebase.auth.GoogleAuthProvider()
-      const userCredential = await $fireAuth.signInWithPopup(googleAuthProvider)
+      const googleAuthProvider = new GoogleAuthProvider()
+      const userCredential = await signInWithPopup(
+        $fireAuth,
+        googleAuthProvider
+      )
       if (userCredential && userCredential.user) {
         await getUser(userCredential.user.uid)
       }
@@ -62,7 +73,8 @@ export const useUser = () => {
     password: string
   ): Promise<ApiResponse> => {
     try {
-      const userCredential = await $fireAuth.signInWithEmailAndPassword(
+      const userCredential = await signInWithEmailAndPassword(
+        $fireAuth,
         email,
         password
       )
@@ -84,7 +96,7 @@ export const useUser = () => {
 
   const logout = async (): Promise<ApiResponse> => {
     try {
-      await $fireAuth.signOut()
+      await signOut($fireAuth)
       loginedUser.value = null
 
       return {
@@ -101,7 +113,8 @@ export const useUser = () => {
 
   const checkAuthState = async (): Promise<void> => {
     return await new Promise<void>((resolve, reject) => {
-      $fireAuth.onAuthStateChanged(
+      onAuthStateChanged(
+        $fireAuth,
         async (user) => {
           if (user) {
             const { uid } = user
