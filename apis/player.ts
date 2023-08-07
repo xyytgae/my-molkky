@@ -1,5 +1,17 @@
 import { useNuxtApp } from '#app'
 import {
+  collection,
+  setDoc,
+  doc,
+  deleteDoc,
+  updateDoc,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  orderBy,
+} from 'firebase/firestore'
+import {
   ApiResponse,
   User,
   Player,
@@ -26,12 +38,10 @@ export const playerRepo = {
     const { $firestore } = useNuxtApp()
 
     try {
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(player.id)
-        .set(player)
+      await setDoc(
+        doc($firestore, 'rooms', roomId, 'players', player.id),
+        player
+      )
 
       return {
         data: player,
@@ -62,12 +72,7 @@ export const playerRepo = {
     const { $firestore } = useNuxtApp()
 
     try {
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(playerId)
-        .delete()
+      await deleteDoc(doc($firestore, 'rooms', roomId, 'players', playerId))
 
       return {
         data: playerId,
@@ -99,14 +104,9 @@ export const playerRepo = {
 
     try {
       const promises = playerIds.map(async (playerId, index) => {
-        await $firestore
-          .collection('rooms')
-          .doc(roomId)
-          .collection('players')
-          .doc(playerId)
-          .update({
-            order: index,
-          })
+        await updateDoc(doc($firestore, 'rooms', roomId, 'players', playerId), {
+          order: index,
+        })
       })
       await Promise.all(promises)
 
@@ -142,13 +142,9 @@ export const playerRepo = {
     })
 
     try {
-      const userDoc = await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(playerId)
-        .get()
-
+      const userDoc = await getDoc(
+        doc($firestore, 'rooms', roomId, 'players', playerId)
+      )
       const docData = userDoc.data() as Player
       const userScores = docData.scores
       const lastZeroIndex = userScores.lastIndexOf(0)
@@ -159,14 +155,9 @@ export const playerRepo = {
         lastZeroIndex !== -1
 
       if (isToBeEliminated) {
-        await $firestore
-          .collection('rooms')
-          .doc(roomId)
-          .collection('players')
-          .doc(playerId)
-          .update({
-            elimination: true,
-          })
+        await updateDoc(doc($firestore, 'rooms', roomId, 'players', playerId), {
+          elimination: true,
+        })
       } else {
         // 失格ではない場合にusersに追加し、ゲームを続行させる
         await roomRepo.addPlayerId({
@@ -178,20 +169,18 @@ export const playerRepo = {
       const status: RoomStatus = 'SECOND_HALF_FINISHED'
 
       // 1人を除き、失格になればゲームを終了させる
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .where('elimination', '==', false)
-        .get()
-        .then((snapshot) => {
-          if (snapshot.size === 1) {
-            $firestore.collection('rooms').doc(roomId).update({
-              status,
-              playerIds: [],
-            })
-          }
+      const playerDoc = await getDocs(
+        query(
+          collection($firestore, 'rooms', roomId, 'players'),
+          where('elimination', '==', false)
+        )
+      )
+      if (playerDoc.size === 1) {
+        await updateDoc(doc($firestore, 'rooms', roomId), {
+          status,
+          playerIds: [],
         })
+      }
 
       return {
         data: isToBeEliminated,
@@ -214,30 +203,25 @@ export const playerRepo = {
   updateToSecondHalf: async ({ roomId }: { roomId: string }) => {
     const { $firestore } = useNuxtApp()
     try {
-      const players = await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .orderBy('firstHalfScore', 'desc')
-        .get()
-        .then((snapshot) => {
-          const players: Player[] = []
-          snapshot.forEach((doc) => {
-            players.push({ ...doc.data(), id: doc.id } as Player)
-          })
-          return players
-        })
+      const playerDoc = await getDocs(
+        query(
+          collection($firestore, 'rooms', roomId, 'players'),
+          orderBy('firstHalfScore', 'desc')
+        )
+      )
+      const players: Player[] = []
+      playerDoc.forEach((doc) => {
+        players.push({ ...doc.data(), id: doc.id } as Player)
+      })
 
       const promises = players.map(async (player) => {
-        await $firestore
-          .collection('rooms')
-          .doc(roomId)
-          .collection('players')
-          .doc(player.id)
-          .update({
+        await updateDoc(
+          doc($firestore, 'rooms', roomId, 'players', player.id),
+          {
             scores: [],
             elimination: false,
-          })
+          }
+        )
       })
 
       await Promise.all(promises)
@@ -273,14 +257,9 @@ export const playerRepo = {
   }) => {
     const { $firestore } = useNuxtApp()
     try {
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(playerId)
-        .update({
-          scores: newScores,
-        })
+      await updateDoc(doc($firestore, 'rooms', roomId, 'players', playerId), {
+        scores: newScores,
+      })
 
       return {
         data: newScores,
@@ -320,14 +299,9 @@ export const playerRepo = {
     try {
       // score配列を元にtotalScoresを計算
       const newFirstScore = elimination ? 0 : calculateScore(scores)
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(playerId)
-        .update({
-          firstHalfScore: newFirstScore,
-        })
+      await updateDoc(doc($firestore, 'rooms', roomId, 'players', playerId), {
+        firstHalfScore: newFirstScore,
+      })
 
       // 50点に到達すれば、その時点で前半を終了させる
       if (newFirstScore === 50) {
@@ -374,14 +348,9 @@ export const playerRepo = {
     try {
       // score配列を元にtotalScoresを計算
       const newSecondScore = elimination ? 0 : calculateScore(scores)
-      await $firestore
-        .collection('rooms')
-        .doc(roomId)
-        .collection('players')
-        .doc(playerId)
-        .update({
-          secondHalfScore: newSecondScore,
-        })
+      await updateDoc(doc($firestore, 'rooms', roomId, 'players', playerId), {
+        secondHalfScore: newSecondScore,
+      })
 
       // 50点に到達すれば、その時点で前半を終了させる
       if (newSecondScore === 50) {

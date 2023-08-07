@@ -1,4 +1,4 @@
-import { firestore } from 'firebase'
+import { Timestamp, FieldValue } from 'firebase/firestore'
 
 export type ApiResponse<T> = {
   data: T
@@ -36,7 +36,7 @@ export type CreatePlayerInput = {
   firstHalfScore: number
   secondHalfScore: number
   scores: Array<number>
-  createdAt: firestore.Timestamp | firestore.FieldValue
+  createdAt: Timestamp | FieldValue
   name: string
   stars: number
 }
@@ -47,7 +47,7 @@ export type Player = CreatePlayerInput
  * ゲームヒストリー
  */
 export type GameHistory = {
-  createdAt: firestore.Timestamp
+  createdAt: Timestamp
   users: Array<any>
 }
 
@@ -65,7 +65,7 @@ export type CreateRoomInput = {
   hostId: string
   name: string
   password: string
-  createdAt: firestore.Timestamp | firestore.FieldValue
+  createdAt: Timestamp | FieldValue
   delete: boolean
   playerIds: Array<string>
   status: RoomStatus

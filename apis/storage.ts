@@ -1,4 +1,5 @@
 import { useNuxtApp } from '#app'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { ApiResponse } from '../types/api'
 
 export const storageRepo = {
@@ -17,9 +18,9 @@ export const storageRepo = {
   }): Promise<ApiResponse<string>> => {
     const { $fireStorage } = useNuxtApp()
     try {
-      const imageRef = await $fireStorage.ref().child(`images/${path}`)
-      const snapshot = await imageRef.put(file)
-      const url = await snapshot.ref.getDownloadURL()
+      const imageRef = ref($fireStorage, `images/${path}`)
+      const result = await uploadBytes(imageRef, file)
+      const url = await getDownloadURL(result.ref)
 
       return {
         data: url,

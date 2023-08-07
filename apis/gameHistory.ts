@@ -1,4 +1,14 @@
 import { useNuxtApp } from '#app'
+import {
+  query,
+  collection,
+  orderBy,
+  limit,
+  setDoc,
+  doc,
+  getDocs,
+  serverTimestamp,
+} from 'firebase/firestore'
 import { ApiResponse, GameHistory, Player } from '../types/api'
 
 export const gameHistoryRepo = {
@@ -11,19 +21,19 @@ export const gameHistoryRepo = {
     const { $firestore } = useNuxtApp()
     const data: GameHistory[] = []
     try {
-      const gamesSnapshot = await $firestore
-        .collection('users')
-        .doc(userId)
-        .collection('games')
-        .orderBy('createdAt', 'desc')
-        .limit(15)
-        .get()
+      const gamesSnapshot = await getDocs(
+        query(
+          collection($firestore, 'users', userId, 'games'),
+          orderBy('createdAt', 'desc'),
+          limit(15)
+        )
+      )
 
       const promises = gamesSnapshot.docs.map(async (doc, index) => {
         const { createdAt } = doc.data()
         data.push({ createdAt, users: [] })
 
-        const usersSnapshot = await doc.ref.collection('game').get()
+        const usersSnapshot = await getDocs(collection(doc.ref, 'game'))
 
         usersSnapshot.forEach((subDoc) => {
           data[index].users.push({ ...subDoc.data() })
@@ -51,20 +61,15 @@ export const gameHistoryRepo = {
    * @returns
    */
   create: async (userId: string, users: Player[]) => {
-    const { $firestore, $firebase } = useNuxtApp()
+    const { $firestore } = useNuxtApp()
     try {
-      const gameRef = await $firestore
-        .collection('users')
-        .doc(userId)
-        .collection('games')
-        .doc()
+      const gameRef = doc(collection($firestore, 'users', userId, 'games'))
 
-      await gameRef.set({
-        createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+      await setDoc(gameRef, {
+        createdAt: serverTimestamp(),
       })
-
       const promises = users.map(async (user) => {
-        await gameRef.collection('game').doc(user.id).set(user)
+        await setDoc(doc(gameRef, 'game', user.id), user)
       })
 
       await Promise.all(promises)

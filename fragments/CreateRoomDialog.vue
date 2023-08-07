@@ -1,6 +1,6 @@
 <script lang="ts">
-import { useNuxtApp } from '#app'
 import { mdiCloseCircle, mdiImage } from '@mdi/js'
+import { serverTimestamp } from 'firebase/firestore'
 import { ref, reactive, watch, inject } from '#imports'
 import { RoomStatus } from '~/types/api'
 import { roomRepo } from '~/apis/room'
@@ -35,7 +35,6 @@ const { isErrorDialogOpen, errorMessage } = inject(
   ErrorDialogKey
 ) as ErrorDialogStore
 
-const { $firebase } = useNuxtApp()
 const createDefaultFormInputs = (): FormInputs => ({
   name: '',
   password: '',
@@ -51,7 +50,7 @@ const createRoom = async () => {
   const status: RoomStatus = 'NOT_STARTED'
   const input = {
     name: formInputs.name,
-    createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: serverTimestamp(),
     password: formInputs.password,
     hostId: props.userId,
     delete: false,

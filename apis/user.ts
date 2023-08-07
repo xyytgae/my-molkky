@@ -1,4 +1,5 @@
 import { useNuxtApp } from '#app'
+import { setDoc, doc, updateDoc, increment } from 'firebase/firestore'
 import { ApiResponse, CreateUserInput, UpdateUserInput } from '../types/api'
 
 export const userRepo = {
@@ -17,10 +18,11 @@ export const userRepo = {
   }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      await $firestore.collection('users').doc(userId).set({
-        name: input.name,
-        iconImageUrl: input.iconImageUrl,
-        stars: input.stars,
+      const { name, iconImageUrl, stars } = input
+      await setDoc(doc($firestore, 'users', userId), {
+        name,
+        iconImageUrl,
+        stars,
       })
 
       return {
@@ -51,10 +53,11 @@ export const userRepo = {
   }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      await $firestore.collection('users').doc(userId).update({
-        name: input.name,
-        iconImageUrl: input.iconImageUrl,
-        stars: input.stars,
+      const { name, iconImageUrl, stars } = input
+      await updateDoc(doc($firestore, 'users', userId), {
+        name,
+        iconImageUrl,
+        stars,
       })
 
       return {
@@ -76,15 +79,12 @@ export const userRepo = {
    * @returns
    */
   incrementStars: async ({ userId }: { userId: string }) => {
-    const { $firestore, $firebase } = useNuxtApp()
+    const { $firestore } = useNuxtApp()
     try {
-      await $firestore
-        .collection('users')
-        .doc(userId)
-        .update({
-          stars: $firebase.firestore.FieldValue.increment(1),
-          // stones: $firebase.firestore.FieldValue.increment(1),
-        })
+      await updateDoc(doc($firestore, 'users', userId), {
+        stars: increment(1),
+        // stones: increment(1),
+      })
 
       return {
         data: null,

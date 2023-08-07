@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useRoute, useRouter, useNuxtApp } from '#app'
+import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle, mdiChevronLeft } from '@mdi/js'
+import { serverTimestamp } from 'firebase/firestore'
 import { User, CreatePlayerInput } from '~/types/api'
 import {
   definePageMeta,
@@ -25,7 +26,6 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { $firebase } = useNuxtApp()
 const { loginedUser } = useUser()
 const { users, subscribePlayers } = usePlayers()
 const { room, subscribeRoomDeletion } = useRoom()
@@ -132,12 +132,13 @@ const createDefaultPlayer = (user: User): CreatePlayerInput => ({
   id: user.id,
   name: user.name,
   iconImageUrl: user.iconImageUrl,
-  createdAt: $firebase.firestore.FieldValue.serverTimestamp(),
+  createdAt: serverTimestamp(),
   secondHalfScore: 0,
 })
 
-onBeforeRouteLeave(async (_to, _from, next) => {
-  if (room.value.delete) {
+onBeforeRouteLeave(async (to, _from, next) => {
+  // 部屋削除時、ゲーム開始時は遷移を許可
+  if (room.value.delete || to.name === 'game-id') {
     next()
     return
   }
