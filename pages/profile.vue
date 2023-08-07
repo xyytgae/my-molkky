@@ -45,11 +45,13 @@ const rules = {
     value.length <= 8 || '8文字以内で入力してください',
 }
 
-const isFormInputsChanged = computed<boolean>(
-  () =>
-    formInputs.name !== loginedUser.value!.name ||
-    formInputs.image !== loginedUser.value!.iconImageUrl
-)
+const isFormInputsChanged = computed<boolean>(() => {
+  if (!loginedUser.value) return false
+  return (
+    formInputs.name !== loginedUser.value.name ||
+    formInputs.image !== loginedUser.value.iconImageUrl
+  )
+})
 
 const onSubmit = async () => {
   if (!isFormValid.value) return
