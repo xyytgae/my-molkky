@@ -38,11 +38,10 @@ export const playerRepo = {
     const { $firestore } = useNuxtApp()
 
     try {
-      await setDoc(doc($firestore, 'rooms', roomId), {
-        players: {
-          [player.id]: player,
-        },
-      })
+      await setDoc(
+        doc($firestore, 'rooms', roomId, 'players', player.id),
+        player
+      )
 
       return {
         data: player,
