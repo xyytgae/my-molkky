@@ -136,8 +136,9 @@ const createDefaultPlayer = (user: User): CreatePlayerInput => ({
   secondHalfScore: 0,
 })
 
-onBeforeRouteLeave(async (_to, _from, next) => {
-  if (room.value.delete) {
+onBeforeRouteLeave(async (to, _from, next) => {
+  // 部屋削除時、ゲーム開始時は遷移を許可
+  if (room.value.delete || to.name === 'game-id') {
     next()
     return
   }
