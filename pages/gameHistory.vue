@@ -20,7 +20,18 @@ const gameHistories = ref<GameHistory[]>([])
 const userId = loginedUser.value!.id
 const { data, success } = await gameHistoryRepo.get(userId)
 if (success) {
-  gameHistories.value = data
+  gameHistories.value = data.map((history) => {
+    return {
+      ...history,
+      users: history.users.sort((a, b) => {
+        return (
+          b.firstHalfScore +
+          b.secondHalfScore -
+          (a.firstHalfScore + a.secondHalfScore)
+        )
+      }),
+    }
+  })
 }
 </script>
 
