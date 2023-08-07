@@ -37,6 +37,7 @@ const formInputs = reactive<FormInputs>({
 const inputRef = ref<HTMLInputElement | null>(null)
 const formRef = ref<HTMLFormElement | null>(null)
 const isFormValid = ref<boolean>(false)
+const isUpdated = ref<boolean>(false)
 
 const rules = {
   required: (value: string) => !!value || '必須項目です',
@@ -44,11 +45,13 @@ const rules = {
     value.length <= 8 || '8文字以内で入力してください',
 }
 
-const isFormInputsChanged = computed<boolean>(
-  () =>
-    formInputs.name !== loginedUser.value!.name ||
-    formInputs.image !== loginedUser.value!.iconImageUrl
-)
+const isFormInputsChanged = computed<boolean>(() => {
+  if (!loginedUser.value) return false
+  return (
+    formInputs.name !== loginedUser.value.name ||
+    formInputs.image !== loginedUser.value.iconImageUrl
+  )
+})
 
 const onSubmit = async () => {
   if (!isFormValid.value) return
@@ -61,6 +64,7 @@ const onSubmit = async () => {
     userId: loginedUser.value!.id,
     input,
   })
+  isUpdated.value = true
   router.push('/rooms')
 }
 
@@ -83,7 +87,7 @@ const uploadImage = async (event: Event) => {
 }
 
 onBeforeRouteLeave(async (_to, _from, next) => {
-  if (!isFormInputsChanged.value) {
+  if (!isFormInputsChanged.value || isUpdated.value) {
     next()
     return
   }
@@ -163,11 +167,11 @@ watch(formRef, () => {
             />
 
             <v-btn
+              type="submit"
               class="mt-8"
               color="forest-shade"
               :disabled="!isFormValid"
               block
-              @click="onSubmit"
               >保存</v-btn
             >
           </v-form>
