@@ -243,7 +243,9 @@ watch(
 
 <template>
   <div
-    class="position-relative overflow-hidden"
+    class="position-relative overflow-hidden main-container"
+    role="button"
+    tabIndex="0"
     @mousedown="toggleOverlay"
     @touchstart="toggleOverlay"
   >
@@ -420,14 +422,16 @@ watch(
                   }"
                   @click="selectSkittle(firstSkittleRefs, index)"
                 >
-                  <input
-                    ref="firstSkittleRefs"
-                    v-model="selectedSkittles"
-                    class="d-none"
-                    type="checkbox"
-                    :value="firstSkittle"
-                  />
-                  <div class="score">{{ firstSkittle }}</div>
+                  <label for="firstSkittle">
+                    <input
+                      ref="firstSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
+                      type="checkbox"
+                      :value="firstSkittle"
+                    />
+                    <div class="score">{{ firstSkittle }}</div>
+                  </label>
                 </button>
               </div>
 
@@ -441,14 +445,16 @@ watch(
                   }"
                   @click="selectSkittle(secondSkittleRefs, index)"
                 >
-                  <input
-                    ref="secondSkittleRefs"
-                    v-model="selectedSkittles"
-                    class="d-none"
-                    type="checkbox"
-                    :value="secondSkittle"
-                  />
-                  <div class="score">{{ secondSkittle }}</div>
+                  <label for="secondSkittle">
+                    <input
+                      ref="secondSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
+                      type="checkbox"
+                      :value="secondSkittle"
+                    />
+                    <div class="score">{{ secondSkittle }}</div>
+                  </label>
                 </button>
               </div>
 
@@ -462,14 +468,16 @@ watch(
                   }"
                   @click="selectSkittle(thirdSkittleRefs, index)"
                 >
-                  <input
-                    ref="thirdSkittleRefs"
-                    v-model="selectedSkittles"
-                    class="d-none"
-                    type="checkbox"
-                    :value="thirdSkittle"
-                  />
-                  <div class="score">{{ thirdSkittle }}</div>
+                  <label for="thirdSkittle">
+                    <input
+                      ref="thirdSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
+                      type="checkbox"
+                      :value="thirdSkittle"
+                    />
+                    <div class="score">{{ thirdSkittle }}</div>
+                  </label>
                 </button>
               </div>
 
@@ -483,14 +491,16 @@ watch(
                   }"
                   @click="selectSkittle(fourthSkittleRefs, index)"
                 >
-                  <input
-                    ref="fourthSkittleRefs"
-                    v-model="selectedSkittles"
-                    class="d-none"
-                    type="checkbox"
-                    :value="fourthSkittle"
-                  />
-                  <div class="score">{{ fourthSkittle }}</div>
+                  <label for="fourthSkittle">
+                    <input
+                      ref="fourthSkittleRefs"
+                      v-model="selectedSkittles"
+                      class="d-none"
+                      type="checkbox"
+                      :value="fourthSkittle"
+                    />
+                    <div class="score">{{ fourthSkittle }}</div>
+                  </label>
                 </button>
               </div>
             </v-col>
@@ -525,6 +535,10 @@ watch(
 * {
   color: #38512f;
 }
+.main-container {
+  cursor: default;
+}
+
 .v-btn--disabled {
   opacity: 0.3;
 }

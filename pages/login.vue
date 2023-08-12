@@ -68,7 +68,7 @@ const handleGoogleLogin = async () => {
                   elevation="1"
                   @click="handleGoogleLogin"
                 >
-                  <img id="google-icon" src="/google.png" />
+                  <img id="google-icon" src="/google.png" alt="Google" />
                   Googleでログイン</v-btn
                 >
               </v-col>

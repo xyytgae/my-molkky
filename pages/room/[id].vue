@@ -237,14 +237,16 @@ roomRepo.get({ roomId: roomId.value }).then(async ({ data }) => {
                 elevation="1"
                 @click="chooseOrder(index)"
               >
-                <input
-                  ref="orderInputRefs"
-                  v-model="orderedPlayerIds"
-                  type="checkbox"
-                  class="d-none"
-                  :value="user.id"
-                  :disabled="!isOrderMode"
-                />
+                <label for="order-input">
+                  <input
+                    ref="orderInputRefs"
+                    v-model="orderedPlayerIds"
+                    type="checkbox"
+                    class="d-none"
+                    :value="user.id"
+                    :disabled="!isOrderMode"
+                  />
+                </label>
                 <div class="d-flex flex-no-wrap align-center">
                   <v-card-title class="ordered-number d-flex mx-2">
                     {{ user.order + 1 }}
