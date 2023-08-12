@@ -86,9 +86,11 @@ const uploadImage = async (event: Event) => {
                   :icon="mdiCloseCircle"
                   @click="formInputs.image = ''"
                 />
-                <v-avatar class="editing-user-icon">
-                  <img :src="formInputs.image" @click="selectImage" />
-                </v-avatar>
+                <button type="button" @click="selectImage">
+                  <v-avatar class="editing-user-icon">
+                    <img :src="formInputs.image" alt="プロフィール写真" />
+                  </v-avatar>
+                </button>
               </div>
 
               <v-icon
@@ -99,13 +101,15 @@ const uploadImage = async (event: Event) => {
                 @click="selectImage"
               />
             </div>
-            <input
-              ref="inputRef"
-              type="file"
-              class="d-none"
-              accept="image/*"
-              @change="uploadImage"
-            />
+            <label class="d-none" for="image-input">
+              <input
+                id="image-input"
+                ref="inputRef"
+                type="file"
+                accept="image/*"
+                @change="uploadImage"
+              />
+            </label>
             <v-text-field
               v-model="formInputs.name"
               label="名前"
