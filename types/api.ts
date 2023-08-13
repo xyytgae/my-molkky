@@ -64,7 +64,6 @@ export type RoomStatus =
 export type CreateRoomInput = {
   hostId: string
   name: string
-  password: string
   createdAt: Timestamp | FieldValue
   delete: boolean
   playerIds: Array<string>

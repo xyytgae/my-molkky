@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiLock, mdiHome, mdiPlus, mdiAccountCircle } from '@mdi/js'
+import { mdiHome, mdiPlus, mdiAccountCircle } from '@mdi/js'
 import {
   ref,
   onUnmounted,
@@ -11,7 +11,6 @@ import {
 } from '#imports'
 import { Room } from '~/types/api'
 import { isCreateRoomDialogOpen } from '~/fragments/CreateRoomDialog.vue'
-import { isPasswordInputDialogOpen } from '~/fragments/PasswordInputDialog.vue'
 import { useErrorDialog, ErrorDialogKey } from '~/compositions/useErrorDialog'
 
 definePageMeta({
@@ -25,21 +24,9 @@ const { loginedUser } = useUser()
 const { rooms, subscribe } = useRooms()
 
 const userId = ref<string>('')
-const errorMessages = ref<string>('')
-
-const selectedRoom = ref<Room | null>(null)
 
 const moveToRoomPage = (room: Room) => {
-  selectedRoom.value = { ...room }
-  if (
-    selectedRoom.value.password !== '' &&
-    userId.value !== selectedRoom.value.hostId
-  ) {
-    errorMessages.value = ''
-    isPasswordInputDialogOpen.value = true
-    return
-  }
-  router.push(`/room/${selectedRoom.value.id}`)
+  router.push(`/room/${room.id}`)
 }
 
 /**
@@ -90,7 +77,6 @@ onUnmounted(() => {
             >
               <v-card-title class="text-h6 my-auto">
                 {{ room.name }}
-                <v-icon v-if="room.password" :icon="mdiLock" />
               </v-card-title>
 
               <v-spacer />
@@ -111,10 +97,6 @@ onUnmounted(() => {
       <LazyCreateRoomDialog
         v-model="isCreateRoomDialogOpen"
         :user-id="userId"
-      />
-      <LazyPasswordInputDialog
-        v-model="isPasswordInputDialogOpen"
-        :selected-room="selectedRoom"
       />
       <LazyErrorDialog />
     </v-main>

@@ -13,7 +13,6 @@ const createDefaultRoom = (createdAt: FieldValue): Room => ({
   id: '',
   hostId: '',
   name: '',
-  password: '',
   createdAt,
   delete: false,
   playerIds: [],
