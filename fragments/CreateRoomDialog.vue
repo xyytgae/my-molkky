@@ -1,8 +1,7 @@
 <script lang="ts">
-import { mdiCloseCircle, mdiImage } from '@mdi/js'
 import { serverTimestamp } from 'firebase/firestore'
 import { ref, reactive, watch, inject } from '#imports'
-import { RoomStatus } from '~/types/api'
+import { RoomStatus, CreateRoomInput } from '~/types/api'
 import { roomRepo } from '~/apis/room'
 import { MESSAGES } from '~/constants/messages'
 import { ErrorDialogStore, ErrorDialogKey } from '~/compositions/useErrorDialog'
@@ -13,8 +12,6 @@ export const isCreateRoomDialogOpen = ref<boolean>(false)
 <script setup lang="ts">
 type FormInputs = {
   name: string
-  password: string
-  isPasswordSet: boolean
 }
 
 type Props = {
@@ -37,8 +34,6 @@ const { isErrorDialogOpen, errorMessage } = inject(
 
 const createDefaultFormInputs = (): FormInputs => ({
   name: '',
-  password: '',
-  isPasswordSet: false,
 })
 
 const formInputs = reactive<FormInputs>(createDefaultFormInputs())
@@ -48,10 +43,9 @@ const createRoom = async () => {
   emit('update:modelValue', false)
 
   const status: RoomStatus = 'NOT_STARTED'
-  const input = {
+  const input: CreateRoomInput = {
     name: formInputs.name,
     createdAt: serverTimestamp(),
-    password: formInputs.password,
     hostId: props.userId,
     delete: false,
     playerIds: [],
@@ -97,25 +91,6 @@ watch(
               <v-text-field
                 v-model="formInputs.name"
                 label="部屋の名前"
-                variant="underlined"
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-switch
-                v-model="formInputs.isPasswordSet"
-                :label="`パスワードを${
-                  formInputs.isPasswordSet ? '設定する' : '設定しない'
-                }`"
-                color="primary"
-              />
-            </v-col>
-            <v-col cols="12">
-              <v-text-field
-                v-model="formInputs.password"
-                :disabled="!formInputs.isPasswordSet"
-                label="Password"
-                :required="formInputs.isPasswordSet"
                 variant="underlined"
               />
             </v-col>
