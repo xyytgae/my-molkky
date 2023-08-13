@@ -99,7 +99,6 @@ erDiagram
     boolean delete
     string hostId
     string name
-    string password
     string[] playerIds
     string status
   }
