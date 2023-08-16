@@ -9,12 +9,6 @@ export type ApiResponse<T> = {
 /**
  * ユーザー
  */
-export type CreateUserInput = {
-  name: string
-  iconImageUrl: string
-  stars: number
-}
-
 export type UpdateUserInput = {
   name: string
   iconImageUrl: string
@@ -23,12 +17,15 @@ export type UpdateUserInput = {
 
 export type User = {
   id: string
-} & CreateUserInput
+  name: string
+  iconImageUrl: string
+  stars: number
+}
 
 /**
  * プレイヤー
  */
-export type CreatePlayerInput = {
+export type Player = {
   id: string
   order: number
   elimination: boolean
@@ -40,8 +37,6 @@ export type CreatePlayerInput = {
   name: string
   stars: number
 }
-
-export type Player = CreatePlayerInput
 
 /**
  * ゲームヒストリー
@@ -61,7 +56,8 @@ export type RoomStatus =
 /**
  * ルーム
  */
-export type CreateRoomInput = {
+export type Room = {
+  id: string
   hostId: string
   name: string
   createdAt: Timestamp | FieldValue
@@ -69,7 +65,3 @@ export type CreateRoomInput = {
   playerIds: Array<string>
   status: RoomStatus
 }
-
-export type Room = {
-  id: string
-} & CreateRoomInput

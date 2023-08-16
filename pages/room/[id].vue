@@ -2,7 +2,7 @@
 import { useRoute, useRouter } from '#app'
 import { mdiAccountCircle, mdiChevronLeft } from '@mdi/js'
 import { serverTimestamp } from 'firebase/firestore'
-import { User, CreatePlayerInput } from '~/types/api'
+import { User, Player } from '~/types/api'
 import {
   definePageMeta,
   ref,
@@ -123,7 +123,7 @@ const exitRoom = async () => {
   unsubscribeAll()
 }
 
-const createDefaultPlayer = (user: User): CreatePlayerInput => ({
+const createDefaultPlayer = (user: User): Player => ({
   scores: [],
   firstHalfScore: 0,
   elimination: false,

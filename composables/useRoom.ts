@@ -8,6 +8,7 @@ import {
 } from 'firebase/firestore'
 import { Room, ApiResponse } from '../types/api'
 import { playerRepo } from '~/apis/player'
+import { roomConverter } from '~/modules/firestoreDataConverter/models/room'
 
 const createDefaultRoom = (createdAt: FieldValue): Room => ({
   id: '',
@@ -32,12 +33,16 @@ export const useRoom = () => {
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
       const unsubscribe = await onSnapshot(
-        doc($firestore, 'rooms', roomId),
+        doc($firestore, 'rooms', roomId).withConverter(roomConverter),
         {
           includeMetadataChanges: true,
         },
         (doc) => {
-          const docData = doc.data() as Room
+          const docData = doc.data()
+          if (!doc.exists() || docData === undefined) {
+            router.push('/rooms')
+            return
+          }
           if (docData.delete) {
             playerRepo.delete({
               roomId,
@@ -71,12 +76,19 @@ export const useRoom = () => {
   ): Promise<ApiResponse<Unsubscribe | null>> => {
     try {
       const unsubscribe = await onSnapshot(
-        doc($firestore, 'rooms', roomId),
+        doc($firestore, 'rooms', roomId).withConverter(roomConverter),
         {
           includeMetadataChanges: true,
         },
         (doc) => {
-          const docData = doc.data() as Room
+          const docData = doc.data()
+          if (!doc.exists() || docData === undefined) {
+            return {
+              data: null,
+              success: false,
+              error: 'エラーが発生しました',
+            }
+          }
           room.value = docData
         }
       )

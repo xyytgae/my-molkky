@@ -17,7 +17,15 @@ module.exports = {
   ],
   plugins: ['vue', '@typescript-eslint', 'vuejs-accessibility'],
   rules: {
-    '@typescript-eslint/no-unused-vars': 'warn',
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      },
+    ],
     'vue/no-v-model-argument': 'off',
     'vue/html-self-closing': [
       'warn',

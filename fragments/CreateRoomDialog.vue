@@ -1,7 +1,7 @@
 <script lang="ts">
 import { serverTimestamp } from 'firebase/firestore'
 import { ref, reactive, watch, inject } from '#imports'
-import { RoomStatus, CreateRoomInput } from '~/types/api'
+import { RoomStatus, Room } from '~/types/api'
 import { roomRepo } from '~/apis/room'
 import { MESSAGES } from '~/constants/messages'
 import { ErrorDialogStore, ErrorDialogKey } from '~/compositions/useErrorDialog'
@@ -43,7 +43,8 @@ const createRoom = async () => {
   emit('update:modelValue', false)
 
   const status: RoomStatus = 'NOT_STARTED'
-  const input: CreateRoomInput = {
+  const input: Room = {
+    id: '',
     name: formInputs.name,
     createdAt: serverTimestamp(),
     hostId: props.userId,
