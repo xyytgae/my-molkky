@@ -56,7 +56,8 @@ export type RoomStatus =
 /**
  * ルーム
  */
-export type CreateRoomInput = {
+export type Room = {
+  id: string
   hostId: string
   name: string
   createdAt: Timestamp | FieldValue
@@ -64,7 +65,3 @@ export type CreateRoomInput = {
   playerIds: Array<string>
   status: RoomStatus
 }
-
-export type Room = {
-  id: string
-} & CreateRoomInput

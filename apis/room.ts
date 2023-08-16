@@ -1,6 +1,7 @@
 import { useNuxtApp } from '#app'
 import { setDoc, doc, deleteDoc, updateDoc, getDoc } from 'firebase/firestore'
-import { ApiResponse, Room, RoomStatus, CreateRoomInput } from '../types/api'
+import { ApiResponse, Room, RoomStatus } from '../types/api'
+import { roomConverter } from '~/modules/firestoreDataConverter/models/room'
 
 export const roomRepo = {
   /**
@@ -15,8 +16,17 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
-      const room = roomDoc.data() as Room
+      const roomDoc = await getDoc(
+        doc($firestore, 'rooms', roomId).withConverter(roomConverter)
+      )
+      if (!roomDoc.exists() || roomDoc.data() === undefined) {
+        return {
+          data: null,
+          success: false,
+          error: 'ルームが存在しません',
+        }
+      }
+      const room = roomDoc.data()
 
       return {
         data: room,
@@ -103,11 +113,14 @@ export const roomRepo = {
   create: async ({
     input,
   }: {
-    input: CreateRoomInput
+    input: Room
   }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      await setDoc(doc($firestore, 'rooms', input.hostId), input)
+      await setDoc(
+        doc($firestore, 'rooms', input.hostId).withConverter(roomConverter),
+        input
+      )
 
       return {
         data: input.hostId,
@@ -199,8 +212,17 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
-      const { playerIds } = roomDoc.data() as Room
+      const roomDoc = await getDoc(
+        doc($firestore, 'rooms', roomId).withConverter(roomConverter)
+      )
+      if (!roomDoc.exists() || roomDoc.data() === undefined) {
+        return {
+          data: [],
+          success: false,
+          error: 'ルームが存在しません',
+        }
+      }
+      const { playerIds } = roomDoc.data()
       const newPlayerIds = [...playerIds, playerId]
 
       await updateDoc(doc($firestore, 'rooms', roomId), {
@@ -264,8 +286,17 @@ export const roomRepo = {
   }): Promise<ApiResponse<Room['playerIds']>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const roomDoc = await getDoc(doc($firestore, 'rooms', roomId))
-      const { playerIds } = roomDoc.data() as Room
+      const roomDoc = await getDoc(
+        doc($firestore, 'rooms', roomId).withConverter(roomConverter)
+      )
+      if (!roomDoc.exists() || roomDoc.data() === undefined) {
+        return {
+          data: [],
+          success: false,
+          error: 'ルームが存在しません',
+        }
+      }
+      const { playerIds } = roomDoc.data()
       const newPlayerIds = [...playerIds]
       newPlayerIds.shift()
       await updateDoc(doc($firestore, 'rooms', roomId), {

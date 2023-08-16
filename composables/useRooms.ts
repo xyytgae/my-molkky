@@ -7,6 +7,7 @@ import {
   Unsubscribe,
 } from 'firebase/firestore'
 import { Room, ApiResponse } from '../types/api'
+import { roomConverter } from '~/modules/firestoreDataConverter/models/room'
 
 const add = (rooms: Room[], addedRoom: Room): Room[] => {
   const isNotAdded = !rooms.find((room) => room.id === addedRoom.id)
@@ -37,13 +38,13 @@ export const useRooms = () => {
     try {
       rooms.value = []
       const unsubscribe = await onSnapshot(
-        query(collection($firestore, 'rooms'), orderBy('createdAt', 'desc')),
+        query(
+          collection($firestore, 'rooms'),
+          orderBy('createdAt', 'desc')
+        ).withConverter(roomConverter),
         (roomsSnapShot) => {
           roomsSnapShot.docChanges().forEach((change) => {
-            const room: Room = {
-              id: change.doc.id,
-              ...(change.doc.data() as Omit<Room, 'id'>),
-            }
+            const room = change.doc.data()
 
             switch (change.type) {
               case 'added':
