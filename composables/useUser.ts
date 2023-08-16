@@ -8,6 +8,7 @@ import {
   onAuthStateChanged,
 } from 'firebase/auth'
 import { User } from '../types/api'
+import { userConverter } from '~~/modules/firestoreDataConverter/models/user'
 
 // TODO: 型修正
 type ApiResponse = {
@@ -21,9 +22,11 @@ export const useUser = () => {
 
   const getUser = async (uid: string): Promise<ApiResponse> => {
     try {
-      const userSnapshot = await getDoc(doc($firestore, 'users', uid))
+      const userSnapshot = await getDoc(
+        doc($firestore, 'users', uid).withConverter(userConverter)
+      )
       if (userSnapshot.exists()) {
-        loginedUser.value = { ...userSnapshot.data(), id: uid } as User
+        loginedUser.value = { ...userSnapshot.data() }
       } else {
         loginedUser.value = {
           name: '',

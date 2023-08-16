@@ -1,6 +1,7 @@
 import { useNuxtApp } from '#app'
 import { setDoc, doc, updateDoc, increment } from 'firebase/firestore'
-import { ApiResponse, CreateUserInput, UpdateUserInput } from '../types/api'
+import { ApiResponse, User, UpdateUserInput } from '../types/api'
+import { userConverter } from '~/modules/firestoreDataConverter/models/user'
 
 export const userRepo = {
   /**
@@ -14,16 +15,14 @@ export const userRepo = {
     input,
   }: {
     userId: string
-    input: CreateUserInput
+    input: User
   }): Promise<ApiResponse<string | null>> => {
     const { $firestore } = useNuxtApp()
     try {
-      const { name, iconImageUrl, stars } = input
-      await setDoc(doc($firestore, 'users', userId), {
-        name,
-        iconImageUrl,
-        stars,
-      })
+      await setDoc(
+        doc($firestore, 'users', userId).withConverter(userConverter),
+        input
+      )
 
       return {
         data: userId,

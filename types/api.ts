@@ -9,12 +9,6 @@ export type ApiResponse<T> = {
 /**
  * ユーザー
  */
-export type CreateUserInput = {
-  name: string
-  iconImageUrl: string
-  stars: number
-}
-
 export type UpdateUserInput = {
   name: string
   iconImageUrl: string
@@ -23,7 +17,10 @@ export type UpdateUserInput = {
 
 export type User = {
   id: string
-} & CreateUserInput
+  name: string
+  iconImageUrl: string
+  stars: number
+}
 
 /**
  * プレイヤー
