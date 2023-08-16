@@ -7,6 +7,7 @@ import {
   orderBy,
 } from 'firebase/firestore'
 import { Player, ApiResponse } from '../types/api'
+import { playerConverter } from '~/modules/firestoreDataConverter/models/player'
 
 const add = (users: Player[], addedUser: Player): Player[] => {
   const isNotAdded = !users.find((user) => user.id === addedUser.id)
@@ -35,15 +36,14 @@ export const usePlayers = () => {
       users.value = []
       const unsubscribe = await onSnapshot(
         query(
-          collection($firestore, 'rooms', roomId, 'players'),
+          collection($firestore, 'rooms', roomId, 'players').withConverter(
+            playerConverter
+          ),
           orderBy('order', 'asc')
         ),
         (usersSnapShot) => {
           usersSnapShot.docChanges().forEach((change) => {
-            const user: Player = {
-              id: change.doc.id,
-              ...(change.doc.data() as Omit<Player, 'id'>),
-            }
+            const user = change.doc.data()
 
             switch (change.type) {
               case 'added':

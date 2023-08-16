@@ -11,15 +11,10 @@ import {
   getDocs,
   orderBy,
 } from 'firebase/firestore'
-import {
-  ApiResponse,
-  User,
-  Player,
-  RoomStatus,
-  CreatePlayerInput,
-} from '../types/api'
+import { ApiResponse, User, Player, RoomStatus } from '../types/api'
 import { calculateScore } from '../modules/calculateScore'
 import { roomRepo } from './room'
+import { playerConverter } from '~/modules/firestoreDataConverter/models/player'
 
 export const playerRepo = {
   /**
@@ -33,13 +28,15 @@ export const playerRepo = {
     player,
   }: {
     roomId: string
-    player: CreatePlayerInput
+    player: Player
   }): Promise<ApiResponse<User | null>> => {
     const { $firestore } = useNuxtApp()
 
     try {
       await setDoc(
-        doc($firestore, 'rooms', roomId, 'players', player.id),
+        doc($firestore, 'rooms', roomId, 'players', player.id).withConverter(
+          playerConverter
+        ),
         player
       )
 
@@ -143,9 +140,18 @@ export const playerRepo = {
 
     try {
       const userDoc = await getDoc(
-        doc($firestore, 'rooms', roomId, 'players', playerId)
+        doc($firestore, 'rooms', roomId, 'players', playerId).withConverter(
+          playerConverter
+        )
       )
-      const docData = userDoc.data() as Player
+      const docData = userDoc.data()
+      if (!userDoc.exists() || docData === undefined) {
+        return {
+          data: null,
+          success: false,
+          error: 'ユーザーが見つかりませんでした',
+        }
+      }
       const userScores = docData.scores
       const lastZeroIndex = userScores.lastIndexOf(0)
 
@@ -171,7 +177,9 @@ export const playerRepo = {
       // 1人を除き、失格になればゲームを終了させる
       const playerDoc = await getDocs(
         query(
-          collection($firestore, 'rooms', roomId, 'players'),
+          collection($firestore, 'rooms', roomId, 'players').withConverter(
+            playerConverter
+          ),
           where('elimination', '==', false)
         )
       )
@@ -205,13 +213,16 @@ export const playerRepo = {
     try {
       const playerDoc = await getDocs(
         query(
-          collection($firestore, 'rooms', roomId, 'players'),
+          collection($firestore, 'rooms', roomId, 'players').withConverter(
+            playerConverter
+          ),
           orderBy('firstHalfScore', 'desc')
         )
       )
       const players: Player[] = []
       playerDoc.forEach((doc) => {
-        players.push({ ...doc.data(), id: doc.id } as Player)
+        const player = doc.data()
+        players.push(player)
       })
 
       const promises = players.map(async (player) => {

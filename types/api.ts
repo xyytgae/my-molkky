@@ -25,7 +25,7 @@ export type User = {
 /**
  * プレイヤー
  */
-export type CreatePlayerInput = {
+export type Player = {
   id: string
   order: number
   elimination: boolean
@@ -37,8 +37,6 @@ export type CreatePlayerInput = {
   name: string
   stars: number
 }
-
-export type Player = CreatePlayerInput
 
 /**
  * ゲームヒストリー
