@@ -40,7 +40,7 @@ export const useRoom = () => {
         (doc) => {
           const docData = doc.data()
           if (!doc.exists() || docData === undefined) {
-            router.push('/rooms')
+            router.push('/mode')
             return
           }
           if (docData.delete) {
@@ -48,7 +48,7 @@ export const useRoom = () => {
               roomId,
               playerId: userId,
             })
-            router.push('/rooms')
+            router.push('/mode')
           }
           if (docData.status !== 'NOT_STARTED') {
             router.push(`/game/${roomId}`)

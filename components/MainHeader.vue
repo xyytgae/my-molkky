@@ -8,7 +8,7 @@ const LINKS: Link[] = [
   {
     title: 'ルーム',
     icon: 'custom:skittles',
-    url: '/rooms',
+    url: '/mode',
   },
   {
     title: 'プロフィール変更',

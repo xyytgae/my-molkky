@@ -11,6 +11,6 @@ export default defineNuxtRouteMiddleware(async () => {
   if (isNotRegistered) {
     return navigateTo('/register')
   } else if (loginedUser.value !== null) {
-    return navigateTo('/rooms')
+    return navigateTo('/mode')
   }
 })

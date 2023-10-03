@@ -57,7 +57,7 @@ const finish = async () => {
     })
     router.push(`/room/${roomId.value}`)
   } else {
-    router.push('/rooms')
+    router.push('/mode')
   }
 }
 

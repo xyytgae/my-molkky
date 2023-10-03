@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from '#app'
-import { mdiHome, mdiPlus, mdiAccountCircle } from '@mdi/js'
+import { mdiPlus, mdiAccountCircle, mdiChevronLeft } from '@mdi/js'
 import {
   ref,
   onUnmounted,
@@ -104,7 +104,7 @@ onUnmounted(() => {
     <v-footer app fixed padless>
       <v-card tile flat width="100%">
         <v-card-actions class="pa-0">
-          <v-btn :icon="mdiHome" size="large" to="/" />
+          <v-btn :icon="mdiChevronLeft" size="large" to="/mode" />
 
           <v-spacer />
 

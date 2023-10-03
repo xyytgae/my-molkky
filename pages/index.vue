@@ -91,7 +91,7 @@ const router = useRouter()
                   variant="elevated"
                   class="mx-auto my-4 start-button"
                   size="large"
-                  @click="router.push('/rooms')"
+                  @click="router.push('/mode')"
                   >START</v-btn
                 >
               </v-card-actions>
