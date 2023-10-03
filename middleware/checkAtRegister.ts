@@ -6,6 +6,6 @@ export default defineNuxtRouteMiddleware(async () => {
   if (loginedUser.value === null) {
     return navigateTo('/login')
   } else if (loginedUser.value.name !== '') {
-    return navigateTo('/rooms')
+    return navigateTo('/mode')
   }
 })

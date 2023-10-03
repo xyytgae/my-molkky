@@ -42,7 +42,7 @@ const onSubmit = async () => {
     userId: loginedUser.value!.id,
     input,
   })
-  router.push('/rooms')
+  router.push('/mode')
 }
 
 const selectImage = () => {

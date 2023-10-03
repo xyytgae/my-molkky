@@ -17,14 +17,14 @@ const handleGuestLogin = async (email: string, password: string) => {
   const { success } = await guestLogin(email, password)
   if (success) {
     isOpenedOverlay.value = false
-    router.push('/rooms')
+    router.push('/mode')
   }
 }
 
 const handleGoogleLogin = async () => {
   const { success } = await googleLogin()
   if (success) {
-    router.push('/rooms')
+    router.push('/mode')
   }
 }
 </script>

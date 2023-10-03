@@ -65,7 +65,7 @@ const onSubmit = async () => {
     input,
   })
   isUpdated.value = true
-  router.push('/rooms')
+  router.push('/mode')
 }
 
 const selectImage = () => {
